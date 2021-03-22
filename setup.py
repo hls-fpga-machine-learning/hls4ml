@@ -35,8 +35,7 @@ setup(name='hls4ml',
         'profiling': [
             'pandas',
             'seaborn',
-            'matplotlib'
-        ]
+            'matplotlib']
       },
       scripts=['scripts/hls4ml'],
       include_package_data=True,

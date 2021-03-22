@@ -242,3 +242,97 @@ def config_from_keras_model(model, granularity='model', default_precision='ap_fi
         config['LayerName'] = name_config
 
     return config
+
+
+def config_from_pytorch_model(model, granularity='model', default_precision='ap_fixed<16,6>', default_reuse_factor=1):
+    """Generate configuration dictionary from a Pytorch model.
+    
+    Parameters
+    ----------
+    model : Pytorch model object.
+        Model to be converted to hls model object.
+    granularity : string, optional
+        How granular you want the configuration to be.
+    default_precision : string, optional
+        Defines the precsion of your inputs, outputs, weights and biases.
+        It is denoted by ap_fixed<X,Y>, where Y is the number of bits representing 
+        the signed number above the binary point (i.e. the integer part),
+        and X is the total number of bits. Additionally, integers in fixed precision 
+        data type (ap_int<N>, where N is a bit-size from 1 to 1024) can also be used. 
+    default_reuse_factor : int, optional
+        Reuse factor for hls model
+        
+    Returns
+    -------
+    config : dict
+        configuration dictionary to be used in Pytorch converter.
+        
+    See Also
+    --------
+    hls4ml.config_from_keras_model, hls4ml.convert_from_onnx_model
+    
+    Examples
+    --------
+    >>> import hls4ml
+    >>> config = hls4ml.utils.config_from_keras_model(model, granularity='model')
+    >>> hls_model = hls4ml.converters.convert_from_keras_model(model, hls_config=config)
+
+    """
+    
+    config = {}
+
+    model_config = {}
+    model_config['Precision'] = default_precision
+    model_config['ReuseFactor'] = default_reuse_factor
+    model_config['Strategy'] = 'Latency'
+
+    config['Model'] = model_config
+    
+    return config
+
+
+def config_from_onnx_model(model, granularity='model', default_precision='ap_fixed<16,6>', default_reuse_factor=1):
+    """Generate configuration dictionary from an ONNX model.
+    
+    Parameters
+    ----------
+    model : ONNX model object.
+        Model to be converted to hls model object.
+    granularity : string, optional
+        How granular you want the configuration to be.
+    default_precision : string, optional
+        Defines the precsion of your inputs, outputs, weights and biases.
+        It is denoted by ap_fixed<X,Y>, where Y is the number of bits representing 
+        the signed number above the binary point (i.e. the integer part),
+        and X is the total number of bits. Additionally, integers in fixed precision 
+        data type (ap_int<N>, where N is a bit-size from 1 to 1024) can also be used. 
+    default_reuse_factor : int, optional
+        Reuse factor for hls model
+        
+    Returns
+    -------
+    config : dict
+        configuration dictionary to be used in ONNX converter.
+        
+    See Also
+    --------
+    hls4ml.config_from_keras_model, hls4ml.convert_from_pytorch_model
+    
+    Examples
+    --------
+    >>> import hls4ml
+    >>> config = hls4ml.utils.config_from_keras_model(model, granularity='model')
+    >>> hls_model = hls4ml.converters.convert_from_keras_model(model, hls_config=config)
+
+    """
+    
+    config = {}
+
+    model_config = {}
+    model_config['Precision'] = default_precision
+    model_config['ReuseFactor'] = default_reuse_factor
+    model_config['Strategy'] = 'Latency'
+
+    config['Model'] = model_config
+    
+    return config
