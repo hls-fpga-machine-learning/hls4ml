@@ -387,6 +387,7 @@ class VivadoBackend(Backend):
         self.register_templates('ParametrizedActivation' , param_activ_function_template, activ_config_template, activ_include_list)
         self.register_templates('PReLU'                  , param_activ_function_template, activ_config_template, activ_include_list)
         self.register_templates('Softmax'                , activ_function_template,       softmax_config_template, activ_include_list)
+        self.register_templates('TernaryTanh'            , activ_function_template,       activ_config_template, activ_include_list)
         self.register_templates('Pooling1D'              , pooling1d_function_template,   pooling1d_config_template, pooling_include_list)
         self.register_templates('Pooling2D'              , pooling2d_function_template,   pooling2d_config_template, pooling_include_list)
         self.register_templates('GlobalPooling1D'        , global_pooling1d_function_template,   global_pooling1d_config_template, pooling_include_list)

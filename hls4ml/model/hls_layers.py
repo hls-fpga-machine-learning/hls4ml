@@ -1343,6 +1343,10 @@ class Softmax(Activation):
             else:
                 self.set_attr('implementation', self.model.config.get_strategy(self).lower())
 
+class TernaryTanh(Activation):
+    def initialize(self):
+        super(TernaryTanh, self).initialize()
+
 class BatchNormalization(Layer):
     def initialize(self):
         inp = self.get_input_variable()
@@ -1787,6 +1791,7 @@ layer_map = {
     'ELU'                    : ParametrizedActivation,
     'PReLU'                  : PReLU,
     'Softmax'                : Softmax,
+    'TernaryTanh'            : TernaryTanh,
     'Reshape'                : Reshape,
     'Dense'                  : Dense,
     'BinaryDense'            : Dense,

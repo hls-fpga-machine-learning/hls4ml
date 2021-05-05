@@ -346,6 +346,8 @@ class HLSModel(object):
 
         if next_node is not None:
             next_node.inputs[0] = node.outputs[0]
+        else:
+            self.outputs[0] = node.outputs[0]
 
         new_graph = OrderedDict()
         for k, v in self.graph.items():

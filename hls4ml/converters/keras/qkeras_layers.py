@@ -51,38 +51,39 @@ def parse_qactivation_layer(keras_layer, input_names, input_shapes, data_reader,
     layer = parse_default_keras_layer(keras_layer, input_names)
 
     activation_config = keras_layer['config']['activation']
-    if isinstance(activation_config, str):
-        quantizer_obj = get_quantizer(activation_config)
-
-    if isinstance(activation_config, str):
-        quantizer_obj = get_quantizer(activation_config)
-        activation_config = {}
-        # some activations are classes 
-        if hasattr(quantizer_obj, 'get_config'):
-            print("Name: " + quantizer_obj.__class__.__name__)
-            activation_config['class_name'] = quantizer_obj.__class__.__name__
-            if activation_config['class_name'] == 'ternary' or activation_config['class_name'] == 'binary':
-                activation_config['class_name'] += '_tanh'
-            activation_config['config'] = quantizer_obj.get_config()
-        # some activation quantizers are just functions with no config
+    quantizer_obj = get_quantizer(activation_config)
+    activation_config = {}
+    # some activations are classes 
+    if hasattr(quantizer_obj, 'get_config'):
+        activation_config['class_name'] = quantizer_obj.__class__.__name__
+        if activation_config['class_name'] == 'ternary' or activation_config['class_name'] == 'binary':
+            activation_config['class_name'] += '_tanh'
+        activation_config['config'] = quantizer_obj.get_config()
+    # some activation quantizers are just functions with no config
+    else:
+        activation_config['config'] = {}
+        if 'binary' in quantizer_obj.__name__:
+            activation_config['class_name'] = 'binary_tanh'
+            activation_config['config']['bits'] = 1
+            activation_config['config']['integer'] = 1
+        elif 'ternary' in quantizer_obj.__name__:
+            activation_config['class_name'] = 'ternary_tanh'
+            activation_config['config']['bits'] = 2
+            activation_config['config']['integer'] = 2
         else:
-            activation_config['config'] = {}
-            if 'binary' in quantizer_obj.__name__:
-                activation_config['class_name'] = 'binary_tanh'
-                activation_config['config']['bits'] = 1
-                activation_config['config']['integer'] = 1
-            elif 'ternary' in quantizer_obj.__name__:
-                activation_config['class_name'] = 'ternary_tanh'
-                activation_config['config']['bits'] = 2
-                activation_config['config']['integer'] = 2
-            else:
-                activation_config['class_name'] = 'unknown'
+            activation_config['class_name'] = 'unknown'
     
     if activation_config['class_name'] not in supported_activations:
         raise Exception('Unsupported QKeras activation: {}'.format(activation_config['class_name']))
 
 
-    layer['class_name'] = 'Activation'
+    if activation_config['class_name'] == 'ternary_tanh':
+        layer['class_name'] = 'TernaryTanh'
+        layer['threshold'] = activation_config.get('config', {}).get('threshold', 1./3)
+        if layer['threshold'] is None:
+            layer['threshold'] = 1./3 # the default ternary tanh threshold for QKeras
+    else:
+        layer['class_name'] = 'Activation'
     if activation_config['class_name'] == 'quantized_bits':
         activation_config['class_name'] = 'linear'
     layer['activation'] = activation_config['class_name'].replace('quantized_', '')

@@ -313,7 +313,7 @@ def keras_to_hls(config):
 
         print('Layer name: {}, layer type: {}, current shape: {}'.format(layer['name'], layer['class_name'], input_shapes))
         layer_list.append( layer )
-        if 'activation' in layer and layer['class_name'] not in ['Activation', 'LeakyReLU', 'ThresholdedReLU', 'ELU', 'PReLU', 'Softmax']:# + qkeras_layers:
+        if 'activation' in layer and layer['class_name'] not in ['Activation', 'LeakyReLU', 'ThresholdedReLU', 'ELU', 'PReLU', 'Softmax', 'TernaryTanh']:# + qkeras_layers:
             act_layer = {}
             act_layer['name'] = layer['name'] + '_' + layer['activation']
             act_layer['activation'] = layer['activation']
