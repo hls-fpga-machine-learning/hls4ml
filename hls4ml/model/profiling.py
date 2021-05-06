@@ -214,6 +214,7 @@ def weights_hlsmodel(model, fmt='longform', plot='boxplot'):
             w = abs(w[w != 0])
             n = len(w)
             if n == 0:
+                print(f'Weights for {name} are only zeros, ignoring.')
                 break
             if fmt == 'longform':
                 data['x'].extend(w.tolist())
@@ -273,6 +274,10 @@ def activations_hlsmodel(model, X, fmt='summary', plot='boxplot'):
             y = trace[layer].flatten()
             y = abs(y[y != 0])
 
+            if len(y) == 0:
+                print(f'Activations for {layer} are only zeros, ignoring.')
+                continue
+
             data.append(array_to_summary(y, fmt=plot))
             data[-1]['weight'] = layer
 
@@ -294,6 +299,7 @@ def weights_keras(model, fmt='longform', plot='boxplot'):
             w = abs(w[w != 0])
             n = len(w)
             if n == 0:
+                print(f'Weights for {name} are only zeros, ignoring.')
                 break
             if fmt == 'longform':
                 data['x'].extend(w.tolist())
@@ -324,6 +330,9 @@ def activations_keras(model, X, fmt='longform', plot='boxplot'):
         if not isinstance(layer, keras.layers.InputLayer):
             y = _get_output(layer, X, model.input).flatten()
             y = abs(y[y != 0])
+            if len(y) == 0:
+                print(f'Activations for {layer.name} are only zeros, ignoring.')
+                continue
             if fmt == 'longform':
                 data['x'].extend(y.tolist())
                 data['weight'].extend([layer.name for i in range(len(y))])
@@ -353,6 +362,7 @@ def weights_torch(model, fmt='longform', plot='boxplot'):
                 w = abs(w[w != 0])
                 n = len(w)
                 if n == 0:
+                    print(f'Weights for {name} are only zeros, ignoring.')
                     break
                 if fmt == 'longform':
                     data['x'].extend(w.tolist())
@@ -384,6 +394,9 @@ def activations_torch(model, X, fmt='longform', plot='boxplot'):
         print("   {}".format(lname))
         y = pm(X).flatten().detach().numpy()
         y = abs(y[y != 0])
+        if len(y) == 0:
+            print(f'Activations for {lname} are only zeros, ignoring.')
+            continue
         if fmt == 'longform':
             data['x'].extend(y.tolist())
             data['weight'].extend([lname for _ in range(len(y))])
