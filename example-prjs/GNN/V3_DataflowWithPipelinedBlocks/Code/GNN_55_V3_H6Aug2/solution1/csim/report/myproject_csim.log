@@ -1,0 +1,598 @@
+INFO: [SIM 2] *************** CSIM start ***************
+INFO: [SIM 4] CSIM will launch GCC as the compiler.
+   Compiling ../../../myproject_test.cpp in debug mode
+   Compiling ../../../myproject.cpp in debug mode
+   Generating csim.exe
+Input Network Dense Batch
+3
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+1st Edge Network tanh layer Dense Batch
+14
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+1st Edge Newtork Sigmoid Dense Batch
+4
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+Node Newtork 1st Tanh Dense Batch
+21
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+Node Newtork 2nd Tanh Dense Batch
+4
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+2nd Edge Network tanh layer Dense Batch
+14
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+2nd Edge Network sigmoid layer Dense Batch
+4
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+e = 
+0.730469 (expected 0.728516, 0.268097 percent difference)
+0 (expected 0, 0 percent difference)
+0.358398 (expected 0.192383, 86.2944 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0.99707 (expected 0.994141, 0.294695 percent difference)
+0.0205078 (expected 0.000976563, 2000 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0.0244141 (expected 0.0234375, 4.16667 percent difference)
+0.0302734 (expected 0.00585938, 416.667 percent difference)
+0.938477 (expected 0.871094, 7.73543 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0.995117 (expected 0.995117, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0.962891 (expected 0.955078, 0.817996 percent difference)
+0.857422 (expected 0.758789, 12.9987 percent difference)
+0 (expected 0, 0 percent difference)
+0.417969 (expected 0.119141, 250.82 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0.995117 (expected 0.993164, 0.196657 percent difference)
+0.0078125 (expected 0.00390625, 100 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0.0400391 (expected 0.0175781, 127.778 percent difference)
+0.189453 (expected 0.00976563, 1840 percent difference)
+0.714844 (expected 0.819336, -12.7533 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0.994141 (expected 0.991211, 0.295567 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0.963867 (expected 0.961914, 0.203046 percent difference)
+0.819336 (expected 0.796875, 2.81863 percent difference)
+0.00195313 (expected 0, inf percent difference)
+0.5 (expected 0.133789, 273.723 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0.998047 (expected 0.993164, 0.491642 percent difference)
+0.327148 (expected 0.015625, 1993.75 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0.0400391 (expected 0.0078125, 412.5 percent difference)
+0.0576172 (expected 0.0390625, 47.5 percent difference)
+0.876953 (expected 0.787109, 11.4144 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0.995117 (expected 0.992188, 0.295276 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0.976563 (expected 0.967773, 0.908174 percent difference)
+0.821289 (expected 0.799805, 2.6862 percent difference)
+0.00585938 (expected 0.00488281, 20 percent difference)
+0.0449219 (expected 0.0703125, -36.1111 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0.990234 (expected 0.918945, 7.7577 percent difference)
+0.864258 (expected 0.166016, 420.588 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0.00585938 (expected 0.00292969, 100 percent difference)
+0.717773 (expected 0.564453, 27.1626 percent difference)
+0.826172 (expected 0.65625, 25.8929 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0.994141 (expected 0.990234, 0.394477 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0.824219 (expected 0.867188, -4.95495 percent difference)
+
+INFO: [SIM 1] CSim done with 0 errors.
+INFO: [SIM 3] *************** CSIM finish ***************

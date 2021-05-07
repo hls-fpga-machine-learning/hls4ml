@@ -1,0 +1,525 @@
+#===- Makefile.sysc.rules ----------------------------------*- Makefile -*--===#
+#
+# Makefile rules for autopilot SystemC simulation flow
+#
+#-  (c) Copyright 2011-2019 Xilinx, Inc. All rights reserved.
+#-
+#-  This file contains confidential and proprietary information
+#-  of Xilinx, Inc. and is protected under U.S. and
+#-  international copyright and other intellectual property
+#-  laws.
+#-
+#-  DISCLAIMER
+#-  This disclaimer is not a license and does not grant any
+#-  rights to the materials distributed herewith. Except as
+#-  otherwise provided in a valid license issued to you by
+#-  Xilinx, and to the maximum extent permitted by applicable
+#-  law: (1) THESE MATERIALS ARE MADE AVAILABLE "AS IS" AND
+#-  WITH ALL FAULTS, AND XILINX HEREBY DISCLAIMS ALL WARRANTIES
+#-  AND CONDITIONS, EXPRESS, IMPLIED, OR STATUTORY, INCLUDING
+#-  BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, NON-
+#-  INFRINGEMENT, OR FITNESS FOR ANY PARTICULAR PURPOSE; and
+#-  (2) Xilinx shall not be liable (whether in contract or tort,
+#-  including negligence, or under any other theory of
+#-  liability) for any loss or damage of any kind or nature
+#-  related to, arising under or in connection with these
+#-  materials, including for any direct, or any indirect,
+#-  special, incidental, or consequential loss or damage
+#-  (including loss of data, profits, goodwill, or any type of
+#-  loss or damage suffered as a result of any action brought
+#-  by a third party) even if such damage or loss was
+#-  reasonably foreseeable or Xilinx had been advised of the
+#-  possibility of the same.
+#-
+#-  CRITICAL APPLICATIONS
+#-  Xilinx products are not designed or intended to be fail-
+#-  safe, or for use in any application requiring fail-safe
+#-  performance, such as life-support or safety devices or
+#-  systems, Class III medical devices, nuclear facilities,
+#-  applications related to the deployment of airbags, or any
+#-  other applications that could lead to death, personal
+#-  injury, or severe property or environmental damage
+#-  (individually and collectively, "Critical
+#-  Applications"). Customer assumes the sole risk and
+#-  liability of any use of Xilinx products in Critical
+#-  Applications, subject only to applicable laws and
+#-  regulations governing limitations on product liability.
+#-
+#-  THIS COPYRIGHT NOTICE AND DISCLAIMER MUST BE RETAINED AS
+#-  PART OF THIS FILE AT ALL TIMES. 
+#- ************************************************************************
+
+#
+#===------------------------------------------------------------------------===#
+
+
+# Required user variables:
+#TARGET
+
+# Optional variables:
+#ExtraCFlags
+#ExtraCXXFlags
+#ExtraLDFlags
+
+# Users may have their own SystemC enviornments, by defineing the
+# following variables
+#HLS_SYSTEMC_HOME
+#HLS_SYSTEMC_LIB_PATH
+
+### Common shell commands.
+Echo = @echo
+MKDIR = mkdir -p
+Make = make
+MV = mv
+RM = rm
+CP = cp
+CD = cd
+
+### Directory for object files.
+ifndef ObjDir
+  ObjDir := obj
+endif
+
+### Switch for displaying detailed information.
+#VERBOSE = 1
+
+
+ifdef VERBOSE
+  Verb :=
+else
+  Verb := @
+endif
+
+ifndef AUTOPILOT_TOOL
+  AUTOPILOT_TOOL = "$(shell vivado_hls -proot)/tools"
+endif
+
+ifndef AUTOPILOT_TECH
+  AUTOPILOT_TECH = "$(AUTOPILOT_ROOT)/common/technology"
+endif
+
+ifndef HLS_SYSTEMC_HOME
+  HLS_SYSTEMC_HOME = $(AUTOPILOT_TOOL)/systemc
+endif
+
+ifndef HLS_SYSTEMC_LIB_PATH
+  ifeq ($(AUTOPILOT_MACH),win64)
+    ifdef __USE_CLANG__
+      HLS_SYSTEMC_LIB_PATH = $(AUTOPILOT_TOOL)/systemc/clang
+    else
+      HLS_SYSTEMC_LIB_PATH = $(AUTOPILOT_TOOL)/systemc/gcc
+    endif
+  else
+    HLS_SYSTEMC_LIB_PATH = $(AUTOPILOT_TOOL)/systemc/lib
+  endif
+endif
+
+ifndef HLS_FPO_LIB_PATH
+   HLS_FPO_LIB_PATH = $(AUTOPILOT_TOOL)/fpo_v7_0
+endif
+
+ifndef HLS_OPENCV_LIB_PATH
+  ifneq ($(AUTOPILOT_MACH),win64)
+    #ifdef __USE_CLANG__
+    #  HLS_OPENCV_LIB_PATH = $(AUTOPILOT_TOOL)/opencv/opencv_clang
+    #else
+      HLS_OPENCV_LIB_PATH = $(AUTOPILOT_TOOL)/opencv/opencv_gcc
+    #endif
+  else
+    HLS_OPENCV_LIB_PATH = $(AUTOPILOT_TOOL)/opencv
+  endif
+endif
+
+ifndef HLS_FFT_LIB_PATH
+  HLS_FFT_LIB_PATH = $(AUTOPILOT_TOOL)/fft_v9_1
+endif
+
+ifndef HLS_FIR_LIB_PATH
+  HLS_FIR_LIB_PATH = $(AUTOPILOT_TOOL)/fir_v7_0
+endif
+
+ifndef HLS_DDS_LIB_PATH
+  HLS_DDS_LIB_PATH = $(AUTOPILOT_TOOL)/dds_v6_0
+endif
+
+ifndef HLS_MATHHLS_LIB_PATH
+  HLS_MATHHLS_LIB_PATH = $(AUTOPILOT_ROOT)/$(AUTOPILOT_MACH)/lib/csim
+endif
+
+
+ifdef __USE_CLANG__
+ifdef AP_CLANG_PATH
+CC      = $(AP_CLANG_PATH)/clang
+CXX     = $(AP_CLANG_PATH)/clang++
+else
+CC      = clang
+CXX     = clang++
+endif
+else
+ifdef AP_GCC_PATH
+CC      = $(AP_GCC_PATH)/gcc
+CXX     = $(AP_GCC_PATH)/g++
+else
+CC	= gcc
+CXX	= g++
+endif
+endif
+
+ifdef __USE_CLANG_M32__
+CC      += -m32
+CXX     += -m32
+endif
+
+LINUX	=
+INCPATH	= .
+SRCPATH = .
+BINPATH = .
+SYSC = $(HLS_SYSTEMC_HOME)
+SYSCINC = $(SYSC)/include
+SYSCLIB = $(HLS_SYSTEMC_LIB_PATH)
+FPOLIB = $(HLS_FPO_LIB_PATH)
+OPENCVLIB = $(HLS_OPENCV_LIB_PATH)
+FFTLIB = $(HLS_FFT_LIB_PATH)
+FIRLIB = $(HLS_FIR_LIB_PATH)
+DDSLIB = $(HLS_DDS_LIB_PATH)
+MATHHLSLIB = $(HLS_MATHHLS_LIB_PATH)
+DEFINE =
+ATBG_CFLAG = -DSST_SIM_ENABLE -DSST_ATBG_ENABLE
+IFLAG += -I $(INCPATH) -I "$(SYSCINC)"
+IFLAG += -I "$(AUTOPILOT_ROOT)/include"
+#IFLAG += -I "$(AUTOPILOT_TECH)/autopilot/sim"
+#IFLAG += -I "$(AUTOPILOT_TECH)/autopilot/etc"
+IFLAG += -I "$(AUTOPILOT_TECH)/generic/SystemC/AESL_comp"
+LFLAG += -Wl,--as-needed
+LFLAG += -Wl,-rpath,"$(SYSCLIB)" -L "$(SYSCLIB)" -lsystemc -lpthread
+
+ifdef __SIM_MATHHLS__
+
+  ifdef __USE_CLANG__ 
+    ifeq ($(AUTOPILOT_MACH),win64)
+      LFLAG += -Wl,-rpath,"$(MATHHLSLIB)" -L "$(MATHHLSLIB)" -lhlsmc++-CLANG39-x64
+    else
+      LFLAG += -Wl,-rpath,"$(MATHHLSLIB)" -L "$(MATHHLSLIB)" -lhlsmc++-CLANG39
+    endif
+  else 
+    ifeq ($(AUTOPILOT_MACH),win64)
+      LFLAG += -Wl,-rpath,"$(MATHHLSLIB)" -L "$(MATHHLSLIB)" -lhlsmc++-GCC62-x64
+    else
+      LFLAG += -Wl,-rpath,"$(MATHHLSLIB)" -L "$(MATHHLSLIB)" -lhlsmc++-GCC46
+    endif
+  endif
+
+  ifndef __SIM_MATHSTD__ 
+    ifdef __USE_CLANG__ 
+      ifeq ($(AUTOPILOT_MACH),win64)
+        LFLAG += -fno-builtin -fno-inline -Wl,-rpath,"$(MATHHLSLIB)" -L "$(MATHHLSLIB)" -lhlsm-CLANG39-x64
+      else
+        LFLAG += -fno-builtin -fno-inline -Wl,-rpath,"$(MATHHLSLIB)" -L "$(MATHHLSLIB)" -lhlsm-CLANG39
+      endif
+    else
+      ifeq ($(AUTOPILOT_MACH),win64)
+        LFLAG += -fno-builtin -fno-inline -Wl,-rpath,"$(MATHHLSLIB)" -L "$(MATHHLSLIB)" -lhlsm-GCC62-x64
+      else
+        LFLAG += -fno-builtin -fno-inline -Wl,-rpath,"$(MATHHLSLIB)" -L "$(MATHHLSLIB)" -lhlsm-GCC46
+      endif
+    endif
+  endif
+
+  export LD_LIBRARY_PATH := ${LD_LIBRARY_PATH}:$(MATHHLSLIB)
+endif
+
+ifdef __SIM_FPO__
+   LFLAG += -Wl,-rpath,"$(FPOLIB)" -L "$(FPOLIB)" -lgmp -lmpfr -lIp_floating_point_v7_0_bitacc_cmodel
+endif
+
+ifdef __SIM_OPENCV__
+  ifeq ($(shell uname -s), Linux)
+    LFLAG += -Wl,-rpath,"$(OPENCVLIB)" -L "$(OPENCVLIB)" -lopencv_calib3d -lopencv_contrib -lopencv_core -lopencv_features2d -lopencv_flann -lopencv_gpu -lopencv_highgui -lopencv_imgproc -lopencv_legacy -lopencv_ml -lopencv_objdetect -lopencv_photo -lopencv_stitching -lopencv_superres -lopencv_ts -lopencv_video -lopencv_videostab
+  else
+    CV_VER = 245
+    #delete lopencv_superres245 for win64
+    LFLAG += -Wl,-rpath,"$(OPENCVLIB)" -L "$(OPENCVLIB)" -lopencv_calib3d$(CV_VER) -lopencv_contrib$(CV_VER) -lopencv_core$(CV_VER) -lopencv_features2d$(CV_VER) -lopencv_flann$(CV_VER) -lopencv_gpu$(CV_VER) -lopencv_highgui$(CV_VER) -lopencv_imgproc$(CV_VER) -lopencv_legacy$(CV_VER) -lopencv_ml$(CV_VER) -lopencv_objdetect$(CV_VER) -lopencv_photo$(CV_VER) -lopencv_stitching$(CV_VER) -lopencv_video$(CV_VER) -lopencv_videostab$(CV_VER)
+  endif
+endif
+
+ifdef __SIM_FFT__
+  LFLAG += -Wl,-rpath,"$(FFTLIB)" -L "$(FFTLIB)" -lIp_xfft_v9_1_bitacc_cmodel
+  export LD_LIBRARY_PATH := ${LD_LIBRARY_PATH}:$(FFTLIB)
+endif
+
+ifdef __SIM_FIR__
+  LFLAG += -Wl,-rpath,"$(FIRLIB)" -L "$(FIRLIB)" -lgmp -lIp_fir_compiler_v7_2_bitacc_cmodel
+  export LD_LIBRARY_PATH := ${LD_LIBRARY_PATH}:$(FIRLIB)
+endif
+
+ifdef __SIM_DDS__
+  LFLAG += -Wl,-rpath,"$(DDSLIB)" -L "$(DDSLIB)" -lIp_dds_compiler_v6_0_bitacc_cmodel
+  export LD_LIBRARY_PATH := ${LD_LIBRARY_PATH}:$(DDSLIB)
+endif
+
+CFLAG += $(DEBUG) $(DEFINE) -DC_TEST
+CFLAG += $(ATBG_CFLAG)
+
+# Only for glibc2.12 bug, define __USE_XOPEN2K8, CR694034.
+RUNNING_LINUX := "$(shell uname | grep -i Linux)"
+ifeq ($(RUNNING_LINUX),"Linux")
+LDD_VERSION = "$(shell ldd --version | grep 2.12)"
+  ifneq ($(LDD_VERSION), "")
+    CFLAG += -D__USE_XOPEN2K8
+    DFLAG += -D__USE_XOPEN2K8
+  endif
+else
+CFLAG += -D__USE_XOPEN2K8
+DFLAG += -D__USE_XOPEN2K8
+endif
+
+
+ifndef HLS_SOURCES
+  # Find all .cpp, .cp, .cxx, .cc, .c++, .c, .C in current directory and in $(HLS_RtlSCDir).
+  SUFFIX_CPP  = cpp
+  SUFFIX_CP   = cp
+  SUFFIX_CXX  = cxx
+  SUFFIX_CC   = cc
+  SUFFIX_C++  = c++
+  SUFFIX_c    = c
+  SUFFIX_C    = C
+  SOURCES_CPP = $(wildcard *.$(SUFFIX_CPP))
+  SOURCES_CP = $(wildcard *.$(SUFFIX_CP))
+  SOURCES_CXX = $(wildcard *.$(SUFFIX_CXX))
+  SOURCES_CC = $(wildcard *.$(SUFFIX_CC))
+  SOURCES_C++ = $(wildcard *.$(SUFFIX_C++))
+  SOURCES_c = $(wildcard *.$(SUFFIX_c))
+  SOURCES_C = $(wildcard *.$(SUFFIX_C))
+
+ifdef HLS_RtlSCDir
+  SOURCES_CPP += $(wildcard $(HLS_RtlSCDir)/*.cpp)
+  SOURCES_CC += $(wildcard $(HLS_RtlSCDir)/*.cc)
+  SOURCES_C += $(wildcard $(HLS_RtlSCDir)/*.c)
+endif
+
+  FILE_SOURCES_CPP = $(notdir $(SOURCES_CPP))
+  FILE_SOURCES_CC = $(notdir $(SOURCES_CC))
+  FILE_SOURCES_C = $(notdir $(SOURCES_C))
+
+  override HLS_SOURCES = $(SOURCES_CPP) $(SOURCES_CP) $(SOURCES_CXX) $(SOURCES_CC) $(SOURCES_C++) $(SOURCES_c) $(SOURCES_C)
+endif
+
+OBJECTS := $(basename $(notdir $(HLS_SOURCES)))
+OBJECTS := $(OBJECTS:%=$(ObjDir)/%.o)
+
+
+ERR_FILE = err.log
+
+ERRNO=`wc -l $(ERR_FILE) | sed "s/ $(ERR_FILE)//"`
+
+.debug1::
+	$(Echo) "2 src: $(HLS_SOURCES)"
+	$(Echo) "2 obj: $(OBJECTS)"
+#--------------------------------------------------------------------
+# Set the VPATH so that we can find source files.
+#--------------------------------------------------------------------
+VPATH=$(HLS_RtlSCDir)
+
+#--------------------------------------------------------------------
+# Reset the list of suffixes we know how to build
+#--------------------------------------------------------------------
+.SUFFIXES:
+.SUFFIXES: .c .cc .cpp .h
+
+
+#ENABLE_PROFILING :=
+#ENABLE_OPTIMIZED := 1
+
+ifdef ENABLE_PROFILING
+  BuildMode := profile
+  CXX.Flags := -O3 -DNDEBUG -felide-constructors -finline-functions -pg
+  C.Flags   := -O3 -DNDEBUG -pg
+  LD.Flags  := -O3 -DNDEBUG -pg 
+else
+  ifdef AP_ENABLE_OPTIMIZED
+    BuildMode := release
+    #CXX.Flags  := -O3 -DNDEBUG -finline-functions \
+    #              -felide-constructors -fomit-frame-pointer
+    CXX.Flags  := -O1 -DNDEBUG
+    C.Flags    := -O1 -DNDEBUG -fomit-frame-pointer
+    LD.Flags   := -O1 -DNDEBUG 
+  else
+    BuildMode := debug
+    CXX.Flags := -D_DEBUG
+    C.Flags   := -D_DEBUG
+ifdef __USE_CLANG__
+    LD.Flags  := -D_DEBUG -g -O1
+else
+    LD.Flags  := -D_DEBUG
+endif
+    KEEP_SYMBOLS := 1
+  endif
+endif
+
+
+CPPFLAGS += $(IFLAG) $(CFLAG)
+CFLAGS += $(IFLAG) $(CFLAG)
+LDFLAGS += $(LFLAG)
+
+ifdef AP_GCC_M32
+CFLAGS += -m32
+CPPFLAGS += -m32
+LDFLAGS += -m32
+endif
+
+ifdef __USE_CLANG__
+CXX.Flags += $(CXXFLAGS) -fpermissive $(ExtraCXXFlags) $(TOOLCHAIN)
+else
+CXX.Flags += $(CXXFLAGS) -fpermissive $(ExtraCXXFlags)
+endif
+C.Flags   += $(CFLAGS) $(ExtraCFlags)
+CPP.Flags += $(CPPFLAGS) 
+LD.Flags  += $(LDFLAGS) $(ExtraLDFlags)
+AR.Flags  := cru
+LibTool.Flags := --tag=CXX
+#CompileCommonOpts := -Wall -W -Wwrite-strings -Wno-unused
+CompileCommonOpts := 
+
+ifdef __USE_CLANG__
+ifdef __COSIM_FLOW__
+#CompileCommonOpts += -D_GLIBCXX_USE_CXX11_ABI=0
+endif
+endif
+
+#-------------- C/C++ to binary ----------------------------------------
+Compile.C     = $(CC) $(CPP.Flags) $(CompileCommonOpts) -c $(C.Flags)
+Compile.CXX   = $(CXX) $(CPP.Flags) $(CompileCommonOpts) $(CXX.Flags) -c
+
+CXXPATH = $(shell which ${CXX})
+
+ifndef CSIM_DESIGN
+$(TARGET)::
+	$(Echo) "   Build using \"${CXXPATH}\""
+endif
+
+$(TARGET):: $(ObjDir)/.dir $(OBJECTS)
+	$(Echo) "   Generating $(TARGET)" $(AVE_DIR_DLOG)
+	$(Verb)$(CXX) $(OBJECTS) $(LD.Flags) -o $@
+
+#	$(Echo) "[$(MSGH)] Done!" $(AVE_DIR_DLOG)
+
+
+#---------- Auto CPP/C Dependencies ----------
+$(ObjDir)/%.o: %.cpp $(ObjDir)/.dir
+	$(Echo) "   Compiling $*.cpp" $(AVE_DIR_DLOG)
+	$(Verb) if $(Compile.CXX) $(DFLAG) -MD -MT $@ -MP -MF $(ObjDir)/$*.CXXd $< -o $@ ; \
+	then $(MV) -f "$(ObjDir)/$*.CXXd" "$(ObjDir)/$*.d"; \
+	else $(RM) -f "$(ObjDir)/$*.CXXd"; exit 1; fi
+
+$(ObjDir)/%.o: %.cc $(ObjDir)/.dir
+	$(Echo) "   Compiling $*.cc" $(AVE_DIR_DLOG)
+	$(Verb) if $(Compile.CXX) $(DFLAG) -MD -MT $@ -MP -MF $(ObjDir)/$*.CXXd $< -o $@ ; \
+	then $(MV) -f "$(ObjDir)/$*.CXXd" "$(ObjDir)/$*.d"; \
+	else $(RM) -f "$(ObjDir)/$*.CXXd"; exit 1; fi
+
+$(ObjDir)/%.o: %.c $(ObjDir)/.dir
+	$(Echo) "   Compiling $*.c" $(AVE_DIR_DLOG)
+	$(Verb) if $(Compile.C) $(DFLAG)  -MD -MT $@ -MP -MF $(ObjDir)/$*.Cd $< -o $@ ; \
+	then $(MV) -f "$(ObjDir)/$*.Cd" "$(ObjDir)/$*.d"; \
+	else $(RM) -f "$(ObjDir)/$*.Cd"; exit 1; fi
+
+
+# This rules ensures that header files that are removed still have a rule for
+# which they can be "generated."  This allows make to ignore them and
+# reproduce the dependency lists.
+%.h:: ;
+
+
+#-------------- C/C++ to virtual binary --------------------------------
+# You can use ExtraUserBCs to add additional BC object files to be linked.
+#
+#    set CFLAGS "-DAESL_SYN -I${AUTOPILOT_INC} -I${MATH_INC} \
+#                -O0 -c -emit-llvm $ExtCFlags"
+
+Extra.BCCPP.Flags += -emit-llvm -DAUTOPILOT_BC_SIM
+BCC.Flags = $(CPP.Flags) $(CompileCommonOpts) $(C.Flags) $(Extra.BCCPP.Flags)
+BCCXX.Flags = $(CPP.Flags) $(CompileCommonOpts) $(CXX.Flags) $(Extra.BCCPP.Flags)
+Compile.BCC   = $(AUTOPILOT_TOOL)/clang/bin/clang -hls $(BCC.Flags) -c -emit-llvm 
+Compile.BCCXX = $(AUTOPILOT_TOOL)/clang/bin/clang++ -hls $(BCCXX.Flags) -c -emit-llvm
+Compile.BCLD  = $(AUTOPILOT_TOOL)/clang/bin/llvm-ld -disable-inlining
+
+#ifndef BCLibDir
+#BCLibDir = $(HLS_RtlSCDir)/../tmp
+#endif
+
+#ExtraUserBCs := $(wildcard $(BCLibDir)/*.o.3.sim.bc)
+#ExtraUsers := $(notdir $(ExtraUsers))
+
+#VPATH=$(BCLibDir):$(VPATH)
+
+SOURCES_C.BC += $(wildcard *.c)
+OBJECTS_C.BC = $(SOURCES_C.BC:%.c=$(ObjDir)/%.bc)
+
+OBJECTS.BC = $(ExtraUserBCs) $(OBJECTS_C.BC)
+
+.debug2:
+	$(Echo) "$(ExtraUsers)"
+	$(Echo) "$(OBJECTS.BC)"
+
+
+$(TARGET.BC): $(OBJECTS.BC)
+	$(Echo) "   Generating BC $(TARGET.BC) from $(OBJECTS.BC)" $(AVE_DIR_DLOG)
+	$(Verb)$(Compile.BCLD) $(OBJECTS.BC) $(BCLD.Flags) -o $@
+
+#	$(Echo) "[$(MSGH)] Done!" $(AVE_DIR_DLOG)
+
+#---------- Auto CPP/C to BC Dependencies ----------
+$(ObjDir)/%.bc: %.cpp $(ObjDir)/.dir
+	$(Echo) "   Compiling $*.cpp in bc." $(AVE_DIR_DLOG)
+	$(Verb) if $(Compile.BCCXX) -MD -MT $@ -MP -MF $(ObjDir)/$*.CXXd $< -o $@ ; \
+	then $(MV) -f "$(ObjDir)/$*.CXXd" "$(ObjDir)/$*.d"; \
+	else $(RM) -f "$(ObjDir)/$*.CXXd"; exit 1; fi
+
+$(ObjDir)/%.bc: %.cc $(ObjDir)/.dir
+	$(Echo) "   Compiling $*.cpp in bc." $(AVE_DIR_DLOG)
+	$(Verb) if $(Compile.BCCXX) -MD -MT $@ -MP -MF $(ObjDir)/$*.CXXd $< -o $@ ; \
+	then $(MV) -f "$(ObjDir)/$*.CXXd" "$(ObjDir)/$*.d"; \
+	else $(RM) -f "$(ObjDir)/$*.CXXd"; exit 1; fi
+
+$(ObjDir)/%.bc: %.c $(ObjDir)/.dir
+	$(Echo) "   Compiling $*.c in bc" $(AVE_DIR_DLOG)
+	$(Verb) if $(Compile.BCC) -MD -MT $@ -MP -MF $(ObjDir)/$*.Cd $< -o $@ ; \
+	then $(MV) -f "$(ObjDir)/$*.Cd" "$(ObjDir)/$*.d"; \
+	else $(RM) -f "$(ObjDir)/$*.Cd"; exit 1; fi
+
+
+#---------- Include CPP Dependencies
+Sources := $(HLS_SOURCES)
+DependFiles := $(basename $(filter %.cpp %.c %.cc, $(Sources)))
+DependFiles := $(patsubst %,$(ObjDir)/%.d,$(DependFiles))
+-include /dev/null $(DependFiles)
+
+.debug:
+	$(Echo) $(DependFiles)
+
+#--- To create other directories, as needed, and timestamp their creation
+%/.dir:
+	$(Verb)	$(MKDIR) $* >/dev/null
+	$(Verb) $(DATE) > $@
+
+.PRECIOUS: $(ObjDir)/.dir
+
+
+debug:
+	make DEBUG="-g -D_DEBUG" -f Makefile
+
+clean:
+	$(Echo) "[$(MSGH)] Removing $(OBJECTS) $(DependFiles) $(TARGET) .." $(AVE_DIR_DLOG)
+	$(Verb)-rm -rf $(OBJECTS)
+	$(Verb)-rm -rf $(OBJECTS_C.BC)
+	$(Verb)-rm -rf $(DependFiles)
+	$(Verb)-rm -rf $(TARGET)
+	$(Echo) "[$(MSGH)] Done!" $(AVE_DIR_DLOG)
+
+explain:
+	$(Echo) "The following information represents your program:" 
+	$(Echo) "Final executable name: $(TARGET)"
+	$(Echo) "Source files:      $(HLS_SOURCES)"
+	$(Echo) "Object files:      $(OBJECTS)"
+	$(Echo) "Dep files:         $(DEPS)"
+

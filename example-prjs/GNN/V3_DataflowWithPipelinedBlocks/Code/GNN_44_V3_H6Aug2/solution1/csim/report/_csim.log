@@ -1,0 +1,311 @@
+INFO: [SIM 2] *************** CSIM start ***************
+INFO: [SIM 4] CSIM will launch GCC as the compiler.
+   Compiling ../../../myproject_test.cpp in debug mode
+   Compiling ../../../myproject.cpp in debug mode
+   Generating csim.exe
+Input Network Dense Batch
+3
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+1st Edge Network tanh layer Dense Batch
+14
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+1st Edge Newtork Sigmoid Dense Batch
+4
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+Node Newtork 1st Tanh Dense Batch
+21
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+Node Newtork 2nd Tanh Dense Batch
+4
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+2nd Edge Network tanh layer Dense Batch
+14
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+2nd Edge Network sigmoid layer Dense Batch
+4
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+e = 
+0.996094 (expected 0.996094, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0.000976563 (expected 0.000976563, 0 percent difference)
+0.950195 (expected 0.951172, -0.102669 percent difference)
+0 (expected 0, 0 percent difference)
+0.000976563 (expected 0, inf percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0.736328 (expected 0.731445, 0.667557 percent difference)
+0.480469 (expected 0.491211, -2.18688 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0.762695 (expected 0.709961, 7.42779 percent difference)
+0.695313 (expected 0.650391, 6.90691 percent difference)
+0.995117 (expected 0.993164, 0.196657 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0.00976563 (expected 0.00976563, 0 percent difference)
+0.970703 (expected 0.96582, 0.505561 percent difference)
+0 (expected 0, 0 percent difference)
+0.000976563 (expected 0, inf percent difference)
+0 (expected 0, 0 percent difference)
+0.000976563 (expected 0, inf percent difference)
+0.785156 (expected 0.709961, 10.5915 percent difference)
+0.460938 (expected 0.389648, 18.2957 percent difference)
+0 (expected 0, 0 percent difference)
+0.00195313 (expected 0.00195313, 0 percent difference)
+0.711914 (expected 0.675781, 5.34682 percent difference)
+0.702148 (expected 0.65625, 6.99405 percent difference)
+0.966797 (expected 0.96582, 0.101112 percent difference)
+0.0185547 (expected 0.0224609, -17.3913 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0.0292969 (expected 0.0283203, 3.44828 percent difference)
+0.879883 (expected 0.833008, 5.6272 percent difference)
+0 (expected 0, 0 percent difference)
+0.00976563 (expected 0.00976563, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0.545898 (expected 0.597656, -8.66013 percent difference)
+0.101563 (expected 0.116211, -12.605 percent difference)
+0 (expected 0, 0 percent difference)
+0.00195313 (expected 0.000976563, 100 percent difference)
+0.671875 (expected 0.629883, 6.66667 percent difference)
+0.488281 (expected 0.466797, 4.60251 percent difference)
+
+INFO: [SIM 1] CSim done with 0 errors.
+INFO: [SIM 3] *************** CSIM finish ***************

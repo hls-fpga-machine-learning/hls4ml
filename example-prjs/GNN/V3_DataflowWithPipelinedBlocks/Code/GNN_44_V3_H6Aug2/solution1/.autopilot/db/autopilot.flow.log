@@ -1,0 +1,264 @@
+INFO-FLOW: Workspace C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/solution1 opened at Thu Aug 22 21:03:35 +0600 2019
+Execute     config_clock -quiet -name default -period 10 -default=false 
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+Execute     open_platform DefaultPlatform 
+Execute     import_lib C:/Xilinx/Vivado/2019.1/common/technology/xilinx/kintexu/kintexu 
+Execute       source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/xilinx.lib 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/xilinx_interface.lib 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/plb46.lib 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/fsl.lib 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/axi4.lib 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/maxi.lib 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/saxilite.lib 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/dsp48.lib 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/ip/dds_compiler.lib 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/ip/xfft.lib 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/ip/xfir.lib 
+Command       ap_source done; 0.101 sec.
+Execute       source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/xilinx.hlp 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/target_info.tcl 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/xilinx_interface.hlp 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/maxi.hlp 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/saxilite.hlp 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/dsp48.hlp 
+Execute       source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/kintexu/dsp48e2.hlp 
+Execute       source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/xilinx.hlp 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/target_info.tcl 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/xilinx_interface.hlp 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/maxi.hlp 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/saxilite.hlp 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/dsp48.hlp 
+Command     import_lib done; 0.214 sec.
+Execute     source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/kintexu/kintexu.gen 
+Execute       source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/xilinx.gen 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/plb46.gen 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/fsl.gen 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/axi4.gen 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/nativeAXI4.gen 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/saxilite.gen 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/maxi.gen 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/scripts/xilinxcoregen.gen 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/XilEDKCoreGen.gen 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/ip/dds_compiler.gen 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/ip/util.gen 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/ip/xfft.gen 
+Command         ap_source done; 0.393 sec.
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/ip/xfir.gen 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/dsp48.gen 
+Command       ap_source done; 0.48 sec.
+Command     ap_source done; 0.481 sec.
+Execute     set_part xcku115-flva1517-1-c 
+Execute       ap_part_info -name xcku115-flva1517-1-c -data single -quiet 
+Command       ap_part_info done; 4.635 sec.
+Execute       ap_part_info -name xcku115-flva1517-1-c -data info 
+Execute       add_library xilinx/kintexu/kintexu:xcku115:-flva1517:-1-c 
+Execute         get_default_platform 
+Execute         license_isbetapart xcku115 
+Command         license_isbetapart done; error code: 1; 
+Execute         ap_part_info -data single -name xcku115-flva1517-1-c 
+Execute         ap_part_info -name xcku115-flva1517-1-c -data resources 
+Execute         ap_part_info -name xcku115-flva1517-1-c -data info 
+Execute         ap_part_info -name xcku115-flva1517-1-c -data info 
+Execute         config_chip_info -quiet -resource {SLICE 82920} {LUT 663360} {FF 1326720} {DSP48E 5520} {BRAM 4320} {URAM 0} {SLR 2} 
+Execute         ap_part_info -name xcku115-flva1517-1-c -data info 
+Execute         config_chip_info -quiet -speed slow 
+Command       add_library done; 0.324 sec.
+Execute       add_library xilinx/kintexu/kintexu_fpv7 
+Execute         get_default_platform 
+Execute         open_platform DefaultPlatform 
+Execute         import_lib C:/Xilinx/Vivado/2019.1/common/technology/xilinx/kintexu/kintexu_fpv7 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/xilinx_fp.lib 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/xilinx_fp.hlp 
+Execute             source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/xilinx.hlp 
+Execute               source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/target_info.tcl 
+Execute               source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/xilinx_interface.hlp 
+Execute                 source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/maxi.hlp 
+Execute                 source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/saxilite.hlp 
+Execute               source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/dsp48.hlp 
+Command         import_lib done; 0.179 sec.
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/kintexu/kintexu_fpv7.gen 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/xilinx_fp.gen 
+Command       add_library done; 0.206 sec.
+INFO: [HLS 200-10] Setting target device to 'xcku115-flva1517-1-c'
+Execute       ap_part_info -name xcku115-flva1517-1-c -data info 
+Execute       get_default_platform 
+Command     set_part done; 5.552 sec.
+Execute     ap_part_info -data single -name xcku115-flva1517-1-c 
+Execute     ap_part_info -name xcku115-flva1517-1-c -data resources 
+Execute     ap_part_info -name xcku115-flva1517-1-c -data info 
+Execute     ap_part_info -name xcku115-flva1517-1-c -data info 
+Execute     config_chip_info -quiet -resource {SLICE 82920} {LUT 663360} {FF 1326720} {DSP48E 5520} {BRAM 4320} {URAM 0} {SLR 2} 
+Execute     ap_part_info -name xcku115-flva1517-1-c -data info 
+Execute     config_chip_info -quiet -speed slow 
+Command   open_solution done; 6.404 sec.
+Execute   csim_design -clean -quiet 
+INFO: [SIM 211-2] *************** CSIM start ***************
+INFO: [SIM 211-4] CSIM will launch GCC as the compiler.
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/myproject_test.cpp 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/myproject_test.cpp 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/myproject.cpp 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/myproject.cpp 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/myproject.h 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/myproject.h 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_activation.h 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_activation.h 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_batchnorm.h 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_batchnorm.h 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_common.h 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_common.h 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_conv.h 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_conv.h 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_conv2d.h 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_conv2d.h 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_dense.h 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_dense.h 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_dense_large.h 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_dense_large.h 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_graph.h 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_graph.h 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_helpers.h 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_helpers.h 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_merge.h 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_merge.h 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_pooling.h 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_pooling.h 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/parameters.h 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/parameters.h 
+Execute     ap_part_info -name xcku115-flva1517-1-c -data info 
+Execute     source run_sim.tcl 
+Command     ap_source done; 0.368 sec.
+INFO: [SIM 211-1] CSim done with 0 errors.
+INFO: [SIM 211-3] *************** CSIM finish ***************
+Command   csim_design done; 17.437 sec.
+Command ap_source done; 23.873 sec.
+Execute cleanup_all 
+INFO-FLOW: Workspace C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/solution1 opened at Thu Aug 22 21:06:10 +0600 2019
+Execute     config_clock -quiet -name default -period 10 -default=false 
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+Execute     open_platform DefaultPlatform 
+Execute     import_lib C:/Xilinx/Vivado/2019.1/common/technology/xilinx/kintexu/kintexu 
+Execute       source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/xilinx.lib 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/xilinx_interface.lib 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/plb46.lib 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/fsl.lib 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/axi4.lib 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/maxi.lib 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/saxilite.lib 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/dsp48.lib 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/ip/dds_compiler.lib 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/ip/xfft.lib 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/ip/xfir.lib 
+Execute       source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/xilinx.hlp 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/target_info.tcl 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/xilinx_interface.hlp 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/maxi.hlp 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/saxilite.hlp 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/dsp48.hlp 
+Execute       source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/kintexu/dsp48e2.hlp 
+Execute       source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/xilinx.hlp 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/target_info.tcl 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/xilinx_interface.hlp 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/maxi.hlp 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/saxilite.hlp 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/dsp48.hlp 
+Execute     source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/kintexu/kintexu.gen 
+Execute       source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/xilinx.gen 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/plb46.gen 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/fsl.gen 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/axi4.gen 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/nativeAXI4.gen 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/saxilite.gen 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/maxi.gen 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/scripts/xilinxcoregen.gen 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/XilEDKCoreGen.gen 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/ip/dds_compiler.gen 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/ip/util.gen 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/ip/xfft.gen 
+Command         ap_source done; 0.156 sec.
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/ip/xfir.gen 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/dsp48.gen 
+Command       ap_source done; 0.249 sec.
+Command     ap_source done; 0.249 sec.
+Execute     set_part xcku115-flva1517-1-c 
+Execute       ap_part_info -name xcku115-flva1517-1-c -data single -quiet 
+Command       ap_part_info done; 2.162 sec.
+Execute       ap_part_info -name xcku115-flva1517-1-c -data info 
+Execute       add_library xilinx/kintexu/kintexu:xcku115:-flva1517:-1-c 
+Execute         get_default_platform 
+Execute         license_isbetapart xcku115 
+Command         license_isbetapart done; error code: 1; 
+Execute         ap_part_info -data single -name xcku115-flva1517-1-c 
+Execute         ap_part_info -name xcku115-flva1517-1-c -data resources 
+Execute         ap_part_info -name xcku115-flva1517-1-c -data info 
+Execute         ap_part_info -name xcku115-flva1517-1-c -data info 
+Execute         config_chip_info -quiet -resource {SLICE 82920} {LUT 663360} {FF 1326720} {DSP48E 5520} {BRAM 4320} {URAM 0} {SLR 2} 
+Execute         ap_part_info -name xcku115-flva1517-1-c -data info 
+Execute         config_chip_info -quiet -speed slow 
+Execute       add_library xilinx/kintexu/kintexu_fpv7 
+Execute         get_default_platform 
+Execute         open_platform DefaultPlatform 
+Execute         import_lib C:/Xilinx/Vivado/2019.1/common/technology/xilinx/kintexu/kintexu_fpv7 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/xilinx_fp.lib 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/xilinx_fp.hlp 
+Execute             source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/xilinx.hlp 
+Execute               source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/target_info.tcl 
+Execute               source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/xilinx_interface.hlp 
+Execute                 source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/maxi.hlp 
+Execute                 source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/interface/saxilite.hlp 
+Execute               source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/dsp48.hlp 
+Execute         source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/kintexu/kintexu_fpv7.gen 
+Execute           source C:/Xilinx/Vivado/2019.1/common/technology/xilinx/common/xilinx_fp.gen 
+INFO: [HLS 200-10] Setting target device to 'xcku115-flva1517-1-c'
+Execute       ap_part_info -name xcku115-flva1517-1-c -data info 
+Execute       get_default_platform 
+Command     set_part done; 2.463 sec.
+Execute     ap_part_info -data single -name xcku115-flva1517-1-c 
+Execute     ap_part_info -name xcku115-flva1517-1-c -data resources 
+Execute     ap_part_info -name xcku115-flva1517-1-c -data info 
+Execute     ap_part_info -name xcku115-flva1517-1-c -data info 
+Execute     config_chip_info -quiet -resource {SLICE 82920} {LUT 663360} {FF 1326720} {DSP48E 5520} {BRAM 4320} {URAM 0} {SLR 2} 
+Execute     ap_part_info -name xcku115-flva1517-1-c -data info 
+Execute     config_chip_info -quiet -speed slow 
+Command   open_solution done; 2.851 sec.
+Execute   csim_design -clean -quiet 
+INFO: [SIM 211-2] *************** CSIM start ***************
+INFO: [SIM 211-4] CSIM will launch GCC as the compiler.
+Execute     source csim/.lst_opt.tcl 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/myproject_test.cpp 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/myproject_test.cpp 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/myproject.cpp 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/myproject.cpp 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/myproject.h 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/myproject.h 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_activation.h 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_activation.h 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_batchnorm.h 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_batchnorm.h 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_common.h 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_common.h 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_conv.h 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_conv.h 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_conv2d.h 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_conv2d.h 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_dense.h 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_dense.h 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_dense_large.h 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_dense_large.h 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_graph.h 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_graph.h 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_helpers.h 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_helpers.h 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_merge.h 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_merge.h 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_pooling.h 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/nnet_pooling.h 
+Execute     is_encrypted C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/parameters.h 
+Execute     is_xip C:/Users/The-Machine/AppData/Roaming/Xilinx/Vivado/GNN_44_V3_H6Aug2R1/parameters.h 
+Execute     ap_part_info -name xcku115-flva1517-1-c -data info 
+Execute     source run_sim.tcl 
+Command     ap_source done; 0.236 sec.
+INFO: [SIM 211-1] CSim done with 0 errors.
+INFO: [SIM 211-3] *************** CSIM finish ***************
+Command   csim_design done; 15.78 sec.
+Command ap_source done; 18.661 sec.
+Execute cleanup_all 

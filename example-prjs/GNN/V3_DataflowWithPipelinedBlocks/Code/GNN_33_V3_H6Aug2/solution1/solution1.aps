@@ -1,0 +1,74 @@
+<solution AutoPilot="com.autoesl.autopilot.solution">
+    <checksum>
+        <value string="false"/>
+    </checksum>
+    <config>
+        <schedule model="myproject"/>
+    </config>
+    <UIConfigurations>
+        <UIAutosynConf hideTrivialOp="true" isBasedOnBoard="false" isSolutionDirty="true" isStopAskAgain="false" showDetailDesignViewer="false">
+            <Platform>xilinx/kintexu/kintexu</Platform>
+            <Platform>xilinx/kintexu/kintexu_fpv7</Platform>
+            <customLibs/>
+        </UIAutosynConf>
+        <UIIPPackagerConf AskAgain="true" DescriptionButton="false" LibraryButton="false" RTLLanguage="verilog" UseNetList="none" VendorButton="false" VersionButton="false" evaluateRTL="false" setup="false">
+            <RTLs>
+                <Verilog method="IPXACT" selection="true"/>
+                <Vhdl method="IPXACT" selection="false"/>
+            </RTLs>
+        </UIIPPackagerConf>
+        <UIAutoMGConf AskAgain="true" Export="false" Xil_CoreGen="false" defaultCustomPorts="false">
+            <UIAutoMGImpl add_io_buffers="false" op_effort="high" op_goal="speed" par_effort="high" register_balancing="no" register_duplication="false" register_retiming="off" setup="0" synplify_io_insertion="true" synplify_op_effort="high" synplify_pipelining="false" synplify_resource_sharing="true" synplify_retiming="false" synplify_verilogPar="false" synplify_vhdlPar="false" synthesis_combo_logic="off" synthesis_effort="normal" virtual_pins="off" xilinxInterconnectType="plb">
+                <RTLs>
+                    <Verilog selection="true" tool="ISE"/>
+                    <Vhdl selection="false" tool="ISE"/>
+                </RTLs>
+                <verilogSynplifySettings synplify_invocation_command="synplify_pro -licensetype synplifypro_xilinx" synplify_io_insertion="false" synplify_op_effort="high" synplify_par="true" synplify_pipelining="true" synplify_resource_sharing="true" synplify_retiming="false"/>
+                <vhdlSynplifySettings synplify_invocation_command="synplify_pro -licensetype synplifypro_xilinx" synplify_io_insertion="false" synplify_op_effort="high" synplify_par="true" synplify_pipelining="true" synplify_resource_sharing="true" synplify_retiming="false"/>
+                <verilogISESettings add_io_buffers="false" op_effort="high" op_goal="speed" par_effort="high" register_balancing="no" register_duplication="false"/>
+                <vhdlISESettings add_io_buffers="false" op_effort="high" op_goal="speed" par_effort="high" register_balancing="no" register_duplication="false"/>
+            </UIAutoMGImpl>
+        </UIAutoMGConf>
+        <UIAutoSimConf ApIntSupport="false" AskAgain="true">
+            <RTLs>
+                <SystemC selection="true" tool="Auto"/>
+                <Verilog selection="false" tool="Auto"/>
+                <VHDL selection="false" tool="Auto"/>
+            </RTLs>
+        </UIAutoSimConf>
+    </UIConfigurations>
+    <ExportDesign askAgain="true" evaluate="false" flow="false" flowChoice="syn" formatName="ip_catalog" rtl="verilog" rtlButton="false" rtlCombo="verilog">
+        <Format formatName="ip_catalog"/>
+        <Format formatName="sysgen"/>
+        <Format formatName="sysgen_ise"/>
+        <Format formatName="syn_dcp"/>
+        <Format formatName="pcore" use_netlist="none"/>
+    </ExportDesign>
+    <Simulation>
+        <SimFlow askAgain="true" clangSanitizer="false" compile="false" compileChoice="gcc" disableDeadlockDetect="false" dumpTrace="none" name="cosim" optimizeCompile="false" reduce_diskspace="false" setup="false" toolName="Auto" waveDebug="false">
+            <Rtl active="false" name="systemc"/>
+            <Rtl active="false" name="verilog"/>
+            <Rtl active="true" name="vhdl"/>
+        </SimFlow>
+    </Simulation>
+    <name>
+        <value string="solution1"/>
+    </name>
+    <project>
+        <value string="GNN_33_V3_H6Aug2"/>
+    </project>
+    <targetInfo>
+        <TargetInfo value="xcku115:-flva1517:-1-c"/>
+    </targetInfo>
+    <libraryList>
+        <library name="DefaultPlatform" value="xilinx/kintexu/kintexu"/>
+        <library name="DefaultPlatform" value="xilinx/kintexu/kintexu_fpv7"/>
+    </libraryList>
+    <downStreamTool>
+        <DownStreamTool name="vivado"/>
+    </downStreamTool>
+    <clockList>
+        <clock name="default" default="false" period="10"/>
+    </clockList>
+</solution>
+

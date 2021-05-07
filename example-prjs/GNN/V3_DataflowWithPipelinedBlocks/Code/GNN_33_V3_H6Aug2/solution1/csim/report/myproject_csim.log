@@ -1,0 +1,140 @@
+INFO: [SIM 2] *************** CSIM start ***************
+INFO: [SIM 4] CSIM will launch GCC as the compiler.
+   Compiling ../../../myproject_test.cpp in debug mode
+   Compiling ../../../myproject.cpp in debug mode
+   Generating csim.exe
+Input Network Dense Batch
+3
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+dense_large_rf_gt_nin_rem0
+1st Edge Network tanh layer Dense Batch
+14
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+1st Edge Newtork Sigmoid Dense Batch
+4
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+Node Newtork 1st Tanh Dense Batch
+21
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+dense_large_rf_leq_nin
+Node Newtork 2nd Tanh Dense Batch
+4
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+2nd Edge Network tanh layer Dense Batch
+14
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+2nd Edge Network sigmoid layer Dense Batch
+4
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+dense_large_rf_gt_nin
+e = 
+0.988281 (expected 0.990234, -0.197239 percent difference)
+0 (expected 0, 0 percent difference)
+0.00195313 (expected 0.00195313, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0.995117 (expected 0.995117, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0.00195313 (expected 0.00195313, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0.999023 (expected 0.999023, 0 percent difference)
+0.892578 (expected 0.881836, 1.21816 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0.000976563 (expected 0.000976563, 0 percent difference)
+0.994141 (expected 0.994141, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0 (expected 0, 0 percent difference)
+0.999023 (expected 0.999023, 0 percent difference)
+
+INFO: [SIM 1] CSim done with 0 errors.
+INFO: [SIM 3] *************** CSIM finish ***************

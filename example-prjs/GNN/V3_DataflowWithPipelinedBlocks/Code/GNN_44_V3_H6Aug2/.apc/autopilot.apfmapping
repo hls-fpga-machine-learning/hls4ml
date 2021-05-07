@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<autopilotfilemapping:AutoPilotFileMapping xmlns:autopilotfilemapping="www.autoesl.com/autopilotfilemapping">
+  <source>
+    <originFiles name="myproject.cpp" path="C:\Users\The-Machine\AppData\Roaming\Xilinx\Vivado\GNN_44_V3_H6Aug2R1\myproject.cpp"/>
+    <originFiles name="myproject.h" path="C:\Users\The-Machine\AppData\Roaming\Xilinx\Vivado\GNN_44_V3_H6Aug2R1\myproject.h"/>
+    <originFiles name="nnet_activation.h" path="C:\Users\The-Machine\AppData\Roaming\Xilinx\Vivado\GNN_44_V3_H6Aug2R1\nnet_activation.h"/>
+    <originFiles name="nnet_batchnorm.h" path="C:\Users\The-Machine\AppData\Roaming\Xilinx\Vivado\GNN_44_V3_H6Aug2R1\nnet_batchnorm.h"/>
+    <originFiles name="nnet_common.h" path="C:\Users\The-Machine\AppData\Roaming\Xilinx\Vivado\GNN_44_V3_H6Aug2R1\nnet_common.h"/>
+    <originFiles name="nnet_conv.h" path="C:\Users\The-Machine\AppData\Roaming\Xilinx\Vivado\GNN_44_V3_H6Aug2R1\nnet_conv.h"/>
+    <originFiles name="nnet_conv2d.h" path="C:\Users\The-Machine\AppData\Roaming\Xilinx\Vivado\GNN_44_V3_H6Aug2R1\nnet_conv2d.h"/>
+    <originFiles name="nnet_dense.h" path="C:\Users\The-Machine\AppData\Roaming\Xilinx\Vivado\GNN_44_V3_H6Aug2R1\nnet_dense.h"/>
+    <originFiles name="nnet_dense_large.h" path="C:\Users\The-Machine\AppData\Roaming\Xilinx\Vivado\GNN_44_V3_H6Aug2R1\nnet_dense_large.h"/>
+    <originFiles name="nnet_graph.h" path="C:\Users\The-Machine\AppData\Roaming\Xilinx\Vivado\GNN_44_V3_H6Aug2R1\nnet_graph.h"/>
+    <originFiles name="nnet_helpers.h" path="C:\Users\The-Machine\AppData\Roaming\Xilinx\Vivado\GNN_44_V3_H6Aug2R1\nnet_helpers.h"/>
+    <originFiles name="nnet_merge.h" path="C:\Users\The-Machine\AppData\Roaming\Xilinx\Vivado\GNN_44_V3_H6Aug2R1\nnet_merge.h"/>
+    <originFiles name="nnet_pooling.h" path="C:\Users\The-Machine\AppData\Roaming\Xilinx\Vivado\GNN_44_V3_H6Aug2R1\nnet_pooling.h"/>
+    <originFiles name="parameters.h" path="C:\Users\The-Machine\AppData\Roaming\Xilinx\Vivado\GNN_44_V3_H6Aug2R1\parameters.h"/>
+  </source>
+  <testbench>
+    <originFiles name="myproject_test.cpp" path="C:\Users\The-Machine\AppData\Roaming\Xilinx\Vivado\GNN_44_V3_H6Aug2R1\myproject_test.cpp"/>
+  </testbench>
+</autopilotfilemapping:AutoPilotFileMapping>
