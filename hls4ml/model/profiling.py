@@ -1,16 +1,30 @@
 from hls4ml.model.hls_model import HLSModel
 from hls4ml.model.hls_layers import IntegerPrecisionType, FixedPrecisionType
-import matplotlib.pyplot as plt
 import numpy as np
-import pandas
-import seaborn as sb
 import uuid
 import os
 import shutil
 import json
 from collections import defaultdict
-
 from hls4ml.model.hls_model import HLSModel
+
+try:
+    import matplotlib.pyplot as plt
+    __plt_present__ = True
+except ImportError:
+    __plt_present__ = False
+
+try:
+    import pandas
+    __pandas_present__ = True
+except ImportError:
+    __pandas_present__ = False
+
+try:
+    import seaborn as sb
+    __seaborn_present__ = True
+except ImportError:
+    __seaborn_present__ = False
 
 try:
     from tensorflow import keras
@@ -24,6 +38,24 @@ try:
     __torch_profiling_enabled__ = True
 except ImportError:
     __torch_profiling_enabled__ = False
+
+
+def _check_plt():
+    if not __plt_present__:
+        raise RuntimeError("matplotlib could not be imported. Have you installed it by installing hls4ml[profiling] "
+                           "or otherwise?")
+
+
+def _check_pandas():
+    if not __pandas_present__:
+        raise RuntimeError("pandas could not be imported. Have you installed it by installing hls4ml[profiling] "
+                           "or otherwise?")
+
+
+def _check_seaborn():
+    if not __seaborn_present__:
+        raise RuntimeError("seaborn could not be imported. Have you installed it by installing hls4ml[profiling] "
+                           "or otherwise?")
 
 
 def get_unoptimized_hlsmodel(model):
@@ -67,6 +99,9 @@ def array_to_summary(x, fmt='boxplot'):
     return y
 
 def boxplot(data, fmt='longform'):
+    _check_plt()
+    _check_seaborn()
+
     if fmt == 'longform':
         f = plt.figure() #figsize=(3, 3))
         hue = 'layer' if 'layer' in data.keys() else None
@@ -99,6 +134,9 @@ def boxplot(data, fmt='longform'):
         return None
 
 def histogram(data, fmt='longform'):
+    _check_plt()
+    _check_seaborn()
+
     f = plt.figure()
     from matplotlib.ticker import MaxNLocator
     n = len(data) if fmt == 'summary' else len(data['weight'].unique())
@@ -121,6 +159,8 @@ plots = {'boxplot' : boxplot,
          'histogram' : histogram}
 
 def types_boxplot(data, fmt='longform'):
+    _check_plt()
+
     from matplotlib.patches import PathPatch
     from matplotlib.patches import Rectangle
     ax = plt.gca()
@@ -146,6 +186,9 @@ def types_boxplot(data, fmt='longform'):
             ax.add_patch(rectangle)
 
 def types_histogram(data, fmt='longform'):
+    _check_plt()
+    _check_seaborn()
+
     ax = plt.gca()
     layers = np.array(ax.get_legend_handles_labels()[1])
     colors = sb.color_palette("husl", len(layers))
@@ -166,6 +209,8 @@ def ap_fixed_WIF(dtype):
     return W, I, F
 
 def types_hlsmodel(model):
+    _check_pandas()
+
     suffix = ['w', 'b']
     data = {'layer' : [], 'low' : [], 'high' : []}
     # Plot the default precision
@@ -189,6 +234,8 @@ def types_hlsmodel(model):
     return data
 
 def activation_types_hlsmodel(model):
+    _check_pandas()
+
     data = {'layer' : [], 'low' : [], 'high' : []}
     # Get the default precision
     default_precision = model.config.model_precision['default']
@@ -232,7 +279,32 @@ def weights_hlsmodel(model, fmt='longform', plot='boxplot'):
                 data[-1]['weight'] = l
 
     if fmt == 'longform':
+        _check_pandas()
         data = pandas.DataFrame(data)
+    return data
+
+
+def activations_hlsmodel(model, X, fmt='summary', plot='boxplot'):
+    if fmt == 'longform':
+        raise NotImplemented
+    elif fmt == 'summary':
+        data = []
+
+    _, trace = model.trace(np.ascontiguousarray(X))
+
+    if len(trace) == 0:
+        raise RuntimeError("HLSModel must have tracing on for at least 1 layer (this can be set in its config)")
+
+    for layer in trace.keys():
+        print("   {}".format(layer))
+
+        if fmt == 'summary':
+            y = trace[layer].flatten()
+            y = abs(y[y != 0])
+
+            data.append(array_to_summary(y, fmt=plot))
+            data[-1]['weight'] = layer
+
     return data
 
 
@@ -317,6 +389,7 @@ def weights_keras(model, fmt='longform', plot='boxplot'):
                 data[-1]['weight'] = l
 
     if fmt == 'longform':
+        _check_pandas()
         data = pandas.DataFrame(data)
     return data
 
@@ -347,6 +420,7 @@ def activations_keras(model, X, fmt='longform', plot='boxplot'):
                 data[-1]['weight'] = layer.name
 
     if fmt == 'longform':
+        _check_pandas()
         data = pandas.DataFrame(data)
     return data
 
@@ -380,6 +454,7 @@ def weights_torch(model, fmt='longform', plot='boxplot'):
                     data[-1]['weight'] = l
 
     if fmt == 'longform':
+        _check_pandas()
         data = pandas.DataFrame(data)
     return data
 
@@ -411,6 +486,7 @@ def activations_torch(model, X, fmt='longform', plot='boxplot'):
             data[-1]['weight'] = lname
 
     if fmt == 'longform':
+        _check_pandas()
         data = pandas.DataFrame(data)
     return data
 
@@ -442,6 +518,7 @@ def numerical(model=None, hls_model=None, X=None, plot='boxplot'):
         respectively. (Optimizations are applied to an HLSModel by hls4ml,
         a post-optimization HLSModel is a final model)
     """
+    _check_plt()
     wp, wph, ap, aph = None, None, None, None
 
     hls_model_present = hls_model is not None and isinstance(hls_model, HLSModel)
@@ -598,6 +675,8 @@ def get_ymodel_keras(keras_model, X):
 
 def _norm_diff(ymodel, ysim):
     """Calculate the square root of the sum of the squares of the differences"""
+    _check_plt()
+
     diff = {}
     
     for key in list(ysim.keys()):
@@ -620,6 +699,7 @@ def _dist_diff(ymodel, ysim):
     meaning "very difference".
     If difference < original value then the normalized difference would be difference/original.
     """
+    _check_plt()
 
     diff = {}
 
@@ -681,7 +761,8 @@ def compare(keras_model, hls_model, X, plot_type = "dist_diff"):
     matplotlib figure
         plot object of the histogram depicting the difference in each layer's output
     """
-    
+    _check_plt()
+
     #Take in output from both models
     #Note that each y is a dictionary with structure {"layer_name": flattened ouput array}
     ymodel = get_ymodel_keras(keras_model, X)
