@@ -75,6 +75,16 @@ class VivadoBackend(FPGABackend):
             attrs.append(ChoiceAttribute('conv_implementation', choices=['LineBuffer', 'Encoded'], default='LineBuffer'))
             self.attribute_map[layer] = attrs
 
+        # Add strategy attribute to supported layers
+        strategy_layers = [Dense] + rnn_layers + cnn_layers
+        strategy_layers.remove(Pooling1D)
+        strategy_layers.remove(Pooling2D)
+
+        for layer in strategy_layers:
+            attrs = self.attribute_map.get(layer, [])
+            attrs.append(ChoiceAttribute('strategy', choices=['latency', 'resource'], default='latency'))
+            self.attribute_map[layer] = attrs
+
     def _register_flows(self):
         initializers = self._get_layer_initializers()
         init_flow = register_flow('init_layers', initializers, requires=['optimize'], backend=self.name)

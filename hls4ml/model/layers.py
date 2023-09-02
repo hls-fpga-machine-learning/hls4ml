@@ -53,7 +53,7 @@ class Layer:
 
     _expected_attributes = [
         Attribute('index'),
-        ConfigurableAttribute('trace', default=False),
+        ConfigurableAttribute('trace', default=False, value_type=bool),
         TypeAttribute('result'),
     ]
     """"""
