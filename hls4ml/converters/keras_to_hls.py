@@ -160,9 +160,9 @@ def get_model_arch(config):
         # Model instance passed in config from API
         keras_model = config['KerasModel']
         if isinstance(keras_model, str):
-            from tensorflow.keras.models import load_model
+            import keras
 
-            keras_model = load_model(keras_model)
+            keras_model = keras.models.load_model(keras_model)
         model_arch = json.loads(keras_model.to_json())
         reader = KerasModelReader(keras_model)
     elif 'KerasJson' in config:

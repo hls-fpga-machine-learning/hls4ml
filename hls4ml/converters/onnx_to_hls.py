@@ -1,6 +1,3 @@
-import onnx
-from onnx import helper, numpy_helper
-
 from hls4ml.model import ModelGraph
 
 
@@ -21,6 +18,8 @@ def replace_char_inconsitency(name):
 
 
 def get_onnx_attribute(operation, name, default=None):
+    from onnx import helper
+
     attr = next((x for x in operation.attribute if x.name == name), None)
     if attr is None:
         value = default
@@ -76,6 +75,7 @@ def get_input_shape(graph, node):
 
 def get_constant_value(graph, constant_name):
     tensor = next((x for x in graph.initializer if x.name == constant_name), None)
+    from onnx import numpy_helper
     return numpy_helper.to_array(tensor)
 
 
@@ -273,6 +273,7 @@ def onnx_to_hls(config):
     # Extract model architecture
     print('Interpreting Model ...')
 
+    import onnx
     onnx_model = onnx.load(config['OnnxModel']) if isinstance(config['OnnxModel'], str) else config['OnnxModel']
 
     layer_list, input_layers, output_layers = parse_onnx_model(onnx_model)
