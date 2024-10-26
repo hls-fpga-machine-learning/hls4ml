@@ -93,10 +93,10 @@ def parse_yaml_config(config_file):
     """
 
     def construct_keras_model(loader, node):
-        from tensorflow.keras.models import load_model
-
         model_str = loader.construct_scalar(node)
-        return load_model(model_str)
+        import keras
+
+        return keras.models.load_model(model_str)
 
     yaml.add_constructor('!keras_model', construct_keras_model, Loader=yaml.SafeLoader)
 
