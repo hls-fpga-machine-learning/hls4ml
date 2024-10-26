@@ -33,11 +33,11 @@ try:
 except ImportError:
     __qkeras_profiling_enabled__ = False
 
-_activations = list()
+__keras_activations = list()
 if __keras_profiling_enabled__:
-    _activations.append(keras.layers.Activation)
+    __keras_activations.append(keras.layers.Activation)
 if __qkeras_profiling_enabled__:
-    _activations.append(qkeras.qactivations)
+    __keras_activations.append(qkeras.QActivation)
 
 
 def get_unoptimized_hlsmodel(model):
@@ -685,7 +685,7 @@ def get_ymodel_keras(keras_model, X):
         if (
             hasattr(layer, 'activation')
             and layer.activation is not None
-            and not isinstance(layer, _activations)
+            and not isinstance(layer, tuple(__keras_activations))
             and layer.activation.__name__ != 'linear'
         ):
             tmp_activation = layer.activation

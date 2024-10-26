@@ -2,9 +2,6 @@ import os
 import webbrowser
 from ast import literal_eval
 
-from calmjs.parse import asttypes, es5
-from tabulate import tabulate
-
 
 def parse_quartus_report(hls_dir, write_to_file=True):
     '''
@@ -53,6 +50,8 @@ def read_quartus_report(hls_dir, open_browser=False):
     Returns:
         None
     '''
+    from tabulate import tabulate
+
     report = parse_quartus_report(hls_dir)
 
     print('HLS Resource Summary\n')
@@ -100,6 +99,7 @@ def read_js_object(js_script):
     Returns:
         Dictionary of variables defines in script
     '''
+    from calmjs.parse import asttypes, es5
 
     def visit(node):
         if isinstance(node, asttypes.Program):
