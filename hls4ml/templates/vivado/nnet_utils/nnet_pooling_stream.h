@@ -34,9 +34,14 @@ template <unsigned TABLE_SIZE, unsigned POOL_SIZE> void init_pool_table(unsigned
 
 template <class data_T, class res_T, typename CONFIG_T>
 void compute_pool_encoded_2d(
-    const unsigned h_idx, const unsigned w_idx, const data_T &in_elem,
+    const unsigned h_idx,
+    const unsigned w_idx,
+    const data_T &in_elem,
     hls::stream<typename data_T::value_type> data_window[CONFIG_T::pool_height * CONFIG_T::pool_width * CONFIG_T::n_filt],
-    hls::stream<res_T> &res, res_T &res_pack, unsigned &outputs_ready) {
+    hls::stream<res_T> &res,
+    res_T &res_pack,
+    unsigned &outputs_ready
+) {
     // Nearest H without unused pixels on the right
     constexpr unsigned nH =
         ((CONFIG_T::in_height - CONFIG_T::pool_height) / CONFIG_T::stride_height) * CONFIG_T::stride_height +
@@ -92,7 +97,8 @@ PixelLoop:
         for (unsigned c = 0; c < CONFIG_T::n_filt; c++) {
             if (filt_mask > 0)
                 data_window[c * CONFIG_T::pool_height * CONFIG_T::pool_width + filt_mask.to_uint() - 1].write(
-                    in_elem[p * CONFIG_T::n_filt + c]);
+                    in_elem[p * CONFIG_T::n_filt + c]
+                );
         }
 
         if (filt_mask == CONFIG_T::pool_height * CONFIG_T::pool_width) {
@@ -106,11 +112,13 @@ PixelLoop:
                     1) { // Saves resources if we don't pack output, compiler will remove the else branch
                     res_pack[c] =
                         reduce_pool<typename CONFIG_T::accum_t, CONFIG_T::pool_height * CONFIG_T::pool_width, CONFIG_T>(
-                            pool_window);
+                            pool_window
+                        );
                 } else {
                     res_pack[outputs_ready * CONFIG_T::n_filt + c] =
                         reduce_pool<typename CONFIG_T::accum_t, CONFIG_T::pool_height * CONFIG_T::pool_width, CONFIG_T>(
-                            pool_window);
+                            pool_window
+                        );
                 }
             }
             if (res_T::size / CONFIG_T::n_filt ==
@@ -153,8 +161,9 @@ ReadInputHeight:
             if (res_T::size / CONFIG_T::n_filt == 1) {
                 #pragma HLS PIPELINE II=pack_factor
             }
-            compute_pool_encoded_2d<data_T, res_T, CONFIG_T>(i_ih, i_iw, data.read(), data_window, res, res_pack,
-                                                             outputs_ready);
+            compute_pool_encoded_2d<data_T, res_T, CONFIG_T>(
+                i_ih, i_iw, data.read(), data_window, res, res_pack, outputs_ready
+            );
         }
     }
 }
@@ -163,10 +172,12 @@ ReadInputHeight:
 //       Line Buffer Implementation (Phil's)
 // *************************************************
 template <class data_T, class res_T, typename CONFIG_T>
-void compute_pool_buffer_2d(const data_T &in_elem,
-                            ap_shift_reg<typename data_T::value_type, CONFIG_T::in_width>
-                                line_buffer[MAX(CONFIG_T::pool_height - 1, 1)][CONFIG_T::n_filt],
-                            hls::stream<res_T> &res) {
+void compute_pool_buffer_2d(
+    const data_T &in_elem,
+    ap_shift_reg<typename data_T::value_type, CONFIG_T::in_width> line_buffer[MAX(CONFIG_T::pool_height - 1, 1)]
+                                                                             [CONFIG_T::n_filt],
+    hls::stream<res_T> &res
+) {
     #pragma HLS INLINE
     const static int lShiftX = CONFIG_T::pool_width - 1;
     const static int lShiftY = CONFIG_T::pool_height - 1;
@@ -267,9 +278,14 @@ void pooling2d_cl(hls::stream<data_T> &data, hls::stream<res_T> &res) {
 // *************************************************
 
 template <class data_T, class res_T, typename CONFIG_T>
-void compute_pool_encoded_1d(const unsigned w_idx, const data_T &in_elem,
-                             hls::stream<typename data_T::value_type> data_window[CONFIG_T::pool_width * CONFIG_T::n_filt],
-                             hls::stream<res_T> &res, res_T &res_pack, unsigned &outputs_ready) {
+void compute_pool_encoded_1d(
+    const unsigned w_idx,
+    const data_T &in_elem,
+    hls::stream<typename data_T::value_type> data_window[CONFIG_T::pool_width * CONFIG_T::n_filt],
+    hls::stream<res_T> &res,
+    res_T &res_pack,
+    unsigned &outputs_ready
+) {
     // Nearest W without unused pixels on the right
     constexpr unsigned nW =
         ((CONFIG_T::n_in - CONFIG_T::pool_width) / CONFIG_T::stride_width) * CONFIG_T::stride_width + CONFIG_T::pool_width;
@@ -485,7 +501,8 @@ PoolFilt:
             data_pack[p] = in_elem[p * CONFIG_T::n_filt + c];
         }
         data_window[c] = reduce_global_pool<typename CONFIG_T::accum_t, data_T::size / CONFIG_T::n_filt, CONFIG_T>(
-            data_window[c], data_pack);
+            data_window[c], data_pack
+        );
     }
 }
 

@@ -11,9 +11,12 @@
 namespace nnet {
 
 template <class data_T, class res_T, typename CONFIG_T>
-void dense_resource_rf_leq_nin(data_T data[CONFIG_T::n_in], res_T res[CONFIG_T::n_out],
-                               typename CONFIG_T::weight_t weights[CONFIG_T::n_in * CONFIG_T::n_out],
-                               typename CONFIG_T::bias_t biases[CONFIG_T::n_out]) {
+void dense_resource_rf_leq_nin(
+    data_T data[CONFIG_T::n_in],
+    res_T res[CONFIG_T::n_out],
+    typename CONFIG_T::weight_t weights[CONFIG_T::n_in * CONFIG_T::n_out],
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_out]
+) {
 
     const int rufactor = CONFIG_T::reuse_factor;
     const int multfactor = MIN(CONFIG_T::n_in, CONFIG_T::reuse_factor);
@@ -54,7 +57,8 @@ ReuseLoop:
             //#pragma HLS UNROLL
 
             acc[out_index] += static_cast<typename CONFIG_T::accum_t>(
-                CONFIG_T::template product<data_T, typename CONFIG_T::weight_t>::product(data[in_index], weights[w_index]));
+                CONFIG_T::template product<data_T, typename CONFIG_T::weight_t>::product(data[in_index], weights[w_index])
+            );
 
             // Increment w_index
             w_index += rufactor;
@@ -82,9 +86,12 @@ Result:
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void dense_resource_rf_gt_nin_rem0(data_T data[CONFIG_T::n_in], res_T res[CONFIG_T::n_out],
-                                   typename CONFIG_T::weight_t weights[CONFIG_T::n_in * CONFIG_T::n_out],
-                                   typename CONFIG_T::bias_t biases[CONFIG_T::n_out]) {
+void dense_resource_rf_gt_nin_rem0(
+    data_T data[CONFIG_T::n_in],
+    res_T res[CONFIG_T::n_out],
+    typename CONFIG_T::weight_t weights[CONFIG_T::n_in * CONFIG_T::n_out],
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_out]
+) {
 
     const int rufactor = MIN(CONFIG_T::reuse_factor, CONFIG_T::n_in * CONFIG_T::n_out);
     const int multfactor = MIN(CONFIG_T::n_in, CONFIG_T::reuse_factor);
@@ -136,7 +143,8 @@ ReuseLoop:
         for (unsigned int im = 0; im < block_factor; im++) {
             //#pragma HLS UNROLL
             acc[out_index] += static_cast<typename CONFIG_T::accum_t>(
-                CONFIG_T::template product<data_T, typename CONFIG_T::weight_t>::product(data[in_index], weights[w_index]));
+                CONFIG_T::template product<data_T, typename CONFIG_T::weight_t>::product(data[in_index], weights[w_index])
+            );
 
             w_index += rufactor;
             if (w_index >= CONFIG_T::n_in * CONFIG_T::n_out)
@@ -160,9 +168,12 @@ Result:
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void dense_resource_rf_gt_nin(data_T data[CONFIG_T::n_in], res_T res[CONFIG_T::n_out],
-                              typename CONFIG_T::weight_t weights[CONFIG_T::n_in * CONFIG_T::n_out],
-                              typename CONFIG_T::bias_t biases[CONFIG_T::n_out]) {
+void dense_resource_rf_gt_nin(
+    data_T data[CONFIG_T::n_in],
+    res_T res[CONFIG_T::n_out],
+    typename CONFIG_T::weight_t weights[CONFIG_T::n_in * CONFIG_T::n_out],
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_out]
+) {
 
     const int rufactor = CONFIG_T::reuse_factor;
     const int multfactor = MIN(CONFIG_T::n_in, CONFIG_T::reuse_factor);
@@ -242,9 +253,12 @@ Result:
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void dense_resource(data_T data[CONFIG_T::n_in], res_T res[CONFIG_T::n_out],
-                    typename CONFIG_T::weight_t weights[CONFIG_T::n_in * CONFIG_T::n_out],
-                    typename CONFIG_T::bias_t biases[CONFIG_T::n_out]) {
+void dense_resource(
+    data_T data[CONFIG_T::n_in],
+    res_T res[CONFIG_T::n_out],
+    typename CONFIG_T::weight_t weights[CONFIG_T::n_in * CONFIG_T::n_out],
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_out]
+) {
 
     //#pragma HLS INLINE region
 

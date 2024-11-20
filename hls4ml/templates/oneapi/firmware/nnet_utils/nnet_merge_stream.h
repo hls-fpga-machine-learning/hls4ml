@@ -85,7 +85,8 @@ AvgLoop:
         #pragma unroll
         for (int j = 0; j < outputSize; j++) {
             out_data[j] = static_cast<typename ExtractPipeType<res_pipe>::value_type::value_type>(
-                (in_data1[j] + in_data2[j]) / (typename ExtractPipeType<res_pipe>::value_type::value_type)2);
+                (in_data1[j] + in_data2[j]) / (typename ExtractPipeType<res_pipe>::value_type::value_type)2
+            );
         }
 
         res_pipe::write(out_data);
@@ -108,7 +109,8 @@ MaxLoop:
         #pragma unroll
         for (int j = 0; j < outputSize; j++) {
             out_data[j] = static_cast<typename ExtractPipeType<res_pipe>::value_type::value_type>(
-                (in_data1[j] > in_data2[j]) ? in_data1[j] : in_data2[j]);
+                (in_data1[j] > in_data2[j]) ? in_data1[j] : in_data2[j]
+            );
         }
 
         res_pipe::write(out_data);
@@ -131,7 +133,8 @@ MinLoop:
         #pragma unroll
         for (int j = 0; j < outputSize; j++) {
             out_data[j] = static_cast<typename ExtractPipeType<res_pipe>::value_type::value_type>(
-                (in_data1[j] < in_data2[j]) ? in_data1[j] : in_data2[j]);
+                (in_data1[j] < in_data2[j]) ? in_data1[j] : in_data2[j]
+            );
         }
 
         res_pipe::write(out_data);

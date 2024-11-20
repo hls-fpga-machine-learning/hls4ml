@@ -47,8 +47,9 @@ FiltHeightLoop:
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void conv_2d_im2col_cl(const data_T &data, res_T &res, const typename CONFIG_T::weight_t &weights,
-                       const typename CONFIG_T::bias_t &biases) {
+void conv_2d_im2col_cl(
+    const data_T &data, res_T &res, const typename CONFIG_T::weight_t &weights, const typename CONFIG_T::bias_t &biases
+) {
     // im2col performs no filter transformations; therefore, filter size remains constant
     assert(CONFIG_T::filt_height == CONFIG_T::impl_filt_height && CONFIG_T::filt_width == CONFIG_T::impl_filt_width);
 
@@ -118,8 +119,9 @@ inline void winograd_transform_input_tile_3x3_kernel(const data_T I[16], res_T D
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void winograd_conv2d_3x3_kernel_cl(const data_T &data, res_T &res, const typename CONFIG_T::weight_t &weights,
-                                   const typename CONFIG_T::bias_t &biases) {
+void winograd_conv2d_3x3_kernel_cl(
+    const data_T &data, res_T &res, const typename CONFIG_T::weight_t &weights, const typename CONFIG_T::bias_t &biases
+) {
     // Ensure Winograd conditions are met
     assert(CONFIG_T::filt_height == 3 && CONFIG_T::filt_width == 3);
     assert(CONFIG_T::stride_height == 1 && CONFIG_T::stride_width == 1);
@@ -184,20 +186,24 @@ HeightLoop:
 
                     // Explicitly transform intermediate result Z = A'YA and save to output
                     res[CONFIG_T::n_filt * (row * CONFIG_T::out_width + col) + filter] +=
-                        static_cast<typename res_T::value_type>(Y[0] + Y[1] + Y[2] + Y[4] + Y[5] + Y[6] + Y[8] + Y[9] +
-                                                                Y[10]);
+                        static_cast<typename res_T::value_type>(
+                            Y[0] + Y[1] + Y[2] + Y[4] + Y[5] + Y[6] + Y[8] + Y[9] + Y[10]
+                        );
                     if ((col + 1) < CONFIG_T::out_height)
                         res[CONFIG_T::n_filt * (row * CONFIG_T::out_width + (col + 1)) + filter] +=
-                            static_cast<typename res_T::value_type>(Y[1] - Y[2] - Y[3] + Y[5] - Y[6] - Y[7] + Y[9] - Y[10] -
-                                                                    Y[11]);
+                            static_cast<typename res_T::value_type>(
+                                Y[1] - Y[2] - Y[3] + Y[5] - Y[6] - Y[7] + Y[9] - Y[10] - Y[11]
+                            );
                     if ((row + 1) < CONFIG_T::out_width)
                         res[CONFIG_T::n_filt * ((row + 1) * CONFIG_T::out_width + col) + filter] +=
-                            static_cast<typename res_T::value_type>(Y[4] + Y[5] + Y[6] - Y[8] - Y[9] - Y[10] - Y[12] -
-                                                                    Y[13] - Y[14]);
+                            static_cast<typename res_T::value_type>(
+                                Y[4] + Y[5] + Y[6] - Y[8] - Y[9] - Y[10] - Y[12] - Y[13] - Y[14]
+                            );
                     if ((row + 1) < (CONFIG_T::out_width) && (col + 1) < CONFIG_T::out_height)
                         res[CONFIG_T::n_filt * ((row + 1) * CONFIG_T::out_width + (col + 1)) + filter] +=
-                            static_cast<typename res_T::value_type>(Y[5] - Y[6] - Y[7] - Y[9] + Y[10] + Y[11] + Y[15] -
-                                                                    Y[13] + Y[14]);
+                            static_cast<typename res_T::value_type>(
+                                Y[5] - Y[6] - Y[7] - Y[9] + Y[10] + Y[11] + Y[15] - Y[13] + Y[14]
+                            );
                 }
             }
         }
@@ -231,8 +237,9 @@ ChannelLoop:
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void pointwise_conv_2d_resource_cl(const data_T &data, res_T &res, const typename CONFIG_T::weight_t &weights,
-                                   const typename CONFIG_T::bias_t &biases) {
+void pointwise_conv_2d_resource_cl(
+    const data_T &data, res_T &res, const typename CONFIG_T::weight_t &weights, const typename CONFIG_T::bias_t &biases
+) {
     assert(CONFIG_T::filt_height == 1 && CONFIG_T::filt_width == 1);
 
     // Unroll factors for loop traversing input image, derived from parallelization_factor
@@ -272,8 +279,9 @@ HeightLoop:
 //      Top-level function - handles different implementations
 // ****************************************************************
 template <class data_T, class res_T, typename CONFIG_T>
-void conv_2d_resource_cl(const data_T &data, res_T &res, const typename CONFIG_T::weight_t &weights,
-                         const typename CONFIG_T::bias_t &biases) {
+void conv_2d_resource_cl(
+    const data_T &data, res_T &res, const typename CONFIG_T::weight_t &weights, const typename CONFIG_T::bias_t &biases
+) {
     static constexpr bool winograd_conditions =
         // Winograd's minimal filtering algorithm not applicable to stride != 1
         CONFIG_T::stride_height == 1 && CONFIG_T::stride_width == 1 &&

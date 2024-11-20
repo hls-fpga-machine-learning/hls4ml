@@ -17,9 +17,12 @@ enum class conv2d_implementation { combination, im2col, winograd };
 // ****************************************************************
 
 template <class data_T, typename CONFIG_T>
-void im2col_2d_cl(data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_chan],
-                  data_T data_col[CONFIG_T::impl_filt_height * CONFIG_T::impl_filt_width * CONFIG_T::n_chan], const int row,
-                  const int col) {
+void im2col_2d_cl(
+    data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_chan],
+    data_T data_col[CONFIG_T::impl_filt_height * CONFIG_T::impl_filt_width * CONFIG_T::n_chan],
+    const int row,
+    const int col
+) {
     // im2col can be unrolled fully, since number of parallel executions = filt_h x filt_w x n_chann ~ O(100) and very little
     // DSP usage
 
@@ -52,11 +55,13 @@ FiltHeightLoop:
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void conv_2d_im2col_cl(data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_chan],
-                       res_T res[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt],
-                       const typename CONFIG_T::weight_t weights[CONFIG_T::impl_filt_height * CONFIG_T::impl_filt_width *
-                                                                 CONFIG_T::n_chan * CONFIG_T::n_filt],
-                       const typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+void conv_2d_im2col_cl(
+    data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_chan],
+    res_T res[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt],
+    const typename CONFIG_T::weight_t
+        weights[CONFIG_T::impl_filt_height * CONFIG_T::impl_filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
+    const typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
     // im2col performs no filter transformations; therefore, filter size remains constant
     assert(CONFIG_T::filt_height == CONFIG_T::impl_filt_height && CONFIG_T::filt_width == CONFIG_T::impl_filt_width);
 
@@ -128,7 +133,8 @@ void winograd_conv2d_3x3_kernel_cl(
     res_T res[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt],
     const typename CONFIG_T::weight_t
         weights[CONFIG_T::n_filt * CONFIG_T::n_chan * CONFIG_T::impl_filt_height * CONFIG_T::impl_filt_width],
-    const typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+    const typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
     // Ensure Winograd conditions are met
     assert(CONFIG_T::filt_height == 3 && CONFIG_T::filt_width == 3);
     assert(CONFIG_T::stride_height == 1 && CONFIG_T::stride_width == 1);
@@ -214,8 +220,12 @@ HeightLoop:
 // ****************************************************************
 
 template <class data_T, typename CONFIG_T>
-void im2col_2d_pointwise_cl(data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_chan],
-                            data_T data_col[CONFIG_T::n_chan], const int row, const int col) {
+void im2col_2d_pointwise_cl(
+    data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_chan],
+    data_T data_col[CONFIG_T::n_chan],
+    const int row,
+    const int col
+) {
     // pointwise_im2col can be unrolled fully, only one loop with n_chan iterations
 
     hls_register int index = 0;
@@ -237,10 +247,12 @@ ChannelLoop:
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void pointwise_conv_2d_resource_cl(data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_chan],
-                                   res_T res[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt],
-                                   const typename CONFIG_T::weight_t weights[CONFIG_T::n_chan * CONFIG_T::n_filt],
-                                   const typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+void pointwise_conv_2d_resource_cl(
+    data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_chan],
+    res_T res[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt],
+    const typename CONFIG_T::weight_t weights[CONFIG_T::n_chan * CONFIG_T::n_filt],
+    const typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
     assert(CONFIG_T::filt_height == 1 && CONFIG_T::filt_width == 1);
 
     // Unroll factors for loop traversing input image, derived from parallelization_factor
@@ -278,11 +290,13 @@ HeightLoop:
 //      Top-level function - handles different implementations
 // ****************************************************************
 template <class data_T, class res_T, typename CONFIG_T>
-void conv_2d_resource_cl(data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_chan],
-                         res_T res[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt],
-                         const typename CONFIG_T::weight_t weights[CONFIG_T::impl_filt_height * CONFIG_T::impl_filt_width *
-                                                                   CONFIG_T::n_chan * CONFIG_T::n_filt],
-                         const typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+void conv_2d_resource_cl(
+    data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_chan],
+    res_T res[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt],
+    const typename CONFIG_T::weight_t
+        weights[CONFIG_T::impl_filt_height * CONFIG_T::impl_filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
+    const typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
     static constexpr bool winograd_conditions =
         // Winograd's minimal filtering algorithm not applicable to stride != 1
         CONFIG_T::stride_height == 1 && CONFIG_T::stride_width == 1 &&

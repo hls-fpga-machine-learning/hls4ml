@@ -21,8 +21,8 @@ template <class data_T, class res_T, typename CONFIG_T> void transpose_2d(const 
 
 template <class data_T, class res_T, typename CONFIG_T> void transpose_3d(const data_T &data, res_T &res) {
     static constexpr unsigned dim_data[3] = {CONFIG_T::depth, CONFIG_T::height, CONFIG_T::width};
-    static constexpr unsigned dim_res[3] = {dim_data[CONFIG_T::perm[0]], dim_data[CONFIG_T::perm[1]],
-                                            dim_data[CONFIG_T::perm[2]]};
+    static constexpr unsigned dim_res[3] = {
+        dim_data[CONFIG_T::perm[0]], dim_data[CONFIG_T::perm[1]], dim_data[CONFIG_T::perm[2]]};
 
     int index_data[3] = {0}, index_res[3] = {0};
 
@@ -37,7 +37,8 @@ template <class data_T, class res_T, typename CONFIG_T> void transpose_3d(const 
 
                 res[index_res[0] * dim_res[1] * dim_res[2] + index_res[1] * dim_res[2] + index_res[2]] =
                     static_cast<typename res_T::value_type>(
-                        data[index_data[0] * dim_data[1] * dim_data[2] + index_data[1] * dim_data[2] + index_data[2]]);
+                        data[index_data[0] * dim_data[1] * dim_data[2] + index_data[1] * dim_data[2] + index_data[2]]
+                    );
             }
         }
     }

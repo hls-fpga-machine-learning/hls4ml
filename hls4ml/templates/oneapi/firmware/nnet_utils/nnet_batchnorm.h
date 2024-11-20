@@ -29,8 +29,9 @@ struct batchnorm_config {
 };
 
 template <class data_T, class res_T, typename CONFIG_T>
-void normalize(const data_T &data, res_T &res, const typename CONFIG_T::scale_t &scale,
-               const typename CONFIG_T::bias_t &bias) {
+void normalize(
+    const data_T &data, res_T &res, const typename CONFIG_T::scale_t &scale, const typename CONFIG_T::bias_t &bias
+) {
 // Calcuate result
 Result:
     #pragma unroll
@@ -38,13 +39,15 @@ Result:
         if (CONFIG_T::n_filt == -1) {
             res[ires] =
                 CONFIG_T::template product<typename data_T::value_type, typename CONFIG_T::scale_t::value_type>::product(
-                    data[ires], scale[ires]) +
+                    data[ires], scale[ires]
+                ) +
                 bias[ires];
         } else {
             int norm_index = ires % CONFIG_T::n_filt;
             res[ires] =
                 CONFIG_T::template product<typename data_T::value_type, typename CONFIG_T::scale_t::value_type>::product(
-                    data[ires], scale[norm_index]) +
+                    data[ires], scale[norm_index]
+                ) +
                 bias[norm_index];
         }
     }
@@ -82,8 +85,12 @@ void normalize_binary_tanh(const data_T &data, res_T &res, const typename CONFIG
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void normalize_ternary_tanh(const data_T &data, res_T &res, const typename CONFIG_T::threshold_hi_t &threshold_hi,
-                            const typename CONFIG_T::threshold_lo_t &threshold_lo) {
+void normalize_ternary_tanh(
+    const data_T &data,
+    res_T &res,
+    const typename CONFIG_T::threshold_hi_t &threshold_hi,
+    const typename CONFIG_T::threshold_lo_t &threshold_lo
+) {
     #pragma unroll
     for (int ii = 0; ii < CONFIG_T::n_in; ii++) {
         ac_int<2, true> cache;

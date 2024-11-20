@@ -11,17 +11,21 @@ void conv_2d_resource_cl(
     data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_chan],
     res_T res[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt],
     typename CONFIG_T::weight_t weights[CONFIG_T::filt_height * CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
-    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
     constexpr unsigned mult_n_in = CONFIG_T::filt_height * CONFIG_T::filt_width * CONFIG_T::n_chan;
     constexpr unsigned mult_n_out = CONFIG_T::n_filt;
     constexpr unsigned block_factor = DIV_ROUNDUP(mult_n_in * mult_n_out, CONFIG_T::reuse_factor);
 
     constexpr unsigned multscale = block_factor / mult_n_out;
 
-    assert((block_factor % mult_n_out == 0 || CONFIG_T::reuse_factor >= mult_n_in) &&
-           "The current Reuse Factor is not allowed");
-    assert((CONFIG_T::reuse_factor <= CONFIG_T::filt_height * CONFIG_T::filt_width * CONFIG_T::n_chan) &&
-           "This function is correct only for RF <= FILT_HEIGHT * FILT_WIDTH * N_CHAN");
+    assert(
+        (block_factor % mult_n_out == 0 || CONFIG_T::reuse_factor >= mult_n_in) && "The current Reuse Factor is not allowed"
+    );
+    assert(
+        (CONFIG_T::reuse_factor <= CONFIG_T::filt_height * CONFIG_T::filt_width * CONFIG_T::n_chan) &&
+        "This function is correct only for RF <= FILT_HEIGHT * FILT_WIDTH * N_CHAN"
+    );
 
     data_T data_buf[CONFIG_T::n_pixels][mult_n_in];
     #pragma HLS ARRAY_PARTITION variable=data_buf complete dim=0
@@ -68,7 +72,9 @@ PartitionLoop:
 
                     acc[i_pxl][i_out] += static_cast<typename CONFIG_T::accum_t>(
                         CONFIG_T::mult_config::template product<data_T, typename CONFIG_T::mult_config::weight_t>::product(
-                            data_buf[i_pxl][i_in], weights[i_w]));
+                            data_buf[i_pxl][i_in], weights[i_w]
+                        )
+                    );
                 }
 
                 // Increment i_w

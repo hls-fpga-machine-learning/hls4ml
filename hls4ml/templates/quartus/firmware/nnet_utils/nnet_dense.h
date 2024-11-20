@@ -36,11 +36,16 @@ struct dense_config {
 };
 
 template <class data_T, class res_T, typename CONFIG_T>
-void dense_rf_gt(data_T data[CONFIG_T::n_in], res_T res[CONFIG_T::n_out],
-                 const typename CONFIG_T::weight_t weights[CONFIG_T::reuse_factor_rounded * CONFIG_T::block_factor_rounded],
-                 const typename CONFIG_T::bias_t biases[CONFIG_T::n_out]) {
-    assert((CONFIG_T::multiplier_limit % CONFIG_T::n_out == 0 || CONFIG_T::reuse_factor >= CONFIG_T::n_in) &&
-           "The current Reuse Factor is not allowed");
+void dense_rf_gt(
+    data_T data[CONFIG_T::n_in],
+    res_T res[CONFIG_T::n_out],
+    const typename CONFIG_T::weight_t weights[CONFIG_T::reuse_factor_rounded * CONFIG_T::block_factor_rounded],
+    const typename CONFIG_T::bias_t biases[CONFIG_T::n_out]
+) {
+    assert(
+        (CONFIG_T::multiplier_limit % CONFIG_T::n_out == 0 || CONFIG_T::reuse_factor >= CONFIG_T::n_in) &&
+        "The current Reuse Factor is not allowed"
+    );
     assert((CONFIG_T::reuse_factor > CONFIG_T::n_in) && "This function is correct only for RF > N_IN");
     //#pragma ii CONFIG_T::reuse_factor
     hls_register typename CONFIG_T::accum_t acc[CONFIG_T::n_out];
@@ -104,11 +109,16 @@ Store:
     }
 }
 template <class data_T, class res_T, typename CONFIG_T>
-void dense_rf_lt(data_T data[CONFIG_T::n_in], res_T res[CONFIG_T::n_out],
-                 const typename CONFIG_T::weight_t weights[CONFIG_T::reuse_factor_rounded * CONFIG_T::block_factor_rounded],
-                 const typename CONFIG_T::bias_t biases[CONFIG_T::n_out]) {
-    assert((CONFIG_T::multiplier_limit % CONFIG_T::n_out == 0 || CONFIG_T::reuse_factor >= CONFIG_T::n_in) &&
-           "The current Reuse Factor is not allowed");
+void dense_rf_lt(
+    data_T data[CONFIG_T::n_in],
+    res_T res[CONFIG_T::n_out],
+    const typename CONFIG_T::weight_t weights[CONFIG_T::reuse_factor_rounded * CONFIG_T::block_factor_rounded],
+    const typename CONFIG_T::bias_t biases[CONFIG_T::n_out]
+) {
+    assert(
+        (CONFIG_T::multiplier_limit % CONFIG_T::n_out == 0 || CONFIG_T::reuse_factor >= CONFIG_T::n_in) &&
+        "The current Reuse Factor is not allowed"
+    );
     assert((CONFIG_T::multiplier_limit == CONFIG_T::block_factor) && "This function is correct only for RF <= N_IN");
 
     hls_register typename CONFIG_T::accum_t acc[CONFIG_T::n_out];
@@ -156,9 +166,11 @@ Result:
 }
 template <class data_T, class res_T, typename CONFIG_T>
 void dense_resource(
-    data_T data[CONFIG_T::n_in], res_T res[CONFIG_T::n_out],
+    data_T data[CONFIG_T::n_in],
+    res_T res[CONFIG_T::n_out],
     const typename CONFIG_T::weight_t weights[CONFIG_T::reuse_factor_rounded * CONFIG_T::block_factor_rounded],
-    const typename CONFIG_T::bias_t biases[CONFIG_T::n_out]) {
+    const typename CONFIG_T::bias_t biases[CONFIG_T::n_out]
+) {
     if (CONFIG_T::reuse_factor <= CONFIG_T::n_in) {
         dense_rf_lt<data_T, res_T, CONFIG_T>(data, res, weights, biases);
     } else {

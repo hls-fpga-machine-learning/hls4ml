@@ -118,7 +118,9 @@ FiltLoop:
             // Pooling operation
             res[(inp_col / CONFIG_T::stride_width) * CONFIG_T::n_filt + filt] = static_cast<typename res_T::value_type>(
                 pool_op<typename data_T::value_type, CONFIG_T::pool_width, CONFIG_T::pool_op, typename CONFIG_T::accum_t>(
-                    pool, img_overlap));
+                    pool, img_overlap
+                )
+            );
         }
     }
 }
@@ -139,7 +141,8 @@ FiltLoop:
         }
 
         res[filt] = static_cast<typename res_T::value_type>(
-            pool_op<typename data_T::value_type, CONFIG_T::n_in, CONFIG_T::pool_op, typename CONFIG_T::accum_t>(pool));
+            pool_op<typename data_T::value_type, CONFIG_T::n_in, CONFIG_T::pool_op, typename CONFIG_T::accum_t>(pool)
+        );
     }
 }
 
@@ -210,9 +213,9 @@ FiltLoop:
                                 img_overlap++;
                         } else {
                             // Current element is from input image
-                            pool[pool_col * CONFIG_T::stride_width + pool_row] =
-                                data[(inp_col + pool_col - CONFIG_T::pad_top) * CONFIG_T::in_width * CONFIG_T::n_filt +
-                                     (inp_width + pool_row - CONFIG_T::pad_left) * CONFIG_T::n_filt + filt];
+                            pool[pool_col * CONFIG_T::stride_width + pool_row] = data
+                                [(inp_col + pool_col - CONFIG_T::pad_top) * CONFIG_T::in_width * CONFIG_T::n_filt +
+                                 (inp_width + pool_row - CONFIG_T::pad_left) * CONFIG_T::n_filt + filt];
                             img_overlap++;
                         }
                     }
@@ -221,9 +224,11 @@ FiltLoop:
                 // Pooling operation
                 res[(inp_col / CONFIG_T::stride_height) * CONFIG_T::out_width * CONFIG_T::n_filt +
                     (inp_width / CONFIG_T::stride_width) * CONFIG_T::n_filt + filt] =
-                    static_cast<typename res_T::value_type>(
-                        pool_op<typename data_T::value_type, CONFIG_T::pool_height * CONFIG_T::pool_width, CONFIG_T::pool_op,
-                                typename CONFIG_T::accum_t>(pool, img_overlap));
+                    static_cast<typename res_T::value_type>(pool_op<
+                                                            typename data_T::value_type,
+                                                            CONFIG_T::pool_height * CONFIG_T::pool_width,
+                                                            CONFIG_T::pool_op,
+                                                            typename CONFIG_T::accum_t>(pool, img_overlap));
             }
         }
     }
@@ -246,9 +251,11 @@ FiltLoop:
             pool[i] = data[i * CONFIG_T::n_filt + filt];
         }
 
-        res[filt] = static_cast<typename res_T::value_type>(
-            pool_op<typename data_T::value_type, CONFIG_T::in_height * CONFIG_T::in_width, CONFIG_T::pool_op,
-                    typename CONFIG_T::accum_t>(pool));
+        res[filt] = static_cast<typename res_T::value_type>(pool_op<
+                                                            typename data_T::value_type,
+                                                            CONFIG_T::in_height * CONFIG_T::in_width,
+                                                            CONFIG_T::pool_op,
+                                                            typename CONFIG_T::accum_t>(pool));
     }
 }
 

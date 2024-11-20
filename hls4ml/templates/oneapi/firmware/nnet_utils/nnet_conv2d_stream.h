@@ -16,8 +16,9 @@ namespace nnet {
  * Values from shift_buffer are inserted into kernel_window, updating the values to be convolved
  */
 template <class data_T, class data_window_T, typename CONFIG_T>
-void kernel_shift_2d(typename data_T::value_type shift_buffer[CONFIG_T::filt_height][CONFIG_T::n_chan],
-                     data_window_T &kernel_window) {
+void kernel_shift_2d(
+    typename data_T::value_type shift_buffer[CONFIG_T::filt_height][CONFIG_T::n_chan], data_window_T &kernel_window
+) {
 /*
  * Manually shift kernel_window by one step to the left
  * Not possible to use nnet::shift_reg<T, N> as the kernel window is convolved with the kernel weights using dense matrix
@@ -47,8 +48,9 @@ KernelPushHeight:
     KernelPushChannel:
         #pragma unroll
         for (int channel = 0; channel < CONFIG_T::n_chan; channel++) {
-            kernel_window[(CONFIG_T::filt_width - 1) * CONFIG_T::n_chan + col * CONFIG_T::filt_width * CONFIG_T::n_chan +
-                          channel] = shift_buffer[col][channel];
+            kernel_window
+                [(CONFIG_T::filt_width - 1) * CONFIG_T::n_chan + col * CONFIG_T::filt_width * CONFIG_T::n_chan + channel] =
+                    shift_buffer[col][channel];
         }
     }
 }
@@ -69,7 +71,8 @@ void shift_line_buffer_2d(
     const data_T &in_elem,
     nnet::shift_reg<typename data_T::value_type, CONFIG_T::pad_left + CONFIG_T::in_width + CONFIG_T::pad_right>
         line_buffer[MAX(CONFIG_T::filt_height - 1, 1)][CONFIG_T::n_chan],
-    typename data_T::value_type shift_buffer[CONFIG_T::filt_height][CONFIG_T::n_chan]) {
+    typename data_T::value_type shift_buffer[CONFIG_T::filt_height][CONFIG_T::n_chan]
+) {
 // For every channel, insert the incoming pixel at end of the shift buffer
 UpdateBuffer:
     #pragma unroll
@@ -114,8 +117,14 @@ void compute_output_buffer_2d(
     const data_T &in_elem,
     nnet::shift_reg<typename data_T::value_type, CONFIG_T::pad_left + CONFIG_T::in_width + CONFIG_T::pad_right>
         line_buffer[MAX(CONFIG_T::filt_height - 1, 1)][CONFIG_T::n_chan],
-    data_window_T &kernel_window, const typename CONFIG_T::weight_t &weights, const typename CONFIG_T::bias_t &biases,
-    int &pX, int &pY, int &sX, int &sY) {
+    data_window_T &kernel_window,
+    const typename CONFIG_T::weight_t &weights,
+    const typename CONFIG_T::bias_t &biases,
+    int &pX,
+    int &pY,
+    int &sX,
+    int &sY
+) {
 
     using res_T = typename ExtractPipeType<res_pipe>::value_type;
 
@@ -196,8 +205,9 @@ PaddingTopHeight:
     [[intel::loop_coalesce(2)]] for (int row = 0; row < CONFIG_T::pad_top; row++) {
     PaddingTopWidth:
         for (int col = 0; col < CONFIG_T::pad_left + CONFIG_T::in_width + CONFIG_T::pad_right; col++) {
-            compute_output_buffer_2d<data_arr_T, data_window_T, res_pipe, CONFIG_T>(padds, line_buffer, kernel_window,
-                                                                                    weights, biases, pX, pY, sX, sY);
+            compute_output_buffer_2d<data_arr_T, data_window_T, res_pipe, CONFIG_T>(
+                padds, line_buffer, kernel_window, weights, biases, pX, pY, sX, sY
+            );
         }
     }
 
@@ -206,22 +216,25 @@ ReadInputHeight:
     // Input image left-side padding
     PaddingLeftWidth:
         for (int col = 0; col < CONFIG_T::pad_left; col++) {
-            compute_output_buffer_2d<data_arr_T, data_window_T, res_pipe, CONFIG_T>(padds, line_buffer, kernel_window,
-                                                                                    weights, biases, pX, pY, sX, sY);
+            compute_output_buffer_2d<data_arr_T, data_window_T, res_pipe, CONFIG_T>(
+                padds, line_buffer, kernel_window, weights, biases, pX, pY, sX, sY
+            );
         }
 
     // Read input image
     ReadInputWidth:
         for (int col = 0; col < CONFIG_T::in_width; col++) {
             compute_output_buffer_2d<data_arr_T, data_window_T, res_pipe, CONFIG_T>(
-                data_pipe::read(), line_buffer, kernel_window, weights, biases, pX, pY, sX, sY);
+                data_pipe::read(), line_buffer, kernel_window, weights, biases, pX, pY, sX, sY
+            );
         }
 
     // Input image right-side padding
     PaddingRightWidth:
         for (int col = 0; col < CONFIG_T::pad_right; col++) {
-            compute_output_buffer_2d<data_arr_T, data_window_T, res_pipe, CONFIG_T>(padds, line_buffer, kernel_window,
-                                                                                    weights, biases, pX, pY, sX, sY);
+            compute_output_buffer_2d<data_arr_T, data_window_T, res_pipe, CONFIG_T>(
+                padds, line_buffer, kernel_window, weights, biases, pX, pY, sX, sY
+            );
         }
     }
 
@@ -230,8 +243,9 @@ PaddingBottomHeight:
     [[intel::loop_coalesce(2)]] for (int row = 0; row < CONFIG_T::pad_bottom; row++) {
     PaddingBottomWidth:
         for (int col = 0; col < CONFIG_T::pad_left + CONFIG_T::in_width + CONFIG_T::pad_right; col++) {
-            compute_output_buffer_2d<data_arr_T, data_window_T, res_pipe, CONFIG_T>(padds, line_buffer, kernel_window,
-                                                                                    weights, biases, pX, pY, sX, sY);
+            compute_output_buffer_2d<data_arr_T, data_window_T, res_pipe, CONFIG_T>(
+                padds, line_buffer, kernel_window, weights, biases, pX, pY, sX, sY
+            );
         }
     }
 }

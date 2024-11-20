@@ -451,8 +451,9 @@ template <int table_size, class data_T> inline unsigned get_index_unary_lut(data
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void unary_lut(data_T data[CONFIG_T::n_in], res_T res[CONFIG_T::n_in],
-               typename CONFIG_T::table_t table[CONFIG_T::table_size]) {
+void unary_lut(
+    data_T data[CONFIG_T::n_in], res_T res[CONFIG_T::n_in], typename CONFIG_T::table_t table[CONFIG_T::table_size]
+) {
     #pragma HLS function_instantiate variable=table
     #pragma HLS ARRAY_PARTITION variable=table
 

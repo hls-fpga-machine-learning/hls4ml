@@ -11,8 +11,8 @@ namespace nnet {
 // *************************************************
 template <class data_pipe, class res_pipe, typename CONFIG_T> void linear_stream() {
 LinearActLoop:
-    [[intel::initiation_interval(
-        1)]] for (int i = 0; i < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{}; i++) {
+    [[intel::initiation_interval(1
+    )]] for (int i = 0; i < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{}; i++) {
         auto in_data = data_pipe::read();
         typename ExtractPipeType<res_pipe>::value_type out_data;
 
@@ -31,8 +31,8 @@ LinearActLoop:
 // *************************************************
 template <class data_pipe, class res_pipe, typename CONFIG_T> void relu_stream() {
 ReLUActLoop:
-    [[intel::initiation_interval(
-        1)]] for (int i = 0; i < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{}; i++) {
+    [[intel::initiation_interval(1
+    )]] for (int i = 0; i < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{}; i++) {
         auto in_data = data_pipe::read();
         typename ExtractPipeType<res_pipe>::value_type out_data;
 
@@ -58,10 +58,8 @@ template <class data_pipe, class res_pipe, typename CONFIG_T> void leaky_relu_st
     constexpr unsigned pipeline = std::tuple_size<typename ExtractPipeType<data_pipe>::value_type>{} / multiplier_limit;
 
 LeakyReLUActLoop:
-    [[intel::initiation_interval(pipeline)]] for (int i = 0;
-                                                  i < CONFIG_T::n_in /
-                                                          std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{};
-                                                  i++) {
+    [[intel::initiation_interval(pipeline
+    )]] for (int i = 0; i < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{}; i++) {
         auto in_data = data_pipe::read();
         typename ExtractPipeType<res_pipe>::value_type out_data;
 
@@ -84,8 +82,8 @@ LeakyReLUActLoop:
 template <class data_pipe, class res_pipe, typename CONFIG_T>
 void thresholded_relu_stream(typename CONFIG_T::param_t theta) {
 ThresholdedReLUActLoop:
-    [[intel::initiation_interval(
-        1)]] for (int i = 0; i < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{}; i++) {
+    [[intel::initiation_interval(1
+    )]] for (int i = 0; i < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{}; i++) {
         auto in_data = data_pipe::read();
         typename ExtractPipeType<res_pipe>::value_type out_data;
 
@@ -113,10 +111,8 @@ template <class data_pipe, class res_pipe, typename CONFIG_T> void elu_stream(ty
     constexpr unsigned pipeline = std::tuple_size<typename ExtractPipeType<data_pipe>::value_type>{} / multiplier_limit;
 
 EluActLoop:
-    [[intel::initiation_interval(pipeline)]] for (int i = 0;
-                                                  i < CONFIG_T::n_in /
-                                                          std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{};
-                                                  i++) {
+    [[intel::initiation_interval(pipeline
+    )]] for (int i = 0; i < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{}; i++) {
         auto in_data = data_pipe::read();
         typename ExtractPipeType<res_pipe>::value_type out_data;
 
@@ -145,8 +141,8 @@ template <class data_pipe, class res_pipe, typename CONFIG_T> void selu_stream()
 #include "activation_tables/selu_table.tb"
 
 SeluActLoop:
-    [[intel::initiation_interval(
-        1)]] for (int i = 0; i < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{}; i++) {
+    [[intel::initiation_interval(1
+    )]] for (int i = 0; i < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{}; i++) {
         auto in_data = data_pipe::read();
         typename ExtractPipeType<res_pipe>::value_type out_data;
 
@@ -178,10 +174,8 @@ template <class data_pipe, class res_pipe, typename CONFIG_T> void prelu_stream(
     constexpr unsigned pipeline = std::tuple_size<typename ExtractPipeType<data_pipe>::value_type>{} / multiplier_limit;
 
 PReLUActLoop:
-    [[intel::initiation_interval(pipeline)]] for (int i = 0;
-                                                  i < CONFIG_T::n_in /
-                                                          std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{};
-                                                  i++) {
+    [[intel::initiation_interval(pipeline
+    )]] for (int i = 0; i < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{}; i++) {
         auto in_data = data_pipe::read();
         typename ExtractPipeType<res_pipe>::value_type out_data;
 
@@ -205,8 +199,8 @@ template <class data_pipe, class res_pipe, typename CONFIG_T> void softplus_stre
 #include "activation_tables/softplus_table.tb"
 
 SoftplusActLoop:
-    [[intel::initiation_interval(
-        1)]] for (int i = 0; i < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{}; i++) {
+    [[intel::initiation_interval(1
+    )]] for (int i = 0; i < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{}; i++) {
         auto in_data = data_pipe::read();
         typename ExtractPipeType<res_pipe>::value_type out_data;
 
@@ -235,8 +229,8 @@ template <class data_pipe, class res_pipe, typename CONFIG_T> void softsign_stre
     static const int MAX_VALUE = 8;
 
 SoftsignActLoop:
-    [[intel::initiation_interval(
-        1)]] for (int i = 0; i < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{}; i++) {
+    [[intel::initiation_interval(1
+    )]] for (int i = 0; i < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{}; i++) {
         auto in_data = data_pipe::read();
         typename ExtractPipeType<res_pipe>::value_type out_data;
 
@@ -281,10 +275,8 @@ template <class data_pipe, class res_pipe, typename CONFIG_T> void softmax_stabl
         data_array[std::tuple_size<typename ExtractPipeType<data_pipe>::value_type>{}];
 
 SoftmaxArrayLoop:
-    [[intel::initiation_interval(pipeline)]] for (unsigned i = 0;
-                                                  i < CONFIG_T::n_in /
-                                                          std::tuple_size<typename ExtractPipeType<data_pipe>::value_type>{};
-                                                  i++) {
+    [[intel::initiation_interval(pipeline
+    )]] for (unsigned i = 0; i < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<data_pipe>::value_type>{}; i++) {
         auto in_pack = data_pipe::read();
 
     SoftmaxArrayPackLoop:
@@ -295,14 +287,18 @@ SoftmaxArrayLoop:
 
         // Find the max and compute all delta(x_i, x_max)
         Op_max<typename ExtractPipeType<data_pipe>::value_type::value_type> op_max;
-        [[intel::fpga_register]] typename ExtractPipeType<data_pipe>::value_type::value_type x_max =
-            reduce<typename ExtractPipeType<data_pipe>::value_type::value_type,
-                   std::tuple_size<typename ExtractPipeType<data_pipe>::value_type>{},
-                   Op_max<typename ExtractPipeType<data_pipe>::value_type::value_type>>(data_array, op_max);
+        [[intel::fpga_register]] typename ExtractPipeType<data_pipe>::value_type::value_type x_max = reduce<
+            typename ExtractPipeType<data_pipe>::value_type::value_type,
+            std::tuple_size<typename ExtractPipeType<data_pipe>::value_type>{},
+            Op_max<typename ExtractPipeType<data_pipe>::value_type::value_type>>(data_array, op_max);
 
         // For the diffs, use the same type as the input but force rounding and saturation
-        [[intel::fpga_register]] ac_fixed<ExtractPipeType<data_pipe>::value_type::value_type::width,
-                                          ExtractPipeType<data_pipe>::value_type::value_type::i_width, true, AC_RND, AC_SAT>
+        [[intel::fpga_register]] ac_fixed<
+            ExtractPipeType<data_pipe>::value_type::value_type::width,
+            ExtractPipeType<data_pipe>::value_type::value_type::i_width,
+            true,
+            AC_RND,
+            AC_SAT>
             d_xi_xmax[std::tuple_size<typename ExtractPipeType<data_pipe>::value_type>{}];
         #pragma unroll
         for (unsigned j = 0; j < std::tuple_size<typename ExtractPipeType<data_pipe>::value_type>{}; j++) {
@@ -314,17 +310,18 @@ SoftmaxArrayLoop:
         typename CONFIG_T::exp_table_t exp_res[std::tuple_size<typename ExtractPipeType<data_pipe>::value_type>{}];
         #pragma unroll
         for (unsigned j = 0; j < std::tuple_size<typename ExtractPipeType<data_pipe>::value_type>{}; j++) {
-            exp_res[j] =
-                exp_table[softmax_stable_idx_from_real_val<typename ExtractPipeType<data_pipe>::value_type::value_type,
-                                                           CONFIG_T>(d_xi_xmax[j])];
+            exp_res[j] = exp_table[softmax_stable_idx_from_real_val<
+                typename ExtractPipeType<data_pipe>::value_type::value_type,
+                CONFIG_T>(d_xi_xmax[j])];
         }
 
         // Explicitly sum the results with an adder tree.
         // Rounding & Saturation mode, which improve accuracy, prevent Vivado from expression balancing
         Op_add<typename CONFIG_T::exp_table_t> op_add;
-        [[intel::fpga_register]] typename CONFIG_T::exp_table_t exp_sum =
-            reduce<typename CONFIG_T::exp_table_t, std::tuple_size<typename ExtractPipeType<data_pipe>::value_type>{},
-                   Op_add<typename CONFIG_T::exp_table_t>>(exp_res, op_add);
+        [[intel::fpga_register]] typename CONFIG_T::exp_table_t exp_sum = reduce<
+            typename CONFIG_T::exp_table_t,
+            std::tuple_size<typename ExtractPipeType<data_pipe>::value_type>{},
+            Op_add<typename CONFIG_T::exp_table_t>>(exp_res, op_add);
 
         [[intel::fpga_register]] typename CONFIG_T::inv_table_t inv_exp_sum =
             invert_table[softmax_stable_idx_from_real_val<typename CONFIG_T::exp_table_t, CONFIG_T>(exp_sum)];
@@ -357,17 +354,16 @@ template <class data_pipe, class res_pipe, typename CONFIG_T> void softmax_laten
     typename CONFIG_T::exp_table_t exp_res[std::tuple_size<typename ExtractPipeType<data_pipe>::value_type>{}];
 
 SoftmaxExpLoop:
-    [[intel::initiation_interval(pipeline)]] for (unsigned i = 0;
-                                                  i < CONFIG_T::n_in /
-                                                          std::tuple_size<typename ExtractPipeType<data_pipe>::value_type>{};
-                                                  i++) {
+    [[intel::initiation_interval(pipeline
+    )]] for (unsigned i = 0; i < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<data_pipe>::value_type>{}; i++) {
         auto in_pack = data_pipe::read();
 
     SoftmaxExpPackLoop:
         #pragma unroll
         for (unsigned j = 0; j < std::tuple_size<typename ExtractPipeType<data_pipe>::value_type>{}; j++) {
             exp_res[j] = exp_table_latency[softmax_latency_idx_from_real_val<
-                typename ExtractPipeType<data_pipe>::value_type::value_type, CONFIG_T>(in_pack[j])];
+                typename ExtractPipeType<data_pipe>::value_type::value_type,
+                CONFIG_T>(in_pack[j])];
         }
 
         // Explicitly sum the results with an adder tree.
@@ -404,10 +400,8 @@ template <class data_pipe, class res_pipe, typename CONFIG_T> void softmax_legac
         data_cache[std::tuple_size<typename ExtractPipeType<data_pipe>::value_type>{}];
 
 SoftmaxInitLoop:
-    [[intel::initiation_interval(1)]] for (unsigned s = 0;
-                                           s < CONFIG_T::n_in /
-                                                   std::tuple_size<typename ExtractPipeType<data_pipe>::value_type>{};
-                                           s++) {
+    [[intel::initiation_interval(1
+    )]] for (unsigned s = 0; s < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<data_pipe>::value_type>{}; s++) {
         auto in_pack = data_pipe::read();
 
     SoftmaxInitPackLoop:
@@ -456,8 +450,8 @@ SoftmaxInitLoop:
 }
 
 template <class data_pipe, class res_pipe, typename CONFIG_T> void softmax_argmax_stream() {
-    [[intel::initiation_interval(
-        1)]] for (int i = 0; i < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{}; i++) {
+    [[intel::initiation_interval(1
+    )]] for (int i = 0; i < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{}; i++) {
         auto in_data = data_pipe::read();
         typename ExtractPipeType<res_pipe>::value_type out_data;
 
@@ -470,7 +464,8 @@ template <class data_pipe, class res_pipe, typename CONFIG_T> void softmax_argma
         [[intel::fpga_register]] int idx = 0;
 
         [[intel::initiation_interval(1)]] for (int i = 1;
-                                               i < std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{}; i++) {
+                                               i < std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{};
+                                               i++) {
             if (in_data[i] > maximum) {
                 maximum = in_data[i];
                 idx = i;
@@ -514,10 +509,8 @@ template <class data_pipe, class res_pipe, typename CONFIG_T> void dense_tanh_st
     constexpr unsigned pipeline = std::tuple_size<typename ExtractPipeType<data_pipe>::value_type>{} / multiplier_limit;
 
 TanHActLoop:
-    [[intel::initiation_interval(pipeline)]] for (int i = 0;
-                                                  i < CONFIG_T::n_in /
-                                                          std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{};
-                                                  i++) {
+    [[intel::initiation_interval(pipeline
+    )]] for (int i = 0; i < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{}; i++) {
 
         auto in_data = data_pipe::read();
         typename ExtractPipeType<res_pipe>::value_type out_data;
@@ -560,10 +553,8 @@ template <class data_pipe, class res_pipe, typename CONFIG_T> void sigmoid_strea
     constexpr unsigned pipeline = std::tuple_size<typename ExtractPipeType<data_pipe>::value_type>{} / multiplier_limit;
 
 SigmoidActLoop:
-    [[intel::initiation_interval(pipeline)]] for (int i = 0;
-                                                  i < CONFIG_T::n_in /
-                                                          std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{};
-                                                  i++) {
+    [[intel::initiation_interval(pipeline
+    )]] for (int i = 0; i < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{}; i++) {
         auto in_data = data_pipe::read();
         typename ExtractPipeType<res_pipe>::value_type out_data;
 
@@ -604,10 +595,8 @@ template <class data_pipe, class res_pipe, typename CONFIG_T> void hard_sigmoid_
     constexpr unsigned pipeline = std::tuple_size<typename ExtractPipeType<data_pipe>::value_type>{} / multiplier_limit;
 
 HardSigmoidActLoop:
-    [[intel::initiation_interval(pipeline)]] for (int i = 0;
-                                                  i < CONFIG_T::n_in /
-                                                          std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{};
-                                                  i++) {
+    [[intel::initiation_interval(pipeline
+    )]] for (int i = 0; i < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{}; i++) {
 
         auto in_data = data_pipe::read();
         typename ExtractPipeType<res_pipe>::value_type out_data;
@@ -634,10 +623,8 @@ template <class data_pipe, class res_pipe, typename CONFIG_T> void hard_tanh_str
     constexpr unsigned pipeline = std::tuple_size<typename ExtractPipeType<data_pipe>::value_type>{} / multiplier_limit;
 
 HardSigmoidActLoop:
-    [[intel::initiation_interval(pipeline)]] for (int i = 0;
-                                                  i < CONFIG_T::n_in /
-                                                          std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{};
-                                                  i++) {
+    [[intel::initiation_interval(pipeline
+    )]] for (int i = 0; i < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{}; i++) {
 
         auto in_data = data_pipe::read();
         typename ExtractPipeType<res_pipe>::value_type out_data;
@@ -662,8 +649,8 @@ HardSigmoidActLoop:
 // *************************************************
 template <class data_pipe, class res_pipe, typename CONFIG_T> void binary_tanh_stream() {
 BinaryTanHActLoop:
-    [[intel::initiation_interval(
-        1)]] for (int i = 0; i < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{}; i++) {
+    [[intel::initiation_interval(1
+    )]] for (int i = 0; i < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{}; i++) {
 
         [[intel::fpga_register]] auto in_data = data_pipe::read();
         [[intel::fpga_register]] typename ExtractPipeType<res_pipe>::value_type out_data;
@@ -686,8 +673,8 @@ BinaryTanHActLoop:
 // *************************************************
 template <class data_pipe, class res_pipe, typename CONFIG_T> void ternary_tanh_stream() {
 TernaryTanHActLoop:
-    [[intel::initiation_interval(
-        1)]] for (int i = 0; i < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{}; i++) {
+    [[intel::initiation_interval(1
+    )]] for (int i = 0; i < CONFIG_T::n_in / std::tuple_size<typename ExtractPipeType<res_pipe>::value_type>{}; i++) {
 
         [[intel::fpga_register]] auto in_data = data_pipe::read();
         [[intel::fpga_register]] typename ExtractPipeType<res_pipe>::value_type out_data;

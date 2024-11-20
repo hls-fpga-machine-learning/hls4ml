@@ -19,8 +19,8 @@ struct MyProject {
 
     // kernel property method to config invocation interface
     auto get(sycl::ext::oneapi::experimental::properties_tag) {
-        return sycl::ext::oneapi::experimental::properties{sycl::ext::intel::experimental::streaming_interface<>,
-                                                           sycl::ext::intel::experimental::pipelined<>};
+        return sycl::ext::oneapi::experimental::properties{
+            sycl::ext::intel::experimental::streaming_interface<>, sycl::ext::intel::experimental::pipelined<>};
     }
 
     SYCL_EXTERNAL void operator()() const;

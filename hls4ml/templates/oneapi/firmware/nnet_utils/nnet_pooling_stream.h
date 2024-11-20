@@ -24,9 +24,13 @@ namespace nnet {
  *
  */
 template <class data_T, class data_window_T, class res_pipe, typename CONFIG_T>
-void compute_pool_buffer_1d(const data_T &in_elem,
-                            nnet::shift_reg<typename data_T::value_type, CONFIG_T::in_width> line_buffer[CONFIG_T::n_filt],
-                            data_window_T &kernel_window, int &pX, int &sX) {
+void compute_pool_buffer_1d(
+    const data_T &in_elem,
+    nnet::shift_reg<typename data_T::value_type, CONFIG_T::in_width> line_buffer[CONFIG_T::n_filt],
+    data_window_T &kernel_window,
+    int &pX,
+    int &sX
+) {
 
     using res_T = typename ExtractPipeType<res_pipe>::value_type;
 
@@ -59,7 +63,9 @@ void compute_pool_buffer_1d(const data_T &in_elem,
             // Step 3 - Pooling
             res_pack[filter] = static_cast<typename res_T::value_type>(
                 pool_op<typename data_T::value_type, CONFIG_T::pool_width, CONFIG_T::pool_op, typename CONFIG_T::accum_t>(
-                    pool_window));
+                    pool_window
+                )
+            );
         }
 
         // Write result to output stream
@@ -98,8 +104,9 @@ template <class data_pipe, class res_pipe, typename CONFIG_T> void pooling1d_cl_
 // Read input image
 ReadInputWidth:
     for (int col = 0; col < CONFIG_T::in_width; col++) {
-        compute_pool_buffer_1d<data_arr_T, data_window_T, res_pipe, CONFIG_T>(data_pipe::read(), line_buffer, kernel_window,
-                                                                              pX, sX);
+        compute_pool_buffer_1d<data_arr_T, data_window_T, res_pipe, CONFIG_T>(
+            data_pipe::read(), line_buffer, kernel_window, pX, sX
+        );
     }
 }
 
@@ -119,10 +126,16 @@ ReadInputWidth:
  *
  */
 template <class data_T, class data_window_T, class res_pipe, typename CONFIG_T>
-void compute_pool_buffer_2d(const data_T &in_elem,
-                            nnet::shift_reg<typename data_T::value_type, CONFIG_T::in_width>
-                                line_buffer[CONFIG_T::pool_height - 1][CONFIG_T::n_filt],
-                            data_window_T &kernel_window, int &pX, int &pY, int &sX, int &sY) {
+void compute_pool_buffer_2d(
+    const data_T &in_elem,
+    nnet::shift_reg<typename data_T::value_type, CONFIG_T::in_width> line_buffer[CONFIG_T::pool_height - 1]
+                                                                                [CONFIG_T::n_filt],
+    data_window_T &kernel_window,
+    int &pX,
+    int &pY,
+    int &sX,
+    int &sY
+) {
 
     using res_T = typename ExtractPipeType<res_pipe>::value_type;
 
@@ -154,9 +167,11 @@ void compute_pool_buffer_2d(const data_T &in_elem,
             }
 
             // Step 3 - Pooling
-            res_pack[filter] = static_cast<typename res_T::value_type>(
-                pool_op<typename data_T::value_type, CONFIG_T::pool_height * CONFIG_T::pool_width, CONFIG_T::pool_op,
-                        typename CONFIG_T::accum_t>(pool_window));
+            res_pack[filter] = static_cast<typename res_T::value_type>(pool_op<
+                                                                       typename data_T::value_type,
+                                                                       CONFIG_T::pool_height * CONFIG_T::pool_width,
+                                                                       CONFIG_T::pool_op,
+                                                                       typename CONFIG_T::accum_t>(pool_window));
         }
 
         // Write result to output stream
@@ -211,8 +226,9 @@ ReadInputHeight:
     // Read input image
     ReadInputWidth:
         for (int col = 0; col < CONFIG_T::in_width; col++) {
-            compute_pool_buffer_2d<data_arr_T, data_window_T, res_pipe, CONFIG_T>(data_pipe::read(), line_buffer,
-                                                                                  kernel_window, pX, pY, sX, sY);
+            compute_pool_buffer_2d<data_arr_T, data_window_T, res_pipe, CONFIG_T>(
+                data_pipe::read(), line_buffer, kernel_window, pX, pY, sX, sY
+            );
         }
     }
 }
@@ -239,7 +255,8 @@ template <class data_T, class res_T, typename CONFIG_T> void compute_global_pool
     #pragma unroll
     for (unsigned i = 0; i < CONFIG_T::n_filt; i++) {
         data_input[i] = reduce_global_pool<typename CONFIG_T::accum_t, typename data_T::value_type, CONFIG_T::pool_op>(
-            data_input[i], in_elem[i]);
+            data_input[i], in_elem[i]
+        );
     }
 }
 

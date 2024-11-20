@@ -90,15 +90,15 @@ template <class CONFIG_T> typename CONFIG_T::edge_weight_t compute_edge_weight(t
 }
 
 template <class dividend_T, class exponent_T>
-inline typename std::enable_if<std::is_class<dividend_T>::value, dividend_T>::type normalize_log2(dividend_T dividend,
-                                                                                                  exponent_T exponent) {
+inline typename std::enable_if<std::is_class<dividend_T>::value, dividend_T>::type
+normalize_log2(dividend_T dividend, exponent_T exponent) {
     #pragma HLS INLINE
     return dividend >> exponent;
 }
 
 template <class dividend_T, class exponent_T>
-inline typename std::enable_if<not std::is_class<dividend_T>::value, dividend_T>::type normalize_log2(dividend_T dividend,
-                                                                                                      exponent_T exponent) {
+inline typename std::enable_if<not std::is_class<dividend_T>::value, dividend_T>::type
+normalize_log2(dividend_T dividend, exponent_T exponent) {
     #pragma HLS INLINE
     return dividend / std::pow(2., exponent);
 }
@@ -298,8 +298,8 @@ template <class CONFIG_T, class res_T> struct SingleVertexResSetter {
 };
 
 template <class CONFIG_T, class data_getter_T, class arrays_local_T, class arrays_T>
-inline void compute_weights_aggregates(data_getter_T const &data_getter, unsigned iv, arrays_local_T &arrays_local,
-                                       arrays_T &arrays) {
+inline void
+compute_weights_aggregates(data_getter_T const &data_getter, unsigned iv, arrays_local_T &arrays_local, arrays_T &arrays) {
     #pragma HLS INLINE
 
 Aggregators:
@@ -354,8 +354,9 @@ InFeatures:
 }
 
 template <class CONFIG_T, class arrays_T>
-inline void compute_output_base(arrays_T const &arrays,
-                                typename CONFIG_T::aggr_t output_base[CONFIG_T::n_out_features * CONFIG_T::n_aggregators]) {
+inline void compute_output_base(
+    arrays_T const &arrays, typename CONFIG_T::aggr_t output_base[CONFIG_T::n_out_features * CONFIG_T::n_aggregators]
+) {
     #pragma HLS INLINE
     #pragma HLS UNROLL region
 
@@ -371,10 +372,12 @@ OutFeatures:
 }
 
 template <class CONFIG_T, class arrays_T, class res_setter_T>
-inline void
-compute_vertex_output(arrays_T const &arrays, unsigned iv,
-                      typename CONFIG_T::aggr_t const output_base[CONFIG_T::n_out_features * CONFIG_T::n_aggregators],
-                      res_setter_T &res_setter) {
+inline void compute_vertex_output(
+    arrays_T const &arrays,
+    unsigned iv,
+    typename CONFIG_T::aggr_t const output_base[CONFIG_T::n_out_features * CONFIG_T::n_aggregators],
+    res_setter_T &res_setter
+) {
     #pragma HLS INLINE
 
     typename arrays_T::edge_weight_t edge_weights[CONFIG_T::n_aggregators];
@@ -467,8 +470,9 @@ VerticesOuter:
 }
 
 template <class CONFIG_T, class output_biases_T, class arrays_T, class res_T>
-void set_output(output_biases_T const &output_transform_biases, arrays_T const &arrays,
-                res_T res[CONFIG_T::n_out_features]) {
+void set_output(
+    output_biases_T const &output_transform_biases, arrays_T const &arrays, res_T res[CONFIG_T::n_out_features]
+) {
     #pragma HLS PIPELINE
 
 OutFeatures:
@@ -533,8 +537,13 @@ VerticesOuter:
     current_arrays.set_means_normalized(nvtx, means_accum);
 }
 
-template <class prev_layer_t, class current_layer_t, class last_layer_t, class nvtx_T, class prev_arrays_T,
-          class last_arrays_T>
+template <
+    class prev_layer_t,
+    class current_layer_t,
+    class last_layer_t,
+    class nvtx_T,
+    class prev_arrays_T,
+    class last_arrays_T>
 inline typename std::enable_if<std::is_same<current_layer_t, last_layer_t>::value>::type
 sublayer(nvtx_T const nvtx, prev_arrays_T const &prev_arrays, last_arrays_T &last_arrays) {
     #pragma HLS INLINE
@@ -542,8 +551,13 @@ sublayer(nvtx_T const nvtx, prev_arrays_T const &prev_arrays, last_arrays_T &las
     distribute_aggregate<prev_layer_t, current_layer_t>(nvtx, prev_arrays, last_arrays);
 }
 
-template <class prev_layer_t, class current_layer_t, class last_layer_t, class nvtx_T, class prev_arrays_T,
-          class last_arrays_T>
+template <
+    class prev_layer_t,
+    class current_layer_t,
+    class last_layer_t,
+    class nvtx_T,
+    class prev_arrays_T,
+    class last_arrays_T>
 inline typename std::enable_if<not std::is_same<current_layer_t, last_layer_t>::value>::type
 sublayer(nvtx_T const nvtx, prev_arrays_T const &prev_arrays, last_arrays_T &last_arrays) {
     #pragma HLS INLINE
@@ -601,9 +615,11 @@ struct garnet_config {
 
 // vertices -> vertices
 template <class data_T, class nvtx_T, class res_T, typename CONFIG_T>
-typename std::enable_if<CONFIG_T::output_collapse == CONFIG_T::no_collapse>::type
-garnet(data_T const data[CONFIG_T::n_vertices * CONFIG_T::n_in_features], nvtx_T const nvtx[1],
-       res_T res[CONFIG_T::n_vertices * CONFIG_T::n_out_features]) {
+typename std::enable_if<CONFIG_T::output_collapse == CONFIG_T::no_collapse>::type garnet(
+    data_T const data[CONFIG_T::n_vertices * CONFIG_T::n_in_features],
+    nvtx_T const nvtx[1],
+    res_T res[CONFIG_T::n_vertices * CONFIG_T::n_out_features]
+) {
     #pragma HLS DATAFLOW
 
     garnet_utils::WeightsAndMeans<CONFIG_T> arrays;
@@ -615,9 +631,11 @@ garnet(data_T const data[CONFIG_T::n_vertices * CONFIG_T::n_in_features], nvtx_T
 
 // vertices -> out features
 template <class data_T, class nvtx_T, class res_T, class CONFIG_T>
-typename std::enable_if<CONFIG_T::output_collapse == CONFIG_T::collapse_mean>::type
-garnet(data_T const data[CONFIG_T::n_vertices * CONFIG_T::n_in_features], nvtx_T const nvtx[1],
-       res_T res[CONFIG_T::n_out_features]) {
+typename std::enable_if<CONFIG_T::output_collapse == CONFIG_T::collapse_mean>::type garnet(
+    data_T const data[CONFIG_T::n_vertices * CONFIG_T::n_in_features],
+    nvtx_T const nvtx[1],
+    res_T res[CONFIG_T::n_out_features]
+) {
     #pragma HLS DATAFLOW
 
     garnet_utils::Means<CONFIG_T> arrays;
@@ -631,9 +649,11 @@ garnet(data_T const data[CONFIG_T::n_vertices * CONFIG_T::n_in_features], nvtx_T
 
 // vertices -> vertices
 template <class data_T, class nvtx_T, class res_T, class CONFIG_T>
-typename std::enable_if<CONFIG_T::output_collapse == CONFIG_T::no_collapse>::type
-garnet_stack(data_T const data[CONFIG_T::n_vertices * CONFIG_T::n_in_features], nvtx_T const nvtx[1],
-             res_T res[CONFIG_T::n_vertices * CONFIG_T::n_out_features]) {
+typename std::enable_if<CONFIG_T::output_collapse == CONFIG_T::no_collapse>::type garnet_stack(
+    data_T const data[CONFIG_T::n_vertices * CONFIG_T::n_in_features],
+    nvtx_T const nvtx[1],
+    res_T res[CONFIG_T::n_vertices * CONFIG_T::n_out_features]
+) {
     #pragma HLS DATAFLOW
 
     typedef typename CONFIG_T::template sublayer_t<0> first_layer_t;
@@ -645,17 +665,20 @@ garnet_stack(data_T const data[CONFIG_T::n_vertices * CONFIG_T::n_in_features], 
 
     garnet_utils::aggregate<first_layer_t>(data, nvtx[0], arrays_first);
 
-    garnet_utils::sublayer<first_layer_t, typename first_layer_t::next_layer_t, last_layer_t>(nvtx[0], arrays_first,
-                                                                                              arrays_last);
+    garnet_utils::sublayer<first_layer_t, typename first_layer_t::next_layer_t, last_layer_t>(
+        nvtx[0], arrays_first, arrays_last
+    );
 
     garnet_utils::distribute<last_layer_t>(nvtx[0], arrays_last, res);
 }
 
 // vertices -> out features
 template <class data_T, class nvtx_T, class res_T, class CONFIG_T>
-typename std::enable_if<CONFIG_T::output_collapse == CONFIG_T::collapse_mean>::type
-garnet_stack(data_T const data[CONFIG_T::n_vertices * CONFIG_T::n_in_features], nvtx_T const nvtx[1],
-             res_T res[CONFIG_T::n_out_features]) {
+typename std::enable_if<CONFIG_T::output_collapse == CONFIG_T::collapse_mean>::type garnet_stack(
+    data_T const data[CONFIG_T::n_vertices * CONFIG_T::n_in_features],
+    nvtx_T const nvtx[1],
+    res_T res[CONFIG_T::n_out_features]
+) {
     #pragma HLS DATAFLOW
 
     typedef typename CONFIG_T::template sublayer_t<0> first_layer_t;
@@ -667,8 +690,9 @@ garnet_stack(data_T const data[CONFIG_T::n_vertices * CONFIG_T::n_in_features], 
 
     garnet_utils::aggregate<first_layer_t>(data, nvtx[0], arrays_first);
 
-    garnet_utils::sublayer<first_layer_t, typename first_layer_t::next_layer_t, last_layer_t>(nvtx[0], arrays_first,
-                                                                                              arrays_last);
+    garnet_utils::sublayer<first_layer_t, typename first_layer_t::next_layer_t, last_layer_t>(
+        nvtx[0], arrays_first, arrays_last
+    );
 
     garnet_utils::OutputBiasNormalizer<last_layer_t, nvtx_T> normalize_bias(nvtx[0]);
 
@@ -677,9 +701,11 @@ garnet_stack(data_T const data[CONFIG_T::n_vertices * CONFIG_T::n_in_features], 
 
 /* Reference (dumb) implementation returning (Vertices, Features) */
 template <class data_T, class nvtx_T, class res_T, typename CONFIG_T>
-typename std::enable_if<CONFIG_T::output_collapse == CONFIG_T::no_collapse>::type
-garnet_ref(data_T const data[CONFIG_T::n_vertices * CONFIG_T::n_in_features], nvtx_T const nvtx[1],
-           res_T res[CONFIG_T::n_vertices * CONFIG_T::n_out_features]) {
+typename std::enable_if<CONFIG_T::output_collapse == CONFIG_T::no_collapse>::type garnet_ref(
+    data_T const data[CONFIG_T::n_vertices * CONFIG_T::n_in_features],
+    nvtx_T const nvtx[1],
+    res_T res[CONFIG_T::n_vertices * CONFIG_T::n_out_features]
+) {
     typename CONFIG_T::edge_weight_t edge_weights[CONFIG_T::n_vertices * CONFIG_T::n_aggregators];
     typename CONFIG_T::aggr_t propagated_features[CONFIG_T::n_vertices * CONFIG_T::n_propagate];
 
@@ -781,9 +807,11 @@ garnet_ref(data_T const data[CONFIG_T::n_vertices * CONFIG_T::n_in_features], nv
 
 /* Reference (dumb) implementation returning (Features) - output averaged over vertices already */
 template <class data_T, class nvtx_T, class res_T, typename CONFIG_T>
-typename std::enable_if<CONFIG_T::output_collapse == CONFIG_T::collapse_mean>::type
-garnet_ref(data_T const data[CONFIG_T::n_vertices * CONFIG_T::n_in_features], nvtx_T const nvtx[1],
-           res_T res[CONFIG_T::n_out_features]) {
+typename std::enable_if<CONFIG_T::output_collapse == CONFIG_T::collapse_mean>::type garnet_ref(
+    data_T const data[CONFIG_T::n_vertices * CONFIG_T::n_in_features],
+    nvtx_T const nvtx[1],
+    res_T res[CONFIG_T::n_out_features]
+) {
     typename CONFIG_T::aggr_t vertex_res[CONFIG_T::n_vertices * CONFIG_T::n_out_features];
 
     garnet_ref<CONFIG_T>(data, nvtx, vertex_res);

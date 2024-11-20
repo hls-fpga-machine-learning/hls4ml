@@ -24,9 +24,12 @@ namespace nnet {
  *
  */
 template <class data_T, class res_T, typename CONFIG_T>
-void compute_pool_buffer_1d(const data_T &in_elem, stream<res_T> &res_stream,
-                            nnet::shift_reg<typename data_T::value_type, CONFIG_T::in_width> line_buffer[CONFIG_T::n_filt],
-                            typename data_T::value_type kernel_window[CONFIG_T::pool_width * CONFIG_T::n_filt]) {
+void compute_pool_buffer_1d(
+    const data_T &in_elem,
+    stream<res_T> &res_stream,
+    nnet::shift_reg<typename data_T::value_type, CONFIG_T::in_width> line_buffer[CONFIG_T::n_filt],
+    typename data_T::value_type kernel_window[CONFIG_T::pool_width * CONFIG_T::n_filt]
+) {
     // Thresholds
     static constexpr int lShiftX = CONFIG_T::pool_width - 1;
 
@@ -61,7 +64,8 @@ void compute_pool_buffer_1d(const data_T &in_elem, stream<res_T> &res_stream,
 
             // Step 3 - Pooling
             res_pack[filter] = static_cast<typename res_T::value_type>(
-                pool_op<typename data_T::value_type, CONFIG_T::pool_width, CONFIG_T::pool_op>(pool_window));
+                pool_op<typename data_T::value_type, CONFIG_T::pool_width, CONFIG_T::pool_op>(pool_window)
+            );
         }
 
         // Write result to output stream
@@ -111,10 +115,12 @@ ReadInputWidth:
  */
 template <class data_T, class res_T, typename CONFIG_T>
 void compute_pool_buffer_2d(
-    const data_T &in_elem, stream<res_T> &res_stream,
+    const data_T &in_elem,
+    stream<res_T> &res_stream,
     nnet::shift_reg<typename data_T::value_type, CONFIG_T::in_width> line_buffer[CONFIG_T::pool_height - 1]
                                                                                 [CONFIG_T::n_filt],
-    typename data_T::value_type kernel_window[CONFIG_T::pool_height * CONFIG_T::pool_width * CONFIG_T::n_filt]) {
+    typename data_T::value_type kernel_window[CONFIG_T::pool_height * CONFIG_T::pool_width * CONFIG_T::n_filt]
+) {
     // Thresholds
     static constexpr int lShiftX = CONFIG_T::pool_width - 1;
     static constexpr int lShiftY = CONFIG_T::pool_height - 1;
@@ -153,7 +159,9 @@ void compute_pool_buffer_2d(
             // Step 3 - Pooling
             res_pack[filter] = static_cast<typename res_T::value_type>(
                 pool_op<typename data_T::value_type, CONFIG_T::pool_height * CONFIG_T::pool_width, CONFIG_T::pool_op>(
-                    pool_window));
+                    pool_window
+                )
+            );
         }
 
         // Write result to output stream
@@ -243,7 +251,8 @@ void compute_global_pool(const data_T &in_elem, typename CONFIG_T::accum_t data_
     #pragma unroll
     for (unsigned i = 0; i < CONFIG_T::n_filt; i++) {
         data_input[i] = reduce_global_pool<typename CONFIG_T::accum_t, typename data_T::value_type, CONFIG_T::pool_op>(
-            data_input[i], in_elem[i]);
+            data_input[i], in_elem[i]
+        );
     }
 }
 

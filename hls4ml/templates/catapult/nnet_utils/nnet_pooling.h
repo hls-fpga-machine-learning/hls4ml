@@ -200,8 +200,10 @@ template <typename CONFIG_T> constexpr int pool_op_limit() {
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void pooling2d_cl(data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_filt],
-                  res_T res[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt]) {
+void pooling2d_cl(
+    data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_filt],
+    res_T res[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt]
+) {
     constexpr int ce_reuse_factor = CONFIG_T::reuse_factor;
     (void)ce_reuse_factor;
     //#pragma HLS PIPELINE II=CONFIG_T::reuse_factor
@@ -236,9 +238,9 @@ void pooling2d_cl(data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_
                                 img_overlap++;
                             }
                         } else {
-                            pool[kk * CONFIG_T::stride_width + ll] =
-                                data[(ii + kk - CONFIG_T::pad_top) * CONFIG_T::in_width * CONFIG_T::n_filt +
-                                     (jj + ll - CONFIG_T::pad_left) * CONFIG_T::n_filt + ff];
+                            pool[kk * CONFIG_T::stride_width + ll] = data
+                                [(ii + kk - CONFIG_T::pad_top) * CONFIG_T::in_width * CONFIG_T::n_filt +
+                                 (jj + ll - CONFIG_T::pad_left) * CONFIG_T::n_filt + ff];
                             img_overlap++;
                         }
                     }
@@ -262,8 +264,10 @@ void pooling2d_cl(data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void pooling2d_cf(data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_filt],
-                  res_T res[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt]) {
+void pooling2d_cf(
+    data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_filt],
+    res_T res[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt]
+) {
     constexpr int ce_reuse_factor = CONFIG_T::reuse_factor;
     (void)ce_reuse_factor;
     //#pragma HLS PIPELINE II=CONFIG_T::reuse_factor
@@ -298,9 +302,9 @@ void pooling2d_cf(data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_
                                 img_overlap++;
                             }
                         } else {
-                            pool[kk * CONFIG_T::stride_width + ll] =
-                                data[(ii + kk - CONFIG_T::pad_top) * CONFIG_T::in_width +
-                                     ff * CONFIG_T::in_width * CONFIG_T::in_height + ll + jj - CONFIG_T::pad_left];
+                            pool[kk * CONFIG_T::stride_width + ll] = data
+                                [(ii + kk - CONFIG_T::pad_top) * CONFIG_T::in_width +
+                                 ff * CONFIG_T::in_width * CONFIG_T::in_height + ll + jj - CONFIG_T::pad_left];
                             img_overlap++;
                         }
                     }
@@ -324,8 +328,9 @@ void pooling2d_cf(data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void global_pooling2d_cl(data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_filt],
-                         res_T res[CONFIG_T::n_filt]) {
+void global_pooling2d_cl(
+    data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_filt], res_T res[CONFIG_T::n_filt]
+) {
     assert(CONFIG_T::pad_left == 0 && CONFIG_T::pad_right == 0);
     assert(CONFIG_T::pad_top == 0 && CONFIG_T::pad_bottom == 0);
     assert(CONFIG_T::pool_width == CONFIG_T::stride_width);

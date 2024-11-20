@@ -7,8 +7,10 @@
 namespace nnet {
 
 template <class data_T, typename CONFIG_T>
-void im2col_1d(data_T data[CONFIG_T::in_width * CONFIG_T::n_chan],
-               data_T data_col[CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::out_width]) {
+void im2col_1d(
+    data_T data[CONFIG_T::in_width * CONFIG_T::n_chan],
+    data_T data_col[CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::out_width]
+) {
     // int index = 0;
     for (int channel = CONFIG_T::n_chan; channel--; data += CONFIG_T::in_width) {
         //#pragma HLS PIPELINE II=1 rewind
@@ -30,9 +32,12 @@ void im2col_1d(data_T data[CONFIG_T::in_width * CONFIG_T::n_chan],
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void conv_1d_full(data_T data[CONFIG_T::in_width * CONFIG_T::n_chan], res_T res[CONFIG_T::out_width * CONFIG_T::n_filt],
-                  typename CONFIG_T::weight_t weights[CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
-                  typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+void conv_1d_full(
+    data_T data[CONFIG_T::in_width * CONFIG_T::n_chan],
+    res_T res[CONFIG_T::out_width * CONFIG_T::n_filt],
+    typename CONFIG_T::weight_t weights[CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
     data_T data_conv[CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::out_width];
     data_T data_col[CONFIG_T::filt_width * CONFIG_T::n_chan];
     res_T res_col[CONFIG_T::n_filt];
@@ -56,8 +61,11 @@ void conv_1d_full(data_T data[CONFIG_T::in_width * CONFIG_T::n_chan], res_T res[
 }
 
 template <class data_T, typename CONFIG_T>
-void im2col_1d_cf_idx(data_T data[CONFIG_T::in_width * CONFIG_T::n_chan],
-                      data_T data_col[CONFIG_T::filt_width * CONFIG_T::n_chan], const int col) {
+void im2col_1d_cf_idx(
+    data_T data[CONFIG_T::in_width * CONFIG_T::n_chan],
+    data_T data_col[CONFIG_T::filt_width * CONFIG_T::n_chan],
+    const int col
+) {
 ChannelLoop:
     for (int channel = 0; channel < CONFIG_T::n_chan; channel++) {
     //#pragma HLS PIPELINE II=1 rewind
@@ -76,8 +84,11 @@ ChannelLoop:
 }
 
 template <class data_T, typename CONFIG_T>
-void im2col_1d_cf(data_T data[CONFIG_T::in_width * CONFIG_T::n_chan],
-                  data_T data_col[CONFIG_T::n_chan * CONFIG_T::filt_width], const int col) {
+void im2col_1d_cf(
+    data_T data[CONFIG_T::in_width * CONFIG_T::n_chan],
+    data_T data_col[CONFIG_T::n_chan * CONFIG_T::filt_width],
+    const int col
+) {
     int index = 0;
 ChannelLoop:
     for (int channel = CONFIG_T::n_chan; channel--; data += CONFIG_T::in_width) {
@@ -97,10 +108,12 @@ ChannelLoop:
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void conv_1d_resource_cf(data_T data[CONFIG_T::n_chan * CONFIG_T::in_width],
-                         res_T res[CONFIG_T::out_width * CONFIG_T::n_filt],
-                         typename CONFIG_T::weight_t weights[CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
-                         typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+void conv_1d_resource_cf(
+    data_T data[CONFIG_T::n_chan * CONFIG_T::in_width],
+    res_T res[CONFIG_T::out_width * CONFIG_T::n_filt],
+    typename CONFIG_T::weight_t weights[CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
     const int nin = CONFIG_T::n_chan * CONFIG_T::filt_width;
     const int nout = CONFIG_T::n_filt;
     const int rufactor = CONFIG_T::reuse_factor;
@@ -131,8 +144,11 @@ ColLoop:
 }
 
 template <class data_T, typename CONFIG_T>
-void im2col_1d_cl(data_T data[CONFIG_T::in_width * CONFIG_T::n_chan],
-                  data_T data_col[CONFIG_T::filt_width * CONFIG_T::n_chan], const int col) {
+void im2col_1d_cl(
+    data_T data[CONFIG_T::in_width * CONFIG_T::n_chan],
+    data_T data_col[CONFIG_T::filt_width * CONFIG_T::n_chan],
+    const int col
+) {
     int index = 0;
 KernelLoop:
     for (int kernel_col = 0; kernel_col < CONFIG_T::filt_width; kernel_col++) {
@@ -152,8 +168,9 @@ KernelLoop:
 }
 
 template <class data_T, typename CONFIG_T>
-void im2col_1d_pointwise_cl(data_T data[CONFIG_T::in_width * CONFIG_T::n_chan], data_T data_col[CONFIG_T::n_chan],
-                            const int col) {
+void im2col_1d_pointwise_cl(
+    data_T data[CONFIG_T::in_width * CONFIG_T::n_chan], data_T data_col[CONFIG_T::n_chan], const int col
+) {
     int index = 0;
 ChannelLoop:
     for (int channel = 0; channel < CONFIG_T::n_chan; channel++) {
@@ -170,10 +187,12 @@ ChannelLoop:
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void conv_1d_resource_cl(data_T data[CONFIG_T::in_width * CONFIG_T::n_chan],
-                         res_T res[CONFIG_T::out_width * CONFIG_T::n_filt],
-                         typename CONFIG_T::weight_t weights[CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
-                         typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+void conv_1d_resource_cl(
+    data_T data[CONFIG_T::in_width * CONFIG_T::n_chan],
+    res_T res[CONFIG_T::out_width * CONFIG_T::n_filt],
+    typename CONFIG_T::weight_t weights[CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
     const int nin = CONFIG_T::n_chan * CONFIG_T::filt_width;
     const int nout = CONFIG_T::n_filt;
     const int rufactor = CONFIG_T::reuse_factor;
@@ -203,10 +222,12 @@ ColLoop:
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void pointwise_conv_1d_resource_cl(data_T data[CONFIG_T::in_width * CONFIG_T::n_chan],
-                                   res_T res[CONFIG_T::out_width * CONFIG_T::n_filt],
-                                   typename CONFIG_T::weight_t weights[CONFIG_T::n_chan * CONFIG_T::n_filt],
-                                   typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+void pointwise_conv_1d_resource_cl(
+    data_T data[CONFIG_T::in_width * CONFIG_T::n_chan],
+    res_T res[CONFIG_T::out_width * CONFIG_T::n_filt],
+    typename CONFIG_T::weight_t weights[CONFIG_T::n_chan * CONFIG_T::n_filt],
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
     assert(CONFIG_T::filt_width == 1);
 
     const int nin = CONFIG_T::n_chan;

@@ -9,8 +9,9 @@ namespace nnet {
 // Computes multiplier limit
 // This function should not be synthesized into firmware
 template <typename CONFIG_T>
-int compute_multiplier_limit_conv2d(typename CONFIG_T::weight_t weights[CONFIG_T::filt_height * CONFIG_T::filt_width *
-                                                                        CONFIG_T::n_chan * CONFIG_T::n_filt]) {
+int compute_multiplier_limit_conv2d(
+    typename CONFIG_T::weight_t weights[CONFIG_T::filt_height * CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt]
+) {
     int n_mult = 0;
 
     for (int oh = 0; oh < CONFIG_T::out_height; oh++) {
@@ -52,10 +53,12 @@ void conv_2d_latency_cf(
     data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_chan],
     res_T res[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt],
     typename CONFIG_T::weight_t weights[CONFIG_T::filt_height * CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
-    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
 
-    typename CONFIG_T::accum_t mult[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt * CONFIG_T::n_chan *
-                                    CONFIG_T::filt_height * CONFIG_T::filt_width];
+    typename CONFIG_T::accum_t mult
+        [CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt * CONFIG_T::n_chan * CONFIG_T::filt_height *
+         CONFIG_T::filt_width];
     typename CONFIG_T::accum_t acc[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt];
 
     //#pragma HLS ARRAY_PARTITION variable=mult complete dim=0
@@ -175,10 +178,12 @@ void conv_2d_latency_cl(
     data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_chan],
     res_T res[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt],
     typename CONFIG_T::weight_t weights[CONFIG_T::filt_height * CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
-    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
 
-    typename CONFIG_T::accum_t mult[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt * CONFIG_T::n_chan *
-                                    CONFIG_T::filt_height * CONFIG_T::filt_width];
+    typename CONFIG_T::accum_t mult
+        [CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt * CONFIG_T::n_chan * CONFIG_T::filt_height *
+         CONFIG_T::filt_width];
     typename CONFIG_T::accum_t acc[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt];
 
     //#pragma HLS ARRAY_PARTITION variable=mult complete dim=0
@@ -293,10 +298,12 @@ AccumOutHeight:
 } // end conv2d
 
 template <class data_T, class res_T, typename CONFIG_T>
-void pointwise_conv_2d_latency_cl(data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_chan],
-                                  res_T res[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt],
-                                  typename CONFIG_T::weight_t weights[CONFIG_T::n_chan * CONFIG_T::n_filt],
-                                  typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+void pointwise_conv_2d_latency_cl(
+    data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_chan],
+    res_T res[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt],
+    typename CONFIG_T::weight_t weights[CONFIG_T::n_chan * CONFIG_T::n_filt],
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
 
     typename CONFIG_T::accum_t mult[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt * CONFIG_T::n_chan];
     typename CONFIG_T::accum_t acc[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt];

@@ -86,8 +86,8 @@ template <class x_T, class w_T> class weight_exponential : public Product {
     // Construct the return type from the multiplication equivalent to the largest shifts
     // ap_int<pow2(decltype(w_T::weight)::width-1)-1> is the type if the multiplicand equivalent to the largest lshift <<
     // ap_fixed<pow2(decltype(w_T::weight)::width-1)-1,0> is the type of the multiplicand equivalent to the largest rshift >>
-    using r_T = decltype(x_T(0) * (ac_int<pow2(decltype(w_T::weight)::width - 1) - 1, true>(1) +
-                                   ac_fixed<pow2(decltype(w_T::weight)::width - 1) - 1, 0, true>(1)));
+    using r_T =
+        decltype(x_T(0) * (ac_int<pow2(decltype(w_T::weight)::width - 1) - 1, true>(1) + ac_fixed<pow2(decltype(w_T::weight)::width - 1) - 1, 0, true>(1)));
     static r_T product(x_T a, w_T w) {
         // Shift product for exponential weights
         //#pragma HLS INLINE
@@ -101,17 +101,17 @@ template <class x_T, class w_T> class weight_exponential : public Product {
 } // namespace product
 
 template <class data_T, class res_T, typename CONFIG_T>
-inline typename std::enable_if<std::is_same<data_T, ac_int<1, false>>::value &&
-                                   std::is_same<typename CONFIG_T::weight_t, ac_int<1, false>>::value,
-                               ac_int<nnet::ceillog2(CONFIG_T::n_in) + 2, true>>::type
+inline typename std::enable_if<
+    std::is_same<data_T, ac_int<1, false>>::value && std::is_same<typename CONFIG_T::weight_t, ac_int<1, false>>::value,
+    ac_int<nnet::ceillog2(CONFIG_T::n_in) + 2, true>>::type
 cast(typename CONFIG_T::accum_t x) {
     return (ac_int<nnet::ceillog2(CONFIG_T::n_in) + 2, true>)(x - CONFIG_T::n_in / 2) * 2;
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-inline typename std::enable_if<std::is_same<data_T, ac_int<1, false>>::value &&
-                                   !std::is_same<typename CONFIG_T::weight_t, ac_int<1, false>>::value,
-                               res_T>::type
+inline typename std::enable_if<
+    std::is_same<data_T, ac_int<1, false>>::value && !std::is_same<typename CONFIG_T::weight_t, ac_int<1, false>>::value,
+    res_T>::type
 cast(typename CONFIG_T::accum_t x) {
     return (res_T)x;
 }

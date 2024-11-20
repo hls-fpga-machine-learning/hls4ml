@@ -8,11 +8,16 @@
 namespace nnet {
 
 template <class data_T, class res_T, typename CONFIG_T>
-void conv_1d_cl(hls::stream<data_T> &data, hls::stream<res_T> &res,
-                typename CONFIG_T::weight_t weights[CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
-                typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
-    assert(CONFIG_T::implementation == conv_implementation::linebuffer &&
-           "Only \"linebuffer\" implementation is supported in Vitis HLS.");
+void conv_1d_cl(
+    hls::stream<data_T> &data,
+    hls::stream<res_T> &res,
+    typename CONFIG_T::weight_t weights[CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
+    assert(
+        CONFIG_T::implementation == conv_implementation::linebuffer &&
+        "Only \"linebuffer\" implementation is supported in Vitis HLS."
+    );
 
     assert(CONFIG_T::pad_left == 0 && CONFIG_T::pad_right == 0);
 

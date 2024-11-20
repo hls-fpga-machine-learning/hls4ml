@@ -8,9 +8,12 @@
 namespace nnet {
 
 template <class data_T, class res_T, typename CONFIG_T>
-void dense_resource(stream<data_T> &data_stream, stream<res_T> &res_stream,
-                    const typename CONFIG_T::weight_t weights[CONFIG_T::n_in * CONFIG_T::n_out],
-                    const typename CONFIG_T::bias_t biases[CONFIG_T::n_out]) {
+void dense_resource(
+    stream<data_T> &data_stream,
+    stream<res_T> &res_stream,
+    const typename CONFIG_T::weight_t weights[CONFIG_T::n_in * CONFIG_T::n_out],
+    const typename CONFIG_T::bias_t biases[CONFIG_T::n_out]
+) {
     hls_register typename data_T::value_type data[CONFIG_T::n_in];
     hls_register typename res_T::value_type res[CONFIG_T::n_out];
 

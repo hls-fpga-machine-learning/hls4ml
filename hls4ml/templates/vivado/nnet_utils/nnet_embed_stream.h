@@ -8,8 +8,11 @@
 namespace nnet {
 
 template <class data_T, class res_T, typename CONFIG_T>
-void embedding(hls::stream<data_T> &data, hls::stream<res_T> &res,
-               typename CONFIG_T::embeddings_t embeddings[CONFIG_T::vocab_size * CONFIG_T::n_out]) {
+void embedding(
+    hls::stream<data_T> &data,
+    hls::stream<res_T> &res,
+    typename CONFIG_T::embeddings_t embeddings[CONFIG_T::vocab_size * CONFIG_T::n_out]
+) {
     data_T in_data = data.read();
 
 InputSequence:

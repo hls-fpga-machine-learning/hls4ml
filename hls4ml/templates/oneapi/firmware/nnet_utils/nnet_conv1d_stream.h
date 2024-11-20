@@ -58,7 +58,8 @@ void shift_line_buffer_1d(
     const data_T &in_elem,
     nnet::shift_reg<typename data_T::value_type, CONFIG_T::pad_left + CONFIG_T::in_width + CONFIG_T::pad_right>
         line_buffer[CONFIG_T::n_chan],
-    typename data_T::value_type shift_buffer[CONFIG_T::n_chan]) {
+    typename data_T::value_type shift_buffer[CONFIG_T::n_chan]
+) {
 // For every channel, insert the incoming pixel at end of the shift buffer
 UpdateBuffer:
     #pragma unroll
@@ -87,8 +88,12 @@ void compute_output_buffer_1d(
     const data_T &in_elem,
     nnet::shift_reg<typename data_T::value_type, CONFIG_T::pad_left + CONFIG_T::in_width + CONFIG_T::pad_right>
         line_buffer[CONFIG_T::n_chan],
-    data_window_T &kernel_window, const typename CONFIG_T::weight_t &weights, const typename CONFIG_T::bias_t &biases,
-    int &pX, int &sX) {
+    data_window_T &kernel_window,
+    const typename CONFIG_T::weight_t &weights,
+    const typename CONFIG_T::bias_t &biases,
+    int &pX,
+    int &sX
+) {
 
     using res_T = typename ExtractPipeType<res_pipe>::value_type;
 
@@ -153,22 +158,25 @@ void conv_1d_cl_stream(typename CONFIG_T::weight_t weights, typename CONFIG_T::b
 // Input image left-side padding
 PaddingLeftWidth:
     for (int col = 0; col < CONFIG_T::pad_left; col++) {
-        compute_output_buffer_1d<data_arr_T, data_window_T, res_pipe, CONFIG_T>(padds, line_buffer, kernel_window, weights,
-                                                                                biases, pX, sX);
+        compute_output_buffer_1d<data_arr_T, data_window_T, res_pipe, CONFIG_T>(
+            padds, line_buffer, kernel_window, weights, biases, pX, sX
+        );
     }
 
 // Read input image
 ReadInputWidth:
     for (int col = 0; col < CONFIG_T::in_width; col++) {
-        compute_output_buffer_1d<data_arr_T, data_window_T, res_pipe, CONFIG_T>(data_pipe::read(), line_buffer,
-                                                                                kernel_window, weights, biases, pX, sX);
+        compute_output_buffer_1d<data_arr_T, data_window_T, res_pipe, CONFIG_T>(
+            data_pipe::read(), line_buffer, kernel_window, weights, biases, pX, sX
+        );
     }
 
 // Input image right-side padding
 PaddingRightWidth:
     for (int col = 0; col < CONFIG_T::pad_right; col++) {
-        compute_output_buffer_1d<data_arr_T, data_window_T, res_pipe, CONFIG_T>(padds, line_buffer, kernel_window, weights,
-                                                                                biases, pX, sX);
+        compute_output_buffer_1d<data_arr_T, data_window_T, res_pipe, CONFIG_T>(
+            padds, line_buffer, kernel_window, weights, biases, pX, sX
+        );
     }
 }
 

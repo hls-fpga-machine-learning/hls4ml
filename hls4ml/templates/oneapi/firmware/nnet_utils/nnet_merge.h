@@ -89,7 +89,8 @@ Product:
     #pragma unroll multiplier_limit
     for (int i = 0; i < CONFIG_T::n_in; i++) {
         mult[i] = CONFIG_T::template product<typename input1_T::value_type, typename input2_T::value_type>::product(
-            data1[i], data2[i]);
+            data1[i], data2[i]
+        );
     }
 
     [[intel::fpga_register]] typename CONFIG_T::accum_t acc = 0;

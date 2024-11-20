@@ -87,17 +87,17 @@ template <class x_T, class w_T> class weight_exponential : public Product {
 
 // TO-DO: These may need extra variants if ac_int types are used in more places
 template <class data_T, class res_T, typename CONFIG_T>
-inline typename std::enable_if<std::is_same<data_T, ac_int<1, false>>::value &&
-                                   std::is_same<typename CONFIG_T::weight_t, ac_int<1, false>>::value,
-                               ac_int<nnet::ceillog2(CONFIG_T::n_in) + 2, true>>::type
+inline typename std::enable_if<
+    std::is_same<data_T, ac_int<1, false>>::value && std::is_same<typename CONFIG_T::weight_t, ac_int<1, false>>::value,
+    ac_int<nnet::ceillog2(CONFIG_T::n_in) + 2, true>>::type
 cast(typename CONFIG_T::accum_t x) {
     return static_cast<ac_int<nnet::ceillog2(CONFIG_T::n_in) + 2, true>>(((x - CONFIG_T::n_in / 2) * 2).to_ac_int());
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-inline typename std::enable_if<std::is_same<data_T, ac_int<1, false>>::value &&
-                                   !std::is_same<typename CONFIG_T::weight_t, ac_int<1, false>>::value,
-                               res_T>::type
+inline typename std::enable_if<
+    std::is_same<data_T, ac_int<1, false>>::value && !std::is_same<typename CONFIG_T::weight_t, ac_int<1, false>>::value,
+    res_T>::type
 cast(typename CONFIG_T::accum_t x) {
     return static_cast<res_T>(x);
 }

@@ -77,10 +77,14 @@ template <unsigned K, unsigned S, unsigned W> class scale_index_unscaled {
 };
 
 template <class data_T, class res_T, typename CONFIG_T>
-void mult_buffer(hls::stream<typename data_T::value_type> data_window[CONFIG_T::kernel_size * CONFIG_T::n_chan],
-                 res_T &res_pack, hls::stream<res_T> &res_stream, unsigned &outputs_ready,
-                 typename CONFIG_T::weight_t weights[CONFIG_T::kernel_size * CONFIG_T::n_chan * CONFIG_T::n_filt],
-                 typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+void mult_buffer(
+    hls::stream<typename data_T::value_type> data_window[CONFIG_T::kernel_size * CONFIG_T::n_chan],
+    res_T &res_pack,
+    hls::stream<res_T> &res_stream,
+    unsigned &outputs_ready,
+    typename CONFIG_T::weight_t weights[CONFIG_T::kernel_size * CONFIG_T::n_chan * CONFIG_T::n_filt],
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
     #pragma HLS INLINE
 
     typename data_T::value_type data[CONFIG_T::kernel_size * CONFIG_T::n_chan];
@@ -95,8 +99,10 @@ InitData:
     }
 
     #pragma HLS INLINE recursive
-    CONFIG_T::mult_config::template kernel<typename data_T::value_type, typename res_T::value_type,
-                                           typename CONFIG_T::mult_config>::dense(data, res, weights, biases);
+    CONFIG_T::mult_config::
+        template kernel<typename data_T::value_type, typename res_T::value_type, typename CONFIG_T::mult_config>::dense(
+            data, res, weights, biases
+        );
 
 CastLoop:
     for (unsigned jj = 0; jj < CONFIG_T::n_filt; jj++) {
@@ -121,11 +127,16 @@ CastLoop:
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void compute_output_encoded(const data_T &in_elem,
-                            hls::stream<typename data_T::value_type> data_window[CONFIG_T::kernel_size * CONFIG_T::n_chan],
-                            hls::stream<res_T> &res, res_T &res_pack, unsigned &outputs_ready,
-                            typename CONFIG_T::weight_t weights[CONFIG_T::kernel_size * CONFIG_T::n_chan * CONFIG_T::n_filt],
-                            typename CONFIG_T::bias_t biases[CONFIG_T::n_filt], ap_uint<CONFIG_T::kernel_size> *pixel_idx) {
+void compute_output_encoded(
+    const data_T &in_elem,
+    hls::stream<typename data_T::value_type> data_window[CONFIG_T::kernel_size * CONFIG_T::n_chan],
+    hls::stream<res_T> &res,
+    res_T &res_pack,
+    unsigned &outputs_ready,
+    typename CONFIG_T::weight_t weights[CONFIG_T::kernel_size * CONFIG_T::n_chan * CONFIG_T::n_filt],
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt],
+    ap_uint<CONFIG_T::kernel_size> *pixel_idx
+) {
     #pragma HLS INLINE
 
 MultLoop:
@@ -151,8 +162,9 @@ MultLoop:
 //       Line Buffer Implementation (Phil's)
 // *************************************************
 template <class data_T, typename CONFIG_T>
-void kernel_shift_1d(const data_T &in_elem,
-                     typename data_T::value_type kernel_window[CONFIG_T::filt_width * CONFIG_T::n_chan]) {
+void kernel_shift_1d(
+    const data_T &in_elem, typename data_T::value_type kernel_window[CONFIG_T::filt_width * CONFIG_T::n_chan]
+) {
     #pragma HLS inline
 
     // Shift kernel_window by one step to the left (manual shift operation)
@@ -180,7 +192,8 @@ KernelPushChannel:
 template <class data_T, typename CONFIG_T>
 void kernel_shift_2d(
     typename data_T::value_type shift_buffer[CONFIG_T::filt_height][CONFIG_T::n_chan],
-    typename data_T::value_type kernel_window[CONFIG_T::filt_width * CONFIG_T::filt_height * CONFIG_T::n_chan]) {
+    typename data_T::value_type kernel_window[CONFIG_T::filt_width * CONFIG_T::filt_height * CONFIG_T::n_chan]
+) {
     #pragma HLS inline
 
     // Shift kernel_window by one step to the left (manual shift operation)
@@ -216,7 +229,8 @@ void shift_line_buffer(
     const data_T &in_elem,
     ap_shift_reg<typename data_T::value_type, CONFIG_T::in_width> line_buffer[MAX(CONFIG_T::filt_height - 1, 1)]
                                                                              [CONFIG_T::n_chan],
-    typename data_T::value_type kernel_window[CONFIG_T::filt_height * CONFIG_T::filt_width * CONFIG_T::n_chan]) {
+    typename data_T::value_type kernel_window[CONFIG_T::filt_height * CONFIG_T::filt_width * CONFIG_T::n_chan]
+) {
 
     #pragma HLS PIPELINE
 
@@ -238,8 +252,9 @@ LineBufferDataIn:
     LineBufferShift:
         for (unsigned i_ih = 1; i_ih < CONFIG_T::filt_height; i_ih++) {
             #pragma HLS UNROLL
-            typename data_T::value_type pop_elem = line_buffer[i_ih - 1][i_ic].shift(
-                shift_buffer[CONFIG_T::filt_height - i_ih][i_ic]); // Shift the line buffer, return the popped pixel
+            typename data_T::value_type pop_elem =
+                line_buffer[i_ih - 1][i_ic].shift(shift_buffer[CONFIG_T::filt_height - i_ih][i_ic]
+                ); // Shift the line buffer, return the popped pixel
             shift_buffer[CONFIG_T::filt_height - i_ih - 1][i_ic] =
                 pop_elem; // Popped element placed back into shift_buffer, one row up.
         }
@@ -254,7 +269,8 @@ void compute_output_buffer_2d(
                                                                              [CONFIG_T::n_chan],
     hls::stream<res_T> &res_stream,
     typename CONFIG_T::weight_t weights[CONFIG_T::kernel_size * CONFIG_T::n_chan * CONFIG_T::n_filt],
-    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
     #pragma HLS INLINE OFF
 
     // Thresholds
@@ -285,8 +301,10 @@ void compute_output_buffer_2d(
 
         // Dense multiply
         // #pragma HLS INLINE recursive
-        CONFIG_T::mult_config::template kernel<typename data_T::value_type, typename res_T::value_type,
-                                               typename CONFIG_T::mult_config>::dense(kernel_data, res_out, weights, biases);
+        CONFIG_T::mult_config::
+            template kernel<typename data_T::value_type, typename res_T::value_type, typename CONFIG_T::mult_config>::dense(
+                kernel_data, res_out, weights, biases
+            );
 
     // Pack output
     CastLoop:
@@ -322,9 +340,11 @@ void compute_output_buffer_2d(
 // Conv 1D compute output
 template <class data_T, class res_T, typename CONFIG_T>
 void compute_output_buffer_1d(
-    const data_T &in_elem, hls::stream<res_T> &res_stream,
+    const data_T &in_elem,
+    hls::stream<res_T> &res_stream,
     typename CONFIG_T::weight_t weights[CONFIG_T::kernel_size * CONFIG_T::n_chan * CONFIG_T::n_filt],
-    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
     #pragma HLS INLINE OFF
 
     // Thresholds
@@ -351,8 +371,10 @@ void compute_output_buffer_1d(
 
         // Dense multiply
         // #pragma HLS INLINE recursive
-        CONFIG_T::mult_config::template kernel<typename data_T::value_type, typename res_T::value_type,
-                                               typename CONFIG_T::mult_config>::dense(kernel_data, res_out, weights, biases);
+        CONFIG_T::mult_config::
+            template kernel<typename data_T::value_type, typename res_T::value_type, typename CONFIG_T::mult_config>::dense(
+                kernel_data, res_out, weights, biases
+            );
 
     // Pack output
     CastLoop:

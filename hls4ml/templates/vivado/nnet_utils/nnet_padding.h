@@ -68,8 +68,10 @@ struct padding2d_config {
 };
 
 template <class data_T, class res_T, typename CONFIG_T>
-void zeropad2d_cf(data_T data[CONFIG_T::n_chan * CONFIG_T::in_height * CONFIG_T::in_width],
-                  data_T res[CONFIG_T::n_chan * CONFIG_T::out_height * CONFIG_T::out_width]) {
+void zeropad2d_cf(
+    data_T data[CONFIG_T::n_chan * CONFIG_T::in_height * CONFIG_T::in_width],
+    data_T res[CONFIG_T::n_chan * CONFIG_T::out_height * CONFIG_T::out_width]
+) {
     #pragma HLS PIPELINE
 
     for (int k = 0; k < CONFIG_T::n_chan; k++) {
@@ -101,8 +103,10 @@ void zeropad2d_cf(data_T data[CONFIG_T::n_chan * CONFIG_T::in_height * CONFIG_T:
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void zeropad2d_cl(data_T data[CONFIG_T::n_chan * CONFIG_T::in_height * CONFIG_T::in_width],
-                  res_T res[CONFIG_T::n_chan * CONFIG_T::out_height * CONFIG_T::out_width]) {
+void zeropad2d_cl(
+    data_T data[CONFIG_T::n_chan * CONFIG_T::in_height * CONFIG_T::in_width],
+    res_T res[CONFIG_T::n_chan * CONFIG_T::out_height * CONFIG_T::out_width]
+) {
     #pragma HLS PIPELINE
 
     for (int i = 0; i < CONFIG_T::pad_top; i++) {

@@ -8,10 +8,12 @@
 namespace nnet {
 
 template <class data_T, class res_T, typename CONFIG_T>
-void conv_1d_latency_cl(data_T data[CONFIG_T::in_width * CONFIG_T::n_chan],
-                        res_T res[CONFIG_T::out_width * CONFIG_T::n_filt],
-                        typename CONFIG_T::weight_t weights[CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
-                        typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+void conv_1d_latency_cl(
+    data_T data[CONFIG_T::in_width * CONFIG_T::n_chan],
+    res_T res[CONFIG_T::out_width * CONFIG_T::n_filt],
+    typename CONFIG_T::weight_t weights[CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
     constexpr unsigned mult_n_in = CONFIG_T::filt_width * CONFIG_T::n_chan;
     constexpr unsigned mult_n_out = CONFIG_T::n_filt;
 
@@ -52,7 +54,8 @@ PartitionLoop:
                     #pragma HLS UNROLL
                     mult[i_in * mult_n_out + i_out] =
                         CONFIG_T::mult_config::template product<data_T, typename CONFIG_T::mult_config::weight_t>::product(
-                            cache, weights[i_in * mult_n_out + i_out]);
+                            cache, weights[i_in * mult_n_out + i_out]
+                        );
                 }
             }
 

@@ -112,10 +112,20 @@ template <class data_T, class res_T, typename CONFIG_T> void relu1(data_T data[C
 //       Sigmoid Activation
 // *************************************************
 
-template </*unsigned K,*/ int W1, int I1, bool S1, ac_q_mode Q1, ac_o_mode O1, int W2, int I2, bool S2, ac_q_mode Q2,
-          ac_o_mode O2>
-void ac_sigmoid_pwl_wrapper(const ac_fixed<W1, I1, S1, Q1, O1>(&input) /*[K]*/,
-                            ac_fixed<W2, I2, S2, Q2, O2>(&output) /*[K]*/) {
+template <
+    /*unsigned K,*/ int W1,
+    int I1,
+    bool S1,
+    ac_q_mode Q1,
+    ac_o_mode O1,
+    int W2,
+    int I2,
+    bool S2,
+    ac_q_mode Q2,
+    ac_o_mode O2>
+void ac_sigmoid_pwl_wrapper(
+    const ac_fixed<W1, I1, S1, Q1, O1>(&input) /*[K]*/, ac_fixed<W2, I2, S2, Q2, O2>(&output) /*[K]*/
+) {
     ac_fixed<W2, I2, false, Q2, O2> tmp; //[K];
     ac_math::ac_sigmoid_pwl<AC_TRN, W1, I1, true, Q1, O1, W2, I2, Q2, O2>(input, tmp);
     output = tmp;
@@ -541,12 +551,42 @@ void softmax(data_T data[CONFIG_T::n_in], res_T res[CONFIG_T::n_in]) {
 #else
 // This is a workaround to help the template deduction to work correctly and fix the inconsistency that HLS4ML expects
 // softmax output to be signed but AC Math softmax knows it is always unsigned
-template <unsigned K, int W1, int I1, bool S1, ac_q_mode Q1, ac_o_mode O1, int W2, int I2, bool S2, ac_q_mode Q2,
-          ac_o_mode O2>
+template <
+    unsigned K,
+    int W1,
+    int I1,
+    bool S1,
+    ac_q_mode Q1,
+    ac_o_mode O1,
+    int W2,
+    int I2,
+    bool S2,
+    ac_q_mode Q2,
+    ac_o_mode O2>
 void ac_softmax_pwl_wrapper(const ac_fixed<W1, I1, S1, Q1, O1> (&input)[K], ac_fixed<W2, I2, S2, Q2, O2> (&output)[K]) {
     ac_fixed<W2, I2, false, Q2, O2> tmp[K];
-    ac_math::ac_softmax_pwl<AC_TRN, false, 0, 0, AC_TRN, AC_WRAP, false, 0, 0, AC_TRN, AC_WRAP, K, W1, I1, S1, Q1, O1, W2,
-                            I2, Q2, O2>(input, tmp);
+    ac_math::ac_softmax_pwl<
+        AC_TRN,
+        false,
+        0,
+        0,
+        AC_TRN,
+        AC_WRAP,
+        false,
+        0,
+        0,
+        AC_TRN,
+        AC_WRAP,
+        K,
+        W1,
+        I1,
+        S1,
+        Q1,
+        O1,
+        W2,
+        I2,
+        Q2,
+        O2>(input, tmp);
     for (unsigned int x = 0; x < K; x++)
         output[x] = tmp[x];
 }
@@ -785,8 +825,18 @@ void softplus(data_T data[CONFIG_T::n_in], res_T res[CONFIG_T::n_in]) {
 }
 
 #else
-template <ac_q_mode pwl_Q = AC_TRN, int W, int I, bool S, ac_q_mode Q, ac_o_mode O, int outW, int outI, bool outS,
-          ac_q_mode outQ, ac_o_mode outO>
+template <
+    ac_q_mode pwl_Q = AC_TRN,
+    int W,
+    int I,
+    bool S,
+    ac_q_mode Q,
+    ac_o_mode O,
+    int outW,
+    int outI,
+    bool outS,
+    ac_q_mode outQ,
+    ac_o_mode outO>
 void ac_softplus_pwl_wrapper(const ac_fixed<W, I, S, Q, O>(&input), ac_fixed<outW, outI, outS, outQ, outO>(&output)) {
     ac_fixed<outW, outI, false, outQ, outO> tmp;
     ac_math::ac_softplus_pwl<AC_TRN, W, I, S, Q, O, outW, outI, outQ, outO>(input, tmp);

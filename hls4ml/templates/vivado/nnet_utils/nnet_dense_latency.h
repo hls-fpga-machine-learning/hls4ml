@@ -10,9 +10,12 @@
 namespace nnet {
 
 template <class data_T, class res_T, typename CONFIG_T>
-void dense_latency(data_T data[CONFIG_T::n_in], res_T res[CONFIG_T::n_out],
-                   typename CONFIG_T::weight_t weights[CONFIG_T::n_in * CONFIG_T::n_out],
-                   typename CONFIG_T::bias_t biases[CONFIG_T::n_out]) {
+void dense_latency(
+    data_T data[CONFIG_T::n_in],
+    res_T res[CONFIG_T::n_out],
+    typename CONFIG_T::weight_t weights[CONFIG_T::n_in * CONFIG_T::n_out],
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_out]
+) {
     data_T cache;
     typename CONFIG_T::accum_t mult[CONFIG_T::n_in * CONFIG_T::n_out];
     typename CONFIG_T::accum_t acc[CONFIG_T::n_out];

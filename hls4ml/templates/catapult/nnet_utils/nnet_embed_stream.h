@@ -8,8 +8,11 @@
 namespace nnet {
 
 template <class data_T, class res_T, typename CONFIG_T>
-void embedding(ac_channel<data_T> &data, ac_channel<res_T> &res,
-               typename CONFIG_T::embeddings_t embeddings[CONFIG_T::vocab_size * CONFIG_T::n_out]) {
+void embedding(
+    ac_channel<data_T> &data,
+    ac_channel<res_T> &res,
+    typename CONFIG_T::embeddings_t embeddings[CONFIG_T::vocab_size * CONFIG_T::n_out]
+) {
     data_T in_data = data.read();
     constexpr int ce_reuse_factor = CONFIG_T::reuse_factor;
     (void)ce_reuse_factor;

@@ -37,10 +37,13 @@ struct dense_config {
 };
 
 template <class data_T, class res_T, typename CONFIG_T>
-void dense_rf_gt(const data_T &data, res_T &res, const typename CONFIG_T::weight_t &weights,
-                 const typename CONFIG_T::bias_t &biases) {
-    assert((CONFIG_T::multiplier_limit % CONFIG_T::n_out == 0 || CONFIG_T::reuse_factor >= CONFIG_T::n_in) &&
-           "The current Reuse Factor is not allowed");
+void dense_rf_gt(
+    const data_T &data, res_T &res, const typename CONFIG_T::weight_t &weights, const typename CONFIG_T::bias_t &biases
+) {
+    assert(
+        (CONFIG_T::multiplier_limit % CONFIG_T::n_out == 0 || CONFIG_T::reuse_factor >= CONFIG_T::n_in) &&
+        "The current Reuse Factor is not allowed"
+    );
     assert((CONFIG_T::reuse_factor > CONFIG_T::n_in) && "This function is correct only for RF > N_IN");
     //#pragma ii CONFIG_T::reuse_factor
     [[intel::fpga_register]] typename CONFIG_T::accum_t acc[CONFIG_T::n_out];
@@ -74,7 +77,8 @@ Product1:
             // Modified this
             tmp_acc[im] =
                 CONFIG_T::template product<typename data_T::value_type, typename CONFIG_T::weight_t::value_type>::product(
-                    data[data_index], weights[w_index]);
+                    data[data_index], weights[w_index]
+                );
         }
         [[intel::fpga_register]] typename CONFIG_T::accum_t mult[CONFIG_T::multiplier_limit];
     ResetMult:
@@ -103,10 +107,13 @@ Store:
     }
 }
 template <class data_T, class res_T, typename CONFIG_T>
-void dense_rf_lt(const data_T &data, res_T &res, const typename CONFIG_T::weight_t &weights,
-                 const typename CONFIG_T::bias_t &biases) {
-    assert((CONFIG_T::multiplier_limit % CONFIG_T::n_out == 0 || CONFIG_T::reuse_factor >= CONFIG_T::n_in) &&
-           "The current Reuse Factor is not allowed");
+void dense_rf_lt(
+    const data_T &data, res_T &res, const typename CONFIG_T::weight_t &weights, const typename CONFIG_T::bias_t &biases
+) {
+    assert(
+        (CONFIG_T::multiplier_limit % CONFIG_T::n_out == 0 || CONFIG_T::reuse_factor >= CONFIG_T::n_in) &&
+        "The current Reuse Factor is not allowed"
+    );
     assert((CONFIG_T::multiplier_limit == CONFIG_T::block_factor) && "This function is correct only for RF <= N_IN");
 
     [[intel::fpga_register]] typename CONFIG_T::accum_t acc[CONFIG_T::n_out];
@@ -127,7 +134,8 @@ ReuseLoop:
             // Modified this
             mult[im] =
                 CONFIG_T::template product<typename data_T::value_type, typename CONFIG_T::weight_t::value_type>::product(
-                    data[in_index], weights[w_index]);
+                    data[in_index], weights[w_index]
+                );
             in_index += CONFIG_T::reuse_factor;
             if (in_index >= CONFIG_T::n_in)
                 in_index = ir;
@@ -152,8 +160,9 @@ Result:
     }
 }
 template <class data_T, class res_T, typename CONFIG_T>
-void dense_resource(const data_T &data, res_T &res, const typename CONFIG_T::weight_t &weights,
-                    const typename CONFIG_T::bias_t &biases) {
+void dense_resource(
+    const data_T &data, res_T &res, const typename CONFIG_T::weight_t &weights, const typename CONFIG_T::bias_t &biases
+) {
     if (CONFIG_T::reuse_factor <= CONFIG_T::n_in) {
         dense_rf_lt<data_T, res_T, CONFIG_T>(data, res, weights, biases);
     } else {

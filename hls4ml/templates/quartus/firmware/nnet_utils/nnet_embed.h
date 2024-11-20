@@ -21,8 +21,11 @@ struct embed_config {
 };
 
 template <class data_T, class res_T, typename CONFIG_T>
-void embedding(data_T data[CONFIG_T::n_in], res_T res[CONFIG_T::n_in * CONFIG_T::n_out],
-               const typename CONFIG_T::embeddings_t embeddings[CONFIG_T::vocab_size * CONFIG_T::n_out]) {
+void embedding(
+    data_T data[CONFIG_T::n_in],
+    res_T res[CONFIG_T::n_in * CONFIG_T::n_out],
+    const typename CONFIG_T::embeddings_t embeddings[CONFIG_T::vocab_size * CONFIG_T::n_out]
+) {
 
     /*
      * Can store embeddings[] in a register, but a large multiiplexer

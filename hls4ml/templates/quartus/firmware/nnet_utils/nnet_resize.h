@@ -14,8 +14,10 @@ struct resize_config {
 };
 
 template <class data_T, typename CONFIG_T>
-void resize_nearest(data_T image[CONFIG_T::height * CONFIG_T::width * CONFIG_T::n_chan],
-                    data_T resized[CONFIG_T::new_height * CONFIG_T::new_width * CONFIG_T::n_chan]) {
+void resize_nearest(
+    data_T image[CONFIG_T::height * CONFIG_T::width * CONFIG_T::n_chan],
+    data_T resized[CONFIG_T::new_height * CONFIG_T::new_width * CONFIG_T::n_chan]
+) {
     int y_ratio = (int)((CONFIG_T::height << 16) / CONFIG_T::new_height) + 1;
     int x_ratio = (int)((CONFIG_T::width << 16) / CONFIG_T::new_width) + 1;
 

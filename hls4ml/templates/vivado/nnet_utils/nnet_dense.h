@@ -38,18 +38,24 @@ struct dense_config {
 };
 
 template <class data_T, class res_T, typename CONFIG_T>
-void dense(data_T data[CONFIG_T::n_in], res_T res[CONFIG_T::n_out],
-           typename CONFIG_T::weight_t weights[CONFIG_T::n_in * CONFIG_T::n_out],
-           typename CONFIG_T::bias_t biases[CONFIG_T::n_out]) {
+void dense(
+    data_T data[CONFIG_T::n_in],
+    res_T res[CONFIG_T::n_out],
+    typename CONFIG_T::weight_t weights[CONFIG_T::n_in * CONFIG_T::n_out],
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_out]
+) {
     #pragma HLS INLINE
     CONFIG_T::template kernel<data_T, res_T, CONFIG_T>::dense(data, res, weights, biases);
 }
 
 template <class data_T, class res_T, typename CONFIG_T> class DenseLatency : public DenseKernel<data_T, res_T, CONFIG_T> {
   public:
-    static void dense(data_T data[CONFIG_T::n_in], res_T res[CONFIG_T::n_out],
-                      typename CONFIG_T::weight_t weights[CONFIG_T::n_in * CONFIG_T::n_out],
-                      typename CONFIG_T::bias_t biases[CONFIG_T::n_out]) {
+    static void dense(
+        data_T data[CONFIG_T::n_in],
+        res_T res[CONFIG_T::n_out],
+        typename CONFIG_T::weight_t weights[CONFIG_T::n_in * CONFIG_T::n_out],
+        typename CONFIG_T::bias_t biases[CONFIG_T::n_out]
+    ) {
         #pragma HLS INLINE
         dense_latency<data_T, res_T, CONFIG_T>(data, res, weights, biases);
     }
@@ -58,9 +64,12 @@ template <class data_T, class res_T, typename CONFIG_T> class DenseLatency : pub
 template <class data_T, class res_T, typename CONFIG_T>
 class DenseResource_rf_leq_nin : public DenseKernel<data_T, res_T, CONFIG_T> {
   public:
-    static void dense(data_T data[CONFIG_T::n_in], res_T res[CONFIG_T::n_out],
-                      typename CONFIG_T::weight_t weights[CONFIG_T::n_in * CONFIG_T::n_out],
-                      typename CONFIG_T::bias_t biases[CONFIG_T::n_out]) {
+    static void dense(
+        data_T data[CONFIG_T::n_in],
+        res_T res[CONFIG_T::n_out],
+        typename CONFIG_T::weight_t weights[CONFIG_T::n_in * CONFIG_T::n_out],
+        typename CONFIG_T::bias_t biases[CONFIG_T::n_out]
+    ) {
         #pragma HLS INLINE
         dense_resource_rf_leq_nin<data_T, res_T, CONFIG_T>(data, res, weights, biases);
     }
@@ -69,9 +78,12 @@ class DenseResource_rf_leq_nin : public DenseKernel<data_T, res_T, CONFIG_T> {
 template <class data_T, class res_T, typename CONFIG_T>
 class DenseResource_rf_gt_nin_rem0 : public DenseKernel<data_T, res_T, CONFIG_T> {
   public:
-    static void dense(data_T data[CONFIG_T::n_in], res_T res[CONFIG_T::n_out],
-                      typename CONFIG_T::weight_t weights[CONFIG_T::n_in * CONFIG_T::n_out],
-                      typename CONFIG_T::bias_t biases[CONFIG_T::n_out]) {
+    static void dense(
+        data_T data[CONFIG_T::n_in],
+        res_T res[CONFIG_T::n_out],
+        typename CONFIG_T::weight_t weights[CONFIG_T::n_in * CONFIG_T::n_out],
+        typename CONFIG_T::bias_t biases[CONFIG_T::n_out]
+    ) {
         #pragma HLS INLINE
         dense_resource_rf_gt_nin_rem0<data_T, res_T, CONFIG_T>(data, res, weights, biases);
     }

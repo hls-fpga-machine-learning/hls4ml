@@ -26,10 +26,20 @@ template <class T> constexpr T zero_array() {
 // This is a helper to extract the value_type of a pipe
 template <typename T> struct ExtractPipeType { typedef T value_type; };
 
-template <template <class, class, int32_t, class, typename...> class PipeClass, class PipeName, class PipeDataT,
-          int32_t kPipeMinCapacity, class PipeProperties, typename... Args>
-struct ExtractPipeType<PipeClass<PipeName, PipeDataT, kPipeMinCapacity, PipeProperties,
-                                 Args...>> // specialization
+template <
+    template <class, class, int32_t, class, typename...>
+    class PipeClass,
+    class PipeName,
+    class PipeDataT,
+    int32_t kPipeMinCapacity,
+    class PipeProperties,
+    typename... Args>
+struct ExtractPipeType<PipeClass<
+    PipeName,
+    PipeDataT,
+    kPipeMinCapacity,
+    PipeProperties,
+    Args...>> // specialization
 {
     typedef PipeDataT value_type;
 };

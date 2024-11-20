@@ -12,7 +12,8 @@ void depthwise_conv_2d_latency_cl(
     data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_chan],
     res_T res[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt],
     typename CONFIG_T::weight_t weights[CONFIG_T::filt_height * CONFIG_T::filt_width * CONFIG_T::n_filt],
-    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
 
     constexpr unsigned mult_n_in = CONFIG_T::filt_height * CONFIG_T::filt_width * CONFIG_T::n_chan;
     constexpr unsigned mult_n_acc = CONFIG_T::filt_height * CONFIG_T::filt_width;
@@ -54,7 +55,8 @@ PartitionLoop:
                 cache = data_buf[i_pxl][i_in];
                 mult[i_in] =
                     CONFIG_T::mult_config::template product<data_T, typename CONFIG_T::mult_config::weight_t>::product(
-                        cache, weights[i_in]);
+                        cache, weights[i_in]
+                    );
             }
 
         // Initialize accumulator with input biases

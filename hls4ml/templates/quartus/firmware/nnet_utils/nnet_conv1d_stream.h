@@ -16,8 +16,10 @@ namespace nnet {
  * Values from shift_buffer are inserted into kernel_window, updating the values to be convolved
  */
 template <class data_T, typename CONFIG_T>
-void kernel_shift_1d(typename data_T::value_type shift_buffer[CONFIG_T::n_chan],
-                     typename data_T::value_type kernel_window[CONFIG_T::filt_width * CONFIG_T::n_chan]) {
+void kernel_shift_1d(
+    typename data_T::value_type shift_buffer[CONFIG_T::n_chan],
+    typename data_T::value_type kernel_window[CONFIG_T::filt_width * CONFIG_T::n_chan]
+) {
 /*
  * Manually shift kernel_window by one step to the left
  * Not possible to use nnet::shift_reg<T, N> as the kernel window is convolved with the kernel weights using dense matrix
@@ -59,7 +61,8 @@ void shift_line_buffer_1d(
     const data_T &in_elem,
     nnet::shift_reg<typename data_T::value_type, CONFIG_T::pad_left + CONFIG_T::in_width + CONFIG_T::pad_right>
         line_buffer[CONFIG_T::n_chan],
-    typename data_T::value_type shift_buffer[CONFIG_T::n_chan]) {
+    typename data_T::value_type shift_buffer[CONFIG_T::n_chan]
+) {
 // For every channel, insert the incoming pixel at end of the shift buffer
 UpdateBuffer:
     #pragma unroll
@@ -85,12 +88,14 @@ UpdateBuffer:
  */
 template <class data_T, class res_T, typename CONFIG_T>
 void compute_output_buffer_1d(
-    const data_T &in_elem, stream<res_T> &res_stream,
+    const data_T &in_elem,
+    stream<res_T> &res_stream,
     nnet::shift_reg<typename data_T::value_type, CONFIG_T::pad_left + CONFIG_T::in_width + CONFIG_T::pad_right>
         line_buffer[CONFIG_T::n_chan],
     typename data_T::value_type kernel_window[CONFIG_T::filt_width * CONFIG_T::n_chan],
     const typename CONFIG_T::weight_t weights[CONFIG_T::kernel_size * CONFIG_T::n_chan * CONFIG_T::n_filt],
-    const typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+    const typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
     // Thresholds
     static constexpr int lShiftX = CONFIG_T::filt_width - 1;
 
@@ -112,7 +117,8 @@ void compute_output_buffer_1d(
         // Step 3 - Dense matrix multiplication
         hls_register typename res_T::value_type res_out[CONFIG_T::n_filt];
         dense_resource<typename data_T::value_type, typename res_T::value_type, typename CONFIG_T::mult_config>(
-            kernel_window, res_out, weights, biases);
+            kernel_window, res_out, weights, biases
+        );
 
         // Write result to output stream
         hls_register res_T res_pack;
@@ -136,13 +142,16 @@ void compute_output_buffer_1d(
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void conv_1d_cl(stream<data_T> &data, stream<res_T> &res,
-                const typename CONFIG_T::weight_t weights[CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
-                const typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+void conv_1d_cl(
+    stream<data_T> &data,
+    stream<res_T> &res,
+    const typename CONFIG_T::weight_t weights[CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
+    const typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
     // Line buffer and kernel window
-    hls_register static nnet::shift_reg<typename data_T::value_type,
-                                        CONFIG_T::pad_left + CONFIG_T::in_width + CONFIG_T::pad_right>
-        line_buffer[CONFIG_T::n_chan];
+    hls_register static nnet::
+        shift_reg<typename data_T::value_type, CONFIG_T::pad_left + CONFIG_T::in_width + CONFIG_T::pad_right>
+            line_buffer[CONFIG_T::n_chan];
     hls_register static typename data_T::value_type kernel_window[CONFIG_T::filt_width * CONFIG_T::n_chan];
 
     // An array of length CONFIG_T::n_chan, with elements set to zero (padding for each channel)

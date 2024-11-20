@@ -9,8 +9,8 @@ namespace nnet {
 // Computes multiplier limit
 // This function should not be synthesized into firmware
 template <typename CONFIG_T>
-int compute_multiplier_limit(
-    typename CONFIG_T::weight_t weights[CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt]) {
+int compute_multiplier_limit(typename CONFIG_T::weight_t weights[CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt]
+) {
     int n_mult = 0;
     for (int ii = 0; ii < CONFIG_T::out_width; ii++) {
         for (int ff = 0; ff < CONFIG_T::n_filt; ff++) {
@@ -39,10 +39,12 @@ int compute_multiplier_limit(
 } // end compute_n_mult
 
 template <class data_T, class res_T, typename CONFIG_T>
-void conv_1d_latency_cl(data_T data[CONFIG_T::in_width * CONFIG_T::n_chan],
-                        res_T res[CONFIG_T::out_width * CONFIG_T::n_filt],
-                        typename CONFIG_T::weight_t weights[CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
-                        typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+void conv_1d_latency_cl(
+    data_T data[CONFIG_T::in_width * CONFIG_T::n_chan],
+    res_T res[CONFIG_T::out_width * CONFIG_T::n_filt],
+    typename CONFIG_T::weight_t weights[CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
 
     typename CONFIG_T::accum_t mult[CONFIG_T::out_width * CONFIG_T::n_filt * CONFIG_T::n_chan * CONFIG_T::filt_width];
     typename CONFIG_T::accum_t acc[CONFIG_T::out_width][CONFIG_T::n_filt];
@@ -121,10 +123,12 @@ AccumOut:
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void pointwise_conv_1d_latency_cl(data_T data[CONFIG_T::in_width * CONFIG_T::n_chan],
-                                  res_T res[CONFIG_T::out_width * CONFIG_T::n_filt],
-                                  typename CONFIG_T::weight_t weights[CONFIG_T::n_chan * CONFIG_T::n_filt],
-                                  typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+void pointwise_conv_1d_latency_cl(
+    data_T data[CONFIG_T::in_width * CONFIG_T::n_chan],
+    res_T res[CONFIG_T::out_width * CONFIG_T::n_filt],
+    typename CONFIG_T::weight_t weights[CONFIG_T::n_chan * CONFIG_T::n_filt],
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
     assert(CONFIG_T::filt_width == 1);
 
     typename CONFIG_T::accum_t mult[CONFIG_T::out_width * CONFIG_T::n_filt * CONFIG_T::n_chan];

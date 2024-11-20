@@ -27,10 +27,12 @@ template <class T, int N, class CONFIG_T> T reduce_pool(T x[N]) {
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void compute_pool_buffer_2d(const data_T &in_elem,
-                            ap_shift_reg<typename data_T::value_type, CONFIG_T::in_width>
-                                line_buffer[MAX(CONFIG_T::pool_height - 1, 1)][CONFIG_T::n_filt],
-                            hls::stream<res_T> &res) {
+void compute_pool_buffer_2d(
+    const data_T &in_elem,
+    ap_shift_reg<typename data_T::value_type, CONFIG_T::in_width> line_buffer[MAX(CONFIG_T::pool_height - 1, 1)]
+                                                                             [CONFIG_T::n_filt],
+    hls::stream<res_T> &res
+) {
     #pragma HLS INLINE
     const static int lShiftX = CONFIG_T::pool_width - 1;
     const static int lShiftY = CONFIG_T::pool_height - 1;
@@ -94,8 +96,10 @@ void compute_pool_buffer_2d(const data_T &in_elem,
 
 template <class data_T, class res_T, typename CONFIG_T>
 void pooling2d_cl(hls::stream<data_T> &data, hls::stream<res_T> &res) {
-    assert(CONFIG_T::implementation == conv_implementation::linebuffer &&
-           "Only \"linebuffer\" implementation is supported in Vitis HLS.");
+    assert(
+        CONFIG_T::implementation == conv_implementation::linebuffer &&
+        "Only \"linebuffer\" implementation is supported in Vitis HLS."
+    );
 
     #pragma HLS INLINE recursive
     assert(CONFIG_T::pad_top == 0 && CONFIG_T::pad_bottom == 0 && CONFIG_T::pad_left == 0 && CONFIG_T::pad_right == 0);
@@ -175,8 +179,10 @@ void compute_pool_buffer_1d(const data_T &in_elem, hls::stream<res_T> &res) {
 
 template <class data_T, class res_T, typename CONFIG_T>
 void pooling1d_cl(hls::stream<data_T> &data, hls::stream<res_T> &res) {
-    assert(CONFIG_T::implementation == conv_implementation::linebuffer &&
-           "Only \"linebuffer\" implementation is supported in Vitis HLS.");
+    assert(
+        CONFIG_T::implementation == conv_implementation::linebuffer &&
+        "Only \"linebuffer\" implementation is supported in Vitis HLS."
+    );
     assert(CONFIG_T::pad_left == 0 && CONFIG_T::pad_right == 0);
 
     #pragma HLS inline recursive
@@ -220,7 +226,8 @@ PoolFilt:
             data_pack[p] = in_elem[p * CONFIG_T::n_filt + c];
         }
         data_window[c] = reduce_global_pool<typename CONFIG_T::accum_t, data_T::size / CONFIG_T::n_filt, CONFIG_T>(
-            data_window[c], data_pack);
+            data_window[c], data_pack
+        );
     }
 }
 

@@ -28,8 +28,9 @@
 namespace nnet {
 
 template <typename CONFIG_T>
-void fill_mult(typename CONFIG_T::index_t index, typename CONFIG_T::accum_t mult[CONFIG_T::n_out],
-               typename CONFIG_T::accum_t weight) {
+void fill_mult(
+    typename CONFIG_T::index_t index, typename CONFIG_T::accum_t mult[CONFIG_T::n_out], typename CONFIG_T::accum_t weight
+) {
     for (unsigned k = 0; k < CONFIG_T::n_out; k++) {
         // #pragma HLS UNROLL
         if (k == index)
@@ -38,9 +39,12 @@ void fill_mult(typename CONFIG_T::index_t index, typename CONFIG_T::accum_t mult
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void dense_compressed(data_T data[CONFIG_T::n_in], res_T res[CONFIG_T::n_out],
-                      typename CONFIG_T::weight_t weights[CONFIG_T::n_nonzeros],
-                      typename CONFIG_T::bias_t biases[CONFIG_T::n_out]) {
+void dense_compressed(
+    data_T data[CONFIG_T::n_in],
+    res_T res[CONFIG_T::n_out],
+    typename CONFIG_T::weight_t weights[CONFIG_T::n_nonzeros],
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_out]
+) {
 
     const int multiplier_limit = DIV_ROUNDUP(CONFIG_T::n_nonzeros, CONFIG_T::reuse_factor);
 

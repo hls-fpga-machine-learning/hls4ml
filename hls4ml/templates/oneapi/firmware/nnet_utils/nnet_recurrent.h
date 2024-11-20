@@ -98,9 +98,14 @@ struct gru_config {
 };
 
 template <class data_T, class h_T, typename CONFIG_T>
-void gru_cell(const data_T &x, h_T &h, const typename CONFIG_T::weight_t &weights,
-              const typename CONFIG_T::recurrent_weight_t &recurrent_weights, const typename CONFIG_T::bias_t &bias,
-              const typename CONFIG_T::recurrent_bias_t &recurrent_bias) {
+void gru_cell(
+    const data_T &x,
+    h_T &h,
+    const typename CONFIG_T::weight_t &weights,
+    const typename CONFIG_T::recurrent_weight_t &recurrent_weights,
+    const typename CONFIG_T::bias_t &bias,
+    const typename CONFIG_T::recurrent_bias_t &recurrent_bias
+) {
     static constexpr int recurrent_unroll_factor = CONFIG_T::n_units / CONFIG_T::reuse_factor;
     // A matrix containing the values of matrix product between input (x) and weights (weights), for update, reset and
     // candidate state gates, for each of the units
@@ -113,8 +118,9 @@ void gru_cell(const data_T &x, h_T &h, const typename CONFIG_T::weight_t &weight
     // A matrix containing the values of matrix product between previou state (h) and recurrent weights (recurrent_weights),
     // for update, reset and candidate state gates, for each of the units
     [[intel::fpga_register]] accum_array_T mat_mul_h_wr;
-    nnet::dense_resource<h_T, accum_array_T, typename CONFIG_T::mult_config_h>(h, mat_mul_h_wr, recurrent_weights,
-                                                                               recurrent_bias);
+    nnet::dense_resource<h_T, accum_array_T, typename CONFIG_T::mult_config_h>(
+        h, mat_mul_h_wr, recurrent_weights, recurrent_bias
+    );
 
     // A vector containing both the values of z(t) and r(t) for every state
     using z_activ_array_T = array<typename CONFIG_T::accum_t, 2 * CONFIG_T::n_units>;
@@ -129,8 +135,8 @@ void gru_cell(const data_T &x, h_T &h, const typename CONFIG_T::weight_t &weight
 
     // Activation on z(t) and r(t)
     [[intel::fpga_register]] z_activ_array_T z_r_act;
-    CONFIG_T::template activation_recr<z_activ_array_T, z_activ_array_T,
-                                       typename CONFIG_T::ACT_CONFIG_RECURRENT_T>::activation(z_r, z_r_act);
+    CONFIG_T::template activation_recr<z_activ_array_T, z_activ_array_T, typename CONFIG_T::ACT_CONFIG_RECURRENT_T>::
+        activation(z_r, z_r_act);
 
     // A matrix containing the values of Hadamard product between r(t) = z_r_act[n_units:2*n_units] and h(t-1) = h
     using h_activ_array_T = array<typename CONFIG_T::accum_t, CONFIG_T::n_units>;
@@ -150,8 +156,9 @@ void gru_cell(const data_T &x, h_T &h, const typename CONFIG_T::weight_t &weight
 
     // Activation on candidate state
     [[intel::fpga_register]] h_activ_array_T h_cand_act;
-    CONFIG_T::template activation<h_activ_array_T, h_activ_array_T, typename CONFIG_T::ACT_CONFIG_T>::activation(h_cand,
-                                                                                                                 h_cand_act);
+    CONFIG_T::template activation<h_activ_array_T, h_activ_array_T, typename CONFIG_T::ACT_CONFIG_T>::activation(
+        h_cand, h_cand_act
+    );
 
     // Update state
     #pragma unroll recurrent_unroll_factor
@@ -161,9 +168,14 @@ void gru_cell(const data_T &x, h_T &h, const typename CONFIG_T::weight_t &weight
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void gru(const data_T &data, res_T &res, const typename CONFIG_T::weight_t &weights,
-         const typename CONFIG_T::recurrent_weight_t &recurrent_weights, const typename CONFIG_T::bias_t &bias,
-         const typename CONFIG_T::recurrent_bias_t &recurrent_bias) {
+void gru(
+    const data_T &data,
+    res_T &res,
+    const typename CONFIG_T::weight_t &weights,
+    const typename CONFIG_T::recurrent_weight_t &recurrent_weights,
+    const typename CONFIG_T::bias_t &bias,
+    const typename CONFIG_T::recurrent_bias_t &recurrent_bias
+) {
 
     using h_T = array<typename res_T::value_type, CONFIG_T::n_units>;
     [[intel::fpga_register]] data_T x;
@@ -229,8 +241,14 @@ struct simpleRNN_config {
 };
 
 template <class in_T, class h_T, typename CONFIG_T>
-void simple_rnn_cell(const in_T &inputs, h_T &hidden_state, h_T &hidden_state_o, const typename CONFIG_T::weight_t &kernel,
-                     const typename CONFIG_T::recurrent_weight_t &rec_kernel, const typename CONFIG_T::bias_t &bias) {
+void simple_rnn_cell(
+    const in_T &inputs,
+    h_T &hidden_state,
+    h_T &hidden_state_o,
+    const typename CONFIG_T::weight_t &kernel,
+    const typename CONFIG_T::recurrent_weight_t &rec_kernel,
+    const typename CONFIG_T::bias_t &bias
+) {
 
     using accum_array_T = array<typename CONFIG_T::accum_t, CONFIG_T::n_out>;
     // Weight multiplication
@@ -243,8 +261,9 @@ void simple_rnn_cell(const in_T &inputs, h_T &hidden_state, h_T &hidden_state_o,
 
     // Hidden state
     [[intel::fpga_register]] accum_array_T hiddenCand;
-    multiply_U<h_T, accum_array_T, typename CONFIG_T::recurrent_weight_t, CONFIG_T::n_out>(hidden_state, hiddenCand,
-                                                                                           rec_kernel);
+    multiply_U<h_T, accum_array_T, typename CONFIG_T::recurrent_weight_t, CONFIG_T::n_out>(
+        hidden_state, hiddenCand, rec_kernel
+    );
 
     // Vector addition
     [[intel::fpga_register]] accum_array_T afterAdd;
@@ -255,8 +274,13 @@ void simple_rnn_cell(const in_T &inputs, h_T &hidden_state, h_T &hidden_state_o,
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void simple_rnn(const data_T &data, res_T &res, const typename CONFIG_T::weight_t &kernel,
-                const typename CONFIG_T::recurrent_weight_t &rec_kernel, const typename CONFIG_T::bias_t &bias) {
+void simple_rnn(
+    const data_T &data,
+    res_T &res,
+    const typename CONFIG_T::weight_t &kernel,
+    const typename CONFIG_T::recurrent_weight_t &rec_kernel,
+    const typename CONFIG_T::bias_t &bias
+) {
 
     using in_T = array<typename data_T::value_type, CONFIG_T::n_in>;
     using h_T = array<typename res_T::value_type, CONFIG_T::n_out>;
@@ -345,13 +369,25 @@ struct lstm_config {
 };
 
 template <class in_T, class h_T, typename CONFIG_T>
-void lstm_cell(const in_T &inputs, h_T &hidden_state, h_T &hidden_state_o, h_T &cell_state, h_T &cell_state_o,
-               const typename CONFIG_T::weight_i_t &WI, const typename CONFIG_T::weight_f_t &WF,
-               const typename CONFIG_T::weight_c_t &WC, const typename CONFIG_T::weight_o_t &WO,
-               const typename CONFIG_T::recurrent_weight_i_t &RWI, const typename CONFIG_T::recurrent_weight_f_t &RWF,
-               const typename CONFIG_T::recurrent_weight_c_t &RWC, const typename CONFIG_T::recurrent_weight_o_t &RWO,
-               const typename CONFIG_T::bias_i_t &BI, const typename CONFIG_T::bias_f_t BF,
-               const typename CONFIG_T::bias_c_t &BC, const typename CONFIG_T::bias_o_t BO) {
+void lstm_cell(
+    const in_T &inputs,
+    h_T &hidden_state,
+    h_T &hidden_state_o,
+    h_T &cell_state,
+    h_T &cell_state_o,
+    const typename CONFIG_T::weight_i_t &WI,
+    const typename CONFIG_T::weight_f_t &WF,
+    const typename CONFIG_T::weight_c_t &WC,
+    const typename CONFIG_T::weight_o_t &WO,
+    const typename CONFIG_T::recurrent_weight_i_t &RWI,
+    const typename CONFIG_T::recurrent_weight_f_t &RWF,
+    const typename CONFIG_T::recurrent_weight_c_t &RWC,
+    const typename CONFIG_T::recurrent_weight_o_t &RWO,
+    const typename CONFIG_T::bias_i_t &BI,
+    const typename CONFIG_T::bias_f_t BF,
+    const typename CONFIG_T::bias_c_t &BC,
+    const typename CONFIG_T::bias_o_t BO
+) {
 
     using accum_array_T = array<typename CONFIG_T::accum_t, CONFIG_T::n_out>;
 
@@ -398,15 +434,17 @@ void lstm_cell(const in_T &inputs, h_T &hidden_state, h_T &hidden_state_o, h_T &
     add_bias<accum_array_T, accum_array_T, typename CONFIG_T::bias_i_t, CONFIG_T::n_out>(i_afterW, i_afterBias, BI);
 
     // Hidden Candidate
-    multiply_U<h_T, accum_array_T, typename CONFIG_T::recurrent_weight_i_t, CONFIG_T::n_out>(hidden_state, i_hiddenCand,
-                                                                                             RWI);
+    multiply_U<h_T, accum_array_T, typename CONFIG_T::recurrent_weight_i_t, CONFIG_T::n_out>(
+        hidden_state, i_hiddenCand, RWI
+    );
 
     // Vector addition
     add_vectors<accum_array_T, accum_array_T, accum_array_T, CONFIG_T::n_out>(i_afterBias, i_hiddenCand, i_afterAdd);
 
     // Activation
     CONFIG_T::template activation_recr<accum_array_T, accum_array_T, typename CONFIG_T::ACT_CONFIG_RECURRENT_T>::activation(
-        i_afterAdd, gate_i);
+        i_afterAdd, gate_i
+    );
 
     //-----------Gate F Calculations
     // Weight multiplication
@@ -416,15 +454,17 @@ void lstm_cell(const in_T &inputs, h_T &hidden_state, h_T &hidden_state_o, h_T &
     add_bias<accum_array_T, accum_array_T, typename CONFIG_T::bias_f_t, CONFIG_T::n_out>(f_afterW, f_afterBias, BF);
 
     // Hidden Candidate
-    multiply_U<h_T, accum_array_T, typename CONFIG_T::recurrent_weight_f_t, CONFIG_T::n_out>(hidden_state, f_hiddenCand,
-                                                                                             RWF);
+    multiply_U<h_T, accum_array_T, typename CONFIG_T::recurrent_weight_f_t, CONFIG_T::n_out>(
+        hidden_state, f_hiddenCand, RWF
+    );
 
     // Vector addition
     add_vectors<accum_array_T, accum_array_T, accum_array_T, CONFIG_T::n_out>(f_afterBias, f_hiddenCand, f_afterAdd);
 
     // Activation
     CONFIG_T::template activation_recr<accum_array_T, accum_array_T, typename CONFIG_T::ACT_CONFIG_RECURRENT_T>::activation(
-        f_afterAdd, gate_f);
+        f_afterAdd, gate_f
+    );
 
     //-----------Gate C Calculations
     // Weight multiplication
@@ -434,15 +474,17 @@ void lstm_cell(const in_T &inputs, h_T &hidden_state, h_T &hidden_state_o, h_T &
     add_bias<accum_array_T, accum_array_T, typename CONFIG_T::bias_c_t, CONFIG_T::n_out>(c_afterW, c_afterBias, BC);
 
     // Hidden Candidate
-    multiply_U<h_T, accum_array_T, typename CONFIG_T::recurrent_weight_c_t, CONFIG_T::n_out>(hidden_state, c_hiddenCand,
-                                                                                             RWC);
+    multiply_U<h_T, accum_array_T, typename CONFIG_T::recurrent_weight_c_t, CONFIG_T::n_out>(
+        hidden_state, c_hiddenCand, RWC
+    );
 
     // Vector addition
     add_vectors<accum_array_T, accum_array_T, accum_array_T, CONFIG_T::n_out>(c_afterBias, c_hiddenCand, c_afterAdd);
 
     // Activation
     CONFIG_T::template activation<accum_array_T, accum_array_T, typename CONFIG_T::ACT_CONFIG_RECURRENT_T>::activation(
-        c_afterAdd, gate_c);
+        c_afterAdd, gate_c
+    );
 
     //-----------gate I and C multiply
     // Vector multiplication
@@ -456,15 +498,17 @@ void lstm_cell(const in_T &inputs, h_T &hidden_state, h_T &hidden_state_o, h_T &
     add_bias<accum_array_T, accum_array_T, typename CONFIG_T::bias_o_t, CONFIG_T::n_out>(o_afterW, o_afterBias, BO);
 
     // Hidden Candidate
-    multiply_U<h_T, accum_array_T, typename CONFIG_T::recurrent_weight_o_t, CONFIG_T::n_out>(hidden_state, o_hiddenCand,
-                                                                                             RWO);
+    multiply_U<h_T, accum_array_T, typename CONFIG_T::recurrent_weight_o_t, CONFIG_T::n_out>(
+        hidden_state, o_hiddenCand, RWO
+    );
 
     // Vector addition
     add_vectors<accum_array_T, accum_array_T, accum_array_T, CONFIG_T::n_out>(o_afterBias, o_hiddenCand, o_afterAdd);
 
     // Activation
     CONFIG_T::template activation_recr<accum_array_T, accum_array_T, typename CONFIG_T::ACT_CONFIG_RECURRENT_T>::activation(
-        o_afterAdd, gate_o);
+        o_afterAdd, gate_o
+    );
 
     //-----------Cell State Calculation
     // Vector multiplication
@@ -476,7 +520,8 @@ void lstm_cell(const in_T &inputs, h_T &hidden_state, h_T &hidden_state_o, h_T &
     //-----------Forget gate Calculation
     // Activation
     CONFIG_T::template activation<accum_array_T, accum_array_T, typename CONFIG_T::ACT_CONFIG_RECURRENT_T>::activation(
-        cell_act_add, gate_forget);
+        cell_act_add, gate_forget
+    );
 
     // Vector multiplication
     multiply_vectors<accum_array_T, accum_array_T, accum_array_T, CONFIG_T::n_out>(gate_o, gate_forget, h);
@@ -490,12 +535,22 @@ OUTPUT_WRITE_LOOP:
 }
 
 template <class data_T, class res_T, class CONFIG_T>
-void lstm(const data_T &data, res_T &res, const typename CONFIG_T::weight_i_t &WI, const typename CONFIG_T::weight_f_t &WF,
-          const typename CONFIG_T::weight_c_t &WC, const typename CONFIG_T::weight_o_t &WO,
-          const typename CONFIG_T::recurrent_weight_i_t &RWI, const typename CONFIG_T::recurrent_weight_f_t &RWF,
-          const typename CONFIG_T::recurrent_weight_c_t &RWC, const typename CONFIG_T::recurrent_weight_o_t &RWO,
-          const typename CONFIG_T::bias_i_t &BI, const typename CONFIG_T::bias_f_t &BF,
-          const typename CONFIG_T::bias_c_t &BC, const typename CONFIG_T::bias_o_t &BO) {
+void lstm(
+    const data_T &data,
+    res_T &res,
+    const typename CONFIG_T::weight_i_t &WI,
+    const typename CONFIG_T::weight_f_t &WF,
+    const typename CONFIG_T::weight_c_t &WC,
+    const typename CONFIG_T::weight_o_t &WO,
+    const typename CONFIG_T::recurrent_weight_i_t &RWI,
+    const typename CONFIG_T::recurrent_weight_f_t &RWF,
+    const typename CONFIG_T::recurrent_weight_c_t &RWC,
+    const typename CONFIG_T::recurrent_weight_o_t &RWO,
+    const typename CONFIG_T::bias_i_t &BI,
+    const typename CONFIG_T::bias_f_t &BF,
+    const typename CONFIG_T::bias_c_t &BC,
+    const typename CONFIG_T::bias_o_t &BO
+) {
 
     // Note:  currently this does not support recurrent bias
 
@@ -533,8 +588,9 @@ INIT_LOOP:
         }
 
         // Do LSTM
-        lstm_cell<in_T, h_T, CONFIG_T>(in, hidden_state_temp, h, cell_state_temp, c, WI, WF, WC, WO, RWI, RWF, RWC, RWO, BI,
-                                       BF, BC, BO);
+        lstm_cell<in_T, h_T, CONFIG_T>(
+            in, hidden_state_temp, h, cell_state_temp, c, WI, WF, WC, WO, RWI, RWF, RWC, RWO, BI, BF, BC, BO
+        );
 
         // Write result
         #pragma unroll

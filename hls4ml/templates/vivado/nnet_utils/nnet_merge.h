@@ -113,8 +113,11 @@ Accum:
 }
 
 template <class input1_T, class input2_T, class res_T, typename CONFIG_T>
-void concatenate1d(input1_T data1[CONFIG_T::n_elem1_0], input2_T data2[CONFIG_T::n_elem2_0],
-                   res_T res[CONFIG_T::n_elem1_0 + CONFIG_T::n_elem2_0]) {
+void concatenate1d(
+    input1_T data1[CONFIG_T::n_elem1_0],
+    input2_T data2[CONFIG_T::n_elem2_0],
+    res_T res[CONFIG_T::n_elem1_0 + CONFIG_T::n_elem2_0]
+) {
     #pragma HLS PIPELINE
 
     for (int ii = 0; ii < CONFIG_T::n_elem1_0; ii++) {
@@ -126,9 +129,11 @@ void concatenate1d(input1_T data1[CONFIG_T::n_elem1_0], input2_T data2[CONFIG_T:
 }
 
 template <class input1_T, class input2_T, class res_T, typename CONFIG_T>
-void concatenate2d_0(input1_T data1[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1],
-                     input2_T data2[CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1],
-                     res_T res[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1 + CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1]) {
+void concatenate2d_0(
+    input1_T data1[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1],
+    input2_T data2[CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1],
+    res_T res[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1 + CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1]
+) {
     #pragma HLS PIPELINE
 
     for (int ii = 0; ii < CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1; ii++) {
@@ -140,9 +145,11 @@ void concatenate2d_0(input1_T data1[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1],
 }
 
 template <class input1_T, class input2_T, class res_T, typename CONFIG_T>
-void concatenate2d_1(input1_T data1[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1],
-                     input2_T data2[CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1],
-                     res_T res[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1 + CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1]) {
+void concatenate2d_1(
+    input1_T data1[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1],
+    input2_T data2[CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1],
+    res_T res[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1 + CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1]
+) {
     #pragma HLS PIPELINE
 
     for (int ii = 0; ii < CONFIG_T::n_elem1_0; ii++) {
@@ -157,9 +164,11 @@ void concatenate2d_1(input1_T data1[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1],
 }
 
 template <class input1_T, class input2_T, class res_T, typename CONFIG_T>
-void concatenate2d(input1_T data1[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1],
-                   input2_T data2[CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1],
-                   res_T res[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1 + CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1]) {
+void concatenate2d(
+    input1_T data1[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1],
+    input2_T data2[CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1],
+    res_T res[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1 + CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1]
+) {
     #pragma HLS INLINE
 
     if (CONFIG_T::axis == 2 || CONFIG_T::axis == -1) {
@@ -170,10 +179,13 @@ void concatenate2d(input1_T data1[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1],
 }
 
 template <class input1_T, class input2_T, class res_T, typename CONFIG_T>
-void concatenate3d_0(input1_T data1[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1 * CONFIG_T::n_elem1_2],
-                     input2_T data2[CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1 * CONFIG_T::n_elem2_2],
-                     res_T res[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1 * CONFIG_T::n_elem1_2 +
-                               CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1 * CONFIG_T::n_elem2_2]) {
+void concatenate3d_0(
+    input1_T data1[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1 * CONFIG_T::n_elem1_2],
+    input2_T data2[CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1 * CONFIG_T::n_elem2_2],
+    res_T
+        res[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1 * CONFIG_T::n_elem1_2 +
+            CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1 * CONFIG_T::n_elem2_2]
+) {
     #pragma HLS PIPELINE
 
     for (int ii = 0; ii < CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1 * CONFIG_T::n_elem1_2; ii++) {
@@ -185,10 +197,13 @@ void concatenate3d_0(input1_T data1[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1 * 
 }
 
 template <class input1_T, class input2_T, class res_T, typename CONFIG_T>
-void concatenate3d_1(input1_T data1[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1 * CONFIG_T::n_elem1_2],
-                     input2_T data2[CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1 * CONFIG_T::n_elem2_2],
-                     res_T res[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1 * CONFIG_T::n_elem1_2 +
-                               CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1 * CONFIG_T::n_elem2_2]) {
+void concatenate3d_1(
+    input1_T data1[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1 * CONFIG_T::n_elem1_2],
+    input2_T data2[CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1 * CONFIG_T::n_elem2_2],
+    res_T
+        res[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1 * CONFIG_T::n_elem1_2 +
+            CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1 * CONFIG_T::n_elem2_2]
+) {
     #pragma HLS PIPELINE
 
     for (int ii = 0; ii < CONFIG_T::n_elem1_0; ii++) {
@@ -212,10 +227,13 @@ void concatenate3d_1(input1_T data1[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1 * 
 }
 
 template <class input1_T, class input2_T, class res_T, typename CONFIG_T>
-void concatenate3d_2(input1_T data1[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1 * CONFIG_T::n_elem1_2],
-                     input2_T data2[CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1 * CONFIG_T::n_elem2_2],
-                     res_T res[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1 * CONFIG_T::n_elem1_2 +
-                               CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1 * CONFIG_T::n_elem2_2]) {
+void concatenate3d_2(
+    input1_T data1[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1 * CONFIG_T::n_elem1_2],
+    input2_T data2[CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1 * CONFIG_T::n_elem2_2],
+    res_T
+        res[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1 * CONFIG_T::n_elem1_2 +
+            CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1 * CONFIG_T::n_elem2_2]
+) {
     #pragma HLS PIPELINE
 
     for (int ii = 0; ii < CONFIG_T::n_elem1_0; ii++) {
@@ -237,10 +255,13 @@ void concatenate3d_2(input1_T data1[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1 * 
 }
 
 template <class input1_T, class input2_T, class res_T, typename CONFIG_T>
-void concatenate3d(input1_T data1[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1 * CONFIG_T::n_elem1_2],
-                   input2_T data2[CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1 * CONFIG_T::n_elem2_2],
-                   res_T res[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1 * CONFIG_T::n_elem1_2 +
-                             CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1 * CONFIG_T::n_elem2_2]) {
+void concatenate3d(
+    input1_T data1[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1 * CONFIG_T::n_elem1_2],
+    input2_T data2[CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1 * CONFIG_T::n_elem2_2],
+    res_T
+        res[CONFIG_T::n_elem1_0 * CONFIG_T::n_elem1_1 * CONFIG_T::n_elem1_2 +
+            CONFIG_T::n_elem2_0 * CONFIG_T::n_elem2_1 * CONFIG_T::n_elem2_2]
+) {
     #pragma HLS INLINE
 
     if (CONFIG_T::axis == 3 || CONFIG_T::axis == -1) {

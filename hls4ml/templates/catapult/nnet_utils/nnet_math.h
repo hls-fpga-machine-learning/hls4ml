@@ -92,8 +92,10 @@ template <class T> void sincos_lut(const T &input, T output[2]) {
         if ((luTdex1 % (1 << (AP_MAX(T::width - T::iwidth - 12, 0)))) > (1 << (AP_MAX(T::width - T::iwidth - 13, 0)))) {
             luTdex = luTdex + 1;
         }
-        typedef ac_fixed<AP_MAX((AP_MAX(T::width - T::iwidth - 3, 1) + T::width - T::iwidth - 12), 1),
-                         AP_MAX(T::width - T::iwidth - 3, 1), false>
+        typedef ac_fixed<
+            AP_MAX((AP_MAX(T::width - T::iwidth - 3, 1) + T::width - T::iwidth - 12), 1),
+            AP_MAX(T::width - T::iwidth - 3, 1),
+            false>
             datatype;
         datatype x = (datatype)luTdex1;
         x = x >> AP_MAX(T::width - T::iwidth - 12, 0);

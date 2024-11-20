@@ -17,8 +17,9 @@ void normalize_stream(typename CONFIG_T::scale_t scale, typename CONFIG_T::bias_
     constexpr unsigned multiplier_limit = DIV_ROUNDUP(CONFIG_T::n_in, CONFIG_T::reuse_factor);
     constexpr unsigned pipeline = CONFIG_T::n_in / multiplier_limit;
     constexpr auto datasize = std::tuple_size<typename ExtractPipeType<data_pipe>::value_type>{};
-    CONFIG_T::template product<typename ExtractPipeType<data_pipe>::value_type::value_type,
-                               typename CONFIG_T::scale_t::value_type>::limit(multiplier_limit);
+    CONFIG_T::template product<
+        typename ExtractPipeType<data_pipe>::value_type::value_type,
+        typename CONFIG_T::scale_t::value_type>::limit(multiplier_limit);
 
 BatchNormLoop:
     [[intel::initiation_interval(pipeline)]] for (int i = 0; i < CONFIG_T::n_in / datasize; i++) {
@@ -33,10 +34,10 @@ BatchNormLoop:
                 norm_index = i * datasize + j;
             else
                 norm_index = j % CONFIG_T::n_filt;
-            out_data[j] =
-                CONFIG_T::template product<typename ExtractPipeType<data_pipe>::value_type::value_type,
-                                           typename CONFIG_T::scale_t::value_type>::product(in_data[j], scale[norm_index]) +
-                bias[norm_index];
+            out_data[j] = CONFIG_T::template product<
+                              typename ExtractPipeType<data_pipe>::value_type::value_type,
+                              typename CONFIG_T::scale_t::value_type>::product(in_data[j], scale[norm_index]) +
+                          bias[norm_index];
         }
 
         res_pipe::write(out_data);
@@ -72,8 +73,9 @@ BinaryNormLoop:
 }
 
 template <class data_pipe, class res_pipe, typename CONFIG_T>
-void normalize_ternary_tanh_stream(typename CONFIG_T::threshold_hi_t threshold_hi,
-                                   typename CONFIG_T::threshold_lo_t threshold_lo) {
+void normalize_ternary_tanh_stream(
+    typename CONFIG_T::threshold_hi_t threshold_hi, typename CONFIG_T::threshold_lo_t threshold_lo
+) {
     constexpr auto datasize = std::tuple_size<typename ExtractPipeType<data_pipe>::value_type>{};
 
 TernaryNormLoop:

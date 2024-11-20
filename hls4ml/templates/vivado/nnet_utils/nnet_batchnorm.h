@@ -28,9 +28,12 @@ struct batchnorm_config {
 };
 
 template <class data_T, class res_T, typename CONFIG_T>
-void normalize(data_T data[CONFIG_T::n_in], res_T res[CONFIG_T::n_in],
-               typename CONFIG_T::scale_t scale[CONFIG_T::n_scale_bias],
-               typename CONFIG_T::bias_t bias[CONFIG_T::n_scale_bias]) {
+void normalize(
+    data_T data[CONFIG_T::n_in],
+    res_T res[CONFIG_T::n_in],
+    typename CONFIG_T::scale_t scale[CONFIG_T::n_scale_bias],
+    typename CONFIG_T::bias_t bias[CONFIG_T::n_scale_bias]
+) {
     data_T cache;
 
     // Use a function_instantiate in case it helps to explicitly optimize unchanging weights/biases
@@ -78,8 +81,9 @@ struct batchnorm_quantized_tanh_config {
 };
 
 template <class data_T, typename CONFIG_T>
-void normalize_binary_tanh(data_T data[CONFIG_T::n_in], ap_uint<1> res[CONFIG_T::n_in],
-                           data_T threshold[CONFIG_T::n_scale_bias]) {
+void normalize_binary_tanh(
+    data_T data[CONFIG_T::n_in], ap_uint<1> res[CONFIG_T::n_in], data_T threshold[CONFIG_T::n_scale_bias]
+) {
     #pragma HLS PIPELINE
     #pragma HLS ARRAY_PARTITION variable=res complete
 
@@ -98,8 +102,12 @@ void normalize_binary_tanh(data_T data[CONFIG_T::n_in], ap_uint<1> res[CONFIG_T:
 }
 
 template <class data_T, typename CONFIG_T>
-void normalize_ternary_tanh(data_T data[CONFIG_T::n_in], ap_int<2> res[CONFIG_T::n_in],
-                            data_T threshold_hi[CONFIG_T::n_scale_bias], data_T threshold_lo[CONFIG_T::n_scale_bias]) {
+void normalize_ternary_tanh(
+    data_T data[CONFIG_T::n_in],
+    ap_int<2> res[CONFIG_T::n_in],
+    data_T threshold_hi[CONFIG_T::n_scale_bias],
+    data_T threshold_lo[CONFIG_T::n_scale_bias]
+) {
     #pragma HLS PIPELINE
     #pragma HLS ARRAY_PARTITION variable=res complete
 

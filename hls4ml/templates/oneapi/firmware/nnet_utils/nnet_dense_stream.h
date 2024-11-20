@@ -13,8 +13,10 @@ void dense_resource_stream(typename CONFIG_T::weight_t weights, typename CONFIG_
 
     [[intel::fpga_register]] typename ExtractPipeType<res_pipe>::value_type res;
     [[intel::fpga_register]] auto data = data_pipe::read();
-    dense_resource<typename ExtractPipeType<data_pipe>::value_type, typename ExtractPipeType<res_pipe>::value_type,
-                   CONFIG_T>(data, res, weights, biases);
+    dense_resource<
+        typename ExtractPipeType<data_pipe>::value_type,
+        typename ExtractPipeType<res_pipe>::value_type,
+        CONFIG_T>(data, res, weights, biases);
     res_pipe::write(res);
 }
 

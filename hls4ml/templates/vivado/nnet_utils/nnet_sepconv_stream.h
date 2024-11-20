@@ -8,9 +8,12 @@
 namespace nnet {
 
 template <class data_T, class res_T, typename CONFIG_T>
-void depthwise_product(data_T data[CONFIG_T::kernel_size * CONFIG_T::n_chan], res_T res[CONFIG_T::n_chan],
-                       typename CONFIG_T::weight_t weights[CONFIG_T::kernel_size * CONFIG_T::n_chan],
-                       typename CONFIG_T::bias_t biases[CONFIG_T::n_chan]) {
+void depthwise_product(
+    data_T data[CONFIG_T::kernel_size * CONFIG_T::n_chan],
+    res_T res[CONFIG_T::n_chan],
+    typename CONFIG_T::weight_t weights[CONFIG_T::kernel_size * CONFIG_T::n_chan],
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_chan]
+) {
     #pragma HLS INLINE
 
     typename CONFIG_T::accum_t mult[CONFIG_T::kernel_size * CONFIG_T::n_chan];
@@ -30,7 +33,8 @@ Product:
     for (int ii = 0; ii < CONFIG_T::kernel_size * CONFIG_T::n_chan; ii++) {
         #pragma HLS UNROLL
         mult[ii] = CONFIG_T::mult_config::template product<data_T, typename CONFIG_T::mult_config::weight_t>::product(
-            data[ii], weights[ii]);
+            data[ii], weights[ii]
+        );
     }
 
 // Initialize accumulator with input biases
@@ -59,10 +63,14 @@ Result:
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void depthwise_mult_buffer(hls::stream<typename data_T::value_type> data_window[CONFIG_T::kernel_size * CONFIG_T::n_chan],
-                           res_T &res_pack, hls::stream<res_T> &res_stream, unsigned &outputs_ready,
-                           typename CONFIG_T::weight_t weights[CONFIG_T::kernel_size * CONFIG_T::n_chan],
-                           typename CONFIG_T::bias_t biases[CONFIG_T::n_chan]) {
+void depthwise_mult_buffer(
+    hls::stream<typename data_T::value_type> data_window[CONFIG_T::kernel_size * CONFIG_T::n_chan],
+    res_T &res_pack,
+    hls::stream<res_T> &res_stream,
+    unsigned &outputs_ready,
+    typename CONFIG_T::weight_t weights[CONFIG_T::kernel_size * CONFIG_T::n_chan],
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_chan]
+) {
     #pragma HLS INLINE
 
     typename data_T::value_type data[CONFIG_T::kernel_size * CONFIG_T::n_chan];
@@ -107,10 +115,15 @@ CastLoop:
 
 template <class data_T, class res_T, typename CONFIG_T>
 void compute_depthwise_output_encoded(
-    const data_T &in_elem, hls::stream<typename data_T::value_type> data_window[CONFIG_T::kernel_size * CONFIG_T::n_chan],
-    hls::stream<res_T> &res, res_T &res_pack, unsigned &outputs_ready,
+    const data_T &in_elem,
+    hls::stream<typename data_T::value_type> data_window[CONFIG_T::kernel_size * CONFIG_T::n_chan],
+    hls::stream<res_T> &res,
+    res_T &res_pack,
+    unsigned &outputs_ready,
     typename CONFIG_T::weight_t weights[CONFIG_T::kernel_size * CONFIG_T::n_chan],
-    typename CONFIG_T::bias_t biases[CONFIG_T::n_chan], ap_uint<CONFIG_T::kernel_size> *pixel_idx) {
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_chan],
+    ap_uint<CONFIG_T::kernel_size> *pixel_idx
+) {
     #pragma HLS INLINE
 
 MultLoop:
@@ -133,9 +146,12 @@ MultLoop:
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void pointwise_mult_buffer(const data_T &data_pack, hls::stream<res_T> &res_stream,
-                           typename CONFIG_T::weight_t weights[CONFIG_T::n_chan * CONFIG_T::n_filt],
-                           typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+void pointwise_mult_buffer(
+    const data_T &data_pack,
+    hls::stream<res_T> &res_stream,
+    typename CONFIG_T::weight_t weights[CONFIG_T::n_chan * CONFIG_T::n_filt],
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
     #pragma HLS INLINE
 
     typename data_T::value_type data[CONFIG_T::n_chan];
@@ -156,10 +172,12 @@ InitData:
     #pragma HLS INLINE recursive
     if (CONFIG_T::strategy == nnet::latency) {
         dense_latency<typename data_T::value_type, typename res_T::value_type, typename CONFIG_T::mult_config>(
-            data, res, weights, biases);
+            data, res, weights, biases
+        );
     } else {
         dense_resource<typename data_T::value_type, typename res_T::value_type, typename CONFIG_T::mult_config>(
-            data, res, weights, biases);
+            data, res, weights, biases
+        );
     }
 
 CastLoop:
@@ -173,9 +191,12 @@ CastLoop:
 
 // Line Buffer Implementation (Phil's)
 template <class data_T, class res_T, typename CONFIG_T>
-void compute_depthwise_output_buffer_1d(const data_T &in_elem, hls::stream<res_T> &res_stream,
-                                        typename CONFIG_T::weight_t weights[CONFIG_T::kernel_size * CONFIG_T::n_chan],
-                                        typename CONFIG_T::bias_t biases[CONFIG_T::n_chan]) {
+void compute_depthwise_output_buffer_1d(
+    const data_T &in_elem,
+    hls::stream<res_T> &res_stream,
+    typename CONFIG_T::weight_t weights[CONFIG_T::kernel_size * CONFIG_T::n_chan],
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_chan]
+) {
     #pragma HLS INLINE
 
     // Thresholds
@@ -202,8 +223,9 @@ void compute_depthwise_output_buffer_1d(const data_T &in_elem, hls::stream<res_T
         // Dense multiply
         #pragma HLS INLINE recursive
         if (CONFIG_T::strategy == nnet::latency) {
-            depthwise_product<typename data_T::value_type, typename res_T::value_type, CONFIG_T>(kernel_data, res_out,
-                                                                                                 weights, biases);
+            depthwise_product<typename data_T::value_type, typename res_T::value_type, CONFIG_T>(
+                kernel_data, res_out, weights, biases
+            );
         } else {
             assert("Resource strategy for DepthwiseConv1D is not supported." && false);
         }
@@ -231,12 +253,14 @@ void compute_depthwise_output_buffer_1d(const data_T &in_elem, hls::stream<res_T
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void compute_depthwise_output_buffer_2d(const data_T &in_elem,
-                                        ap_shift_reg<typename data_T::value_type, CONFIG_T::in_width>
-                                            line_buffer[MAX(CONFIG_T::filt_height - 1, 1)][CONFIG_T::n_chan],
-                                        hls::stream<res_T> &res_stream,
-                                        typename CONFIG_T::weight_t weights[CONFIG_T::kernel_size * CONFIG_T::n_chan],
-                                        typename CONFIG_T::bias_t biases[CONFIG_T::n_chan]) {
+void compute_depthwise_output_buffer_2d(
+    const data_T &in_elem,
+    ap_shift_reg<typename data_T::value_type, CONFIG_T::in_width> line_buffer[MAX(CONFIG_T::filt_height - 1, 1)]
+                                                                             [CONFIG_T::n_chan],
+    hls::stream<res_T> &res_stream,
+    typename CONFIG_T::weight_t weights[CONFIG_T::kernel_size * CONFIG_T::n_chan],
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_chan]
+) {
     #pragma HLS INLINE
 
     // Thresholds
@@ -267,8 +291,9 @@ void compute_depthwise_output_buffer_2d(const data_T &in_elem,
         // Dense multiply
         #pragma HLS INLINE recursive
         if (CONFIG_T::strategy == nnet::latency) {
-            depthwise_product<typename data_T::value_type, typename res_T::value_type, CONFIG_T>(kernel_data, res_out,
-                                                                                                 weights, biases);
+            depthwise_product<typename data_T::value_type, typename res_T::value_type, CONFIG_T>(
+                kernel_data, res_out, weights, biases
+            );
         } else {
             assert("Resource strategy for DepthwiseConv2D is not supported." && false);
         }

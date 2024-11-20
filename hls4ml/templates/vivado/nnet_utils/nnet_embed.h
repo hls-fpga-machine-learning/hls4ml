@@ -21,8 +21,11 @@ struct embed_config {
 };
 
 template <class data_T, class res_T, typename CONFIG_T>
-void embedding(data_T data[CONFIG_T::n_in], res_T res[CONFIG_T::n_in * CONFIG_T::n_out],
-               typename CONFIG_T::embeddings_t embeddings[CONFIG_T::vocab_size * CONFIG_T::n_out]) {
+void embedding(
+    data_T data[CONFIG_T::n_in],
+    res_T res[CONFIG_T::n_in * CONFIG_T::n_out],
+    typename CONFIG_T::embeddings_t embeddings[CONFIG_T::vocab_size * CONFIG_T::n_out]
+) {
 
     #pragma HLS PIPELINE II=CONFIG_T::reuse_factor
     // This can save a few cycles, but it will create a large multiplexer due to

@@ -7,11 +7,14 @@
 
 namespace nnet {
 template <class data_T, class res_T, typename CONFIG_T>
-void gru(stream<data_T> &data_stream, stream<res_T> &res_stream,
-         const typename CONFIG_T::weight_t weights[3 * CONFIG_T::n_units * CONFIG_T::n_in],
-         const typename CONFIG_T::weight_t recurrent_weights[3 * CONFIG_T::n_units * CONFIG_T::n_units],
-         const typename CONFIG_T::bias_t bias[3 * CONFIG_T::n_units],
-         const typename CONFIG_T::bias_t recurrent_bias[3 * CONFIG_T::n_units]) {
+void gru(
+    stream<data_T> &data_stream,
+    stream<res_T> &res_stream,
+    const typename CONFIG_T::weight_t weights[3 * CONFIG_T::n_units * CONFIG_T::n_in],
+    const typename CONFIG_T::weight_t recurrent_weights[3 * CONFIG_T::n_units * CONFIG_T::n_units],
+    const typename CONFIG_T::bias_t bias[3 * CONFIG_T::n_units],
+    const typename CONFIG_T::bias_t recurrent_bias[3 * CONFIG_T::n_units]
+) {
 
     hls_register typename res_T::value_type h[CONFIG_T::n_units];
     #pragma unroll
@@ -31,8 +34,9 @@ DataPropagation:
             x[i_pack] = data_pack[i_pack];
         }
 
-        nnet::gru_cell<typename data_T::value_type, typename res_T::value_type, CONFIG_T>(x, h, weights, recurrent_weights,
-                                                                                          bias, recurrent_bias);
+        nnet::gru_cell<typename data_T::value_type, typename res_T::value_type, CONFIG_T>(
+            x, h, weights, recurrent_weights, bias, recurrent_bias
+        );
 
         if (CONFIG_T::return_sequences) {
             res_T res_pack;

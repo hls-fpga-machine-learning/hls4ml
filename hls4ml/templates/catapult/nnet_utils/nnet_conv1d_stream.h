@@ -16,15 +16,19 @@ ComputeIndex:
         // #pragma HLS UNROLL
         unsigned sw_idx =
             CONFIG_T::template scale_index<CONFIG_T::filt_width, CONFIG_T::stride_width, CONFIG_T::in_width>::scale_index(
-                wp_idx + p);
+                wp_idx + p
+            );
         pixel_idx[p] = CONFIG_T::pixels[sw_idx];
     }
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void conv_1d_encoded_cl(ac_channel<data_T> &data, ac_channel<res_T> &res,
-                        typename CONFIG_T::weight_t weights[CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
-                        typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+void conv_1d_encoded_cl(
+    ac_channel<data_T> &data,
+    ac_channel<res_T> &res,
+    typename CONFIG_T::weight_t weights[CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
     assert(CONFIG_T::pad_left == 0 && CONFIG_T::pad_right == 0);
 
     ac_channel<typename data_T::value_type> data_window[CONFIG_T::filt_width * CONFIG_T::n_chan];
@@ -52,15 +56,19 @@ ReadInputWidth:
             //#pragma HLS PIPELINE II=CONFIG_T::reuse_factor
         }
         compute_scaled_indices_1d<data_T, CONFIG_T>(i_iw, pixel_idx);
-        compute_output_encoded<data_T, res_T, CONFIG_T>(data.read(), data_window, res, res_pack, outputs_ready, weights,
-                                                        biases, pixel_idx);
+        compute_output_encoded<data_T, res_T, CONFIG_T>(
+            data.read(), data_window, res, res_pack, outputs_ready, weights, biases, pixel_idx
+        );
     }
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void conv_1d_buffer_cl(ac_channel<data_T> &data, ac_channel<res_T> &res,
-                       typename CONFIG_T::weight_t weights[CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
-                       typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+void conv_1d_buffer_cl(
+    ac_channel<data_T> &data,
+    ac_channel<res_T> &res,
+    typename CONFIG_T::weight_t weights[CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
     assert(CONFIG_T::pad_left == 0 && CONFIG_T::pad_right == 0);
 
     constexpr int ce_reuse_factor = CONFIG_T::reuse_factor * (CONFIG_T::strategy == nnet::latency);
@@ -76,9 +84,12 @@ ReadInputWidth:
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void conv_1d_cl(ac_channel<data_T> &data, ac_channel<res_T> &res,
-                typename CONFIG_T::weight_t weights[CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
-                typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+void conv_1d_cl(
+    ac_channel<data_T> &data,
+    ac_channel<res_T> &res,
+    typename CONFIG_T::weight_t weights[CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
     //#pragma HLS inline region
     switch (CONFIG_T::implementation) {
     case conv_implementation::linebuffer:

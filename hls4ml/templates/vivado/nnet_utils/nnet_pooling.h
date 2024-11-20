@@ -167,8 +167,10 @@ template <typename CONFIG_T> constexpr int pool_op_limit() {
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void pooling2d_cl(data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_filt],
-                  res_T res[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt]) {
+void pooling2d_cl(
+    data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_filt],
+    res_T res[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt]
+) {
     #pragma HLS PIPELINE II=CONFIG_T::reuse_factor
 
     // TODO partition the arrays according to the reuse factor
@@ -214,16 +216,21 @@ void pooling2d_cl(data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_
 
                 res[(ii / CONFIG_T::stride_height) * CONFIG_T::out_width * CONFIG_T::n_filt +
                     (jj / CONFIG_T::stride_width) * CONFIG_T::n_filt + ff] =
-                    pool_op<data_T, CONFIG_T::pool_height * CONFIG_T::pool_width, CONFIG_T::pool_op,
-                            typename CONFIG_T::accum_t>(pool, patch_size);
+                    pool_op<
+                        data_T,
+                        CONFIG_T::pool_height * CONFIG_T::pool_width,
+                        CONFIG_T::pool_op,
+                        typename CONFIG_T::accum_t>(pool, patch_size);
             }
         }
     }
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void pooling2d_cf(data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_filt],
-                  res_T res[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt]) {
+void pooling2d_cf(
+    data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_filt],
+    res_T res[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt]
+) {
     #pragma HLS PIPELINE II=CONFIG_T::reuse_factor
 
     // TODO partition the arrays according to the reuse factor
@@ -255,9 +262,9 @@ void pooling2d_cf(data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_
                             if (CONFIG_T::count_pad)
                                 img_overlap++;
                         } else {
-                            pool[kk * CONFIG_T::stride_width + ll] =
-                                data[(ii + kk - CONFIG_T::pad_top) * CONFIG_T::in_width +
-                                     ff * CONFIG_T::in_width * CONFIG_T::in_height + ll + jj - CONFIG_T::pad_left];
+                            pool[kk * CONFIG_T::stride_width + ll] = data
+                                [(ii + kk - CONFIG_T::pad_top) * CONFIG_T::in_width +
+                                 ff * CONFIG_T::in_width * CONFIG_T::in_height + ll + jj - CONFIG_T::pad_left];
                             img_overlap++;
                         }
                     }
@@ -267,8 +274,11 @@ void pooling2d_cf(data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_
                 // not overlapping padding region
                 res[(ii / CONFIG_T::stride_height) * CONFIG_T::out_width + (jj / CONFIG_T::stride_width) +
                     ff * CONFIG_T::out_height * CONFIG_T::out_width] =
-                    pool_op<data_T, CONFIG_T::pool_height * CONFIG_T::pool_width, CONFIG_T::pool_op,
-                            typename CONFIG_T::accum_t>(pool);
+                    pool_op<
+                        data_T,
+                        CONFIG_T::pool_height * CONFIG_T::pool_width,
+                        CONFIG_T::pool_op,
+                        typename CONFIG_T::accum_t>(pool);
                 // If the pool op is Average, the zero-padding needs to be removed from the results
                 if (CONFIG_T::pool_op == Average) {
                     data_T rescale =
@@ -282,8 +292,9 @@ void pooling2d_cf(data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void global_pooling2d_cl(data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_filt],
-                         res_T res[CONFIG_T::n_filt]) {
+void global_pooling2d_cl(
+    data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_filt], res_T res[CONFIG_T::n_filt]
+) {
     assert(CONFIG_T::pad_left == 0 && CONFIG_T::pad_right == 0);
     assert(CONFIG_T::pad_top == 0 && CONFIG_T::pad_bottom == 0);
     assert(CONFIG_T::pool_width == CONFIG_T::stride_width);
@@ -304,7 +315,8 @@ FiltLoop:
         }
 
         res[filt] = static_cast<res_T>(
-            pool_op<data_T, CONFIG_T::in_height * CONFIG_T::in_width, CONFIG_T::pool_op, typename CONFIG_T::accum_t>(pool));
+            pool_op<data_T, CONFIG_T::in_height * CONFIG_T::in_width, CONFIG_T::pool_op, typename CONFIG_T::accum_t>(pool)
+        );
     }
 }
 

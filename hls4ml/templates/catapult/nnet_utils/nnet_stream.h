@@ -146,8 +146,9 @@ BroadcastLoop:
 
 template <class data_T, class res_T, typename CONFIG_T>
 void broadcast_stream_HxWx1(ac_channel<data_T> &data, ac_channel<res_T> &res) {
-    assert(CONFIG_T::in_chan == 1 && CONFIG_T::in_height == CONFIG_T::out_height &&
-           CONFIG_T::in_width == CONFIG_T::out_width);
+    assert(
+        CONFIG_T::in_chan == 1 && CONFIG_T::in_height == CONFIG_T::out_height && CONFIG_T::in_width == CONFIG_T::out_width
+    );
 BroadcastLoop:
     for (int i = 0; i < CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::in_chan / data_T::size; i++) {
         //#pragma HLS PIPELINE
@@ -166,8 +167,7 @@ template <class data_T, class res_T, typename CONFIG_T>
 void broadcast_stream(ac_channel<data_T> &data, ac_channel<res_T> &res) {
     if (CONFIG_T::in_height == 1 && CONFIG_T::in_width == 1 && CONFIG_T::in_chan == CONFIG_T::out_chan) {
         broadcast_stream_1x1xC<data_T, res_T, CONFIG_T>(data, res);
-    } else if (CONFIG_T::in_chan == 1 && CONFIG_T::in_height == CONFIG_T::out_height &&
-               CONFIG_T::in_width == CONFIG_T::out_width) {
+    } else if (CONFIG_T::in_chan == 1 && CONFIG_T::in_height == CONFIG_T::out_height && CONFIG_T::in_width == CONFIG_T::out_width) {
         broadcast_stream_HxWx1<data_T, res_T, CONFIG_T>(data, res);
     }
 }

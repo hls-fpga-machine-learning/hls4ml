@@ -11,9 +11,11 @@ namespace nnet {
 // Line Buffer
 template <class data_T, class res_T, typename CONFIG_T>
 void conv_2d_buffer_latency_cl(
-    hls::stream<data_T> &data, hls::stream<res_T> &res,
+    hls::stream<data_T> &data,
+    hls::stream<res_T> &res,
     typename CONFIG_T::weight_t weights[CONFIG_T::filt_height * CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
-    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
     assert(CONFIG_T::pad_top == 0 && CONFIG_T::pad_bottom == 0 && CONFIG_T::pad_left == 0 && CONFIG_T::pad_right == 0);
 
     static ap_shift_reg<typename data_T::value_type, CONFIG_T::in_width> line_buffer[MAX(CONFIG_T::filt_height - 1, 1)]
@@ -38,9 +40,11 @@ ReadInputHeight:
 
 template <class data_T, class res_T, typename CONFIG_T>
 void conv_2d_buffer_resource_cl(
-    hls::stream<data_T> &data, hls::stream<res_T> &res,
+    hls::stream<data_T> &data,
+    hls::stream<res_T> &res,
     typename CONFIG_T::weight_t weights[CONFIG_T::filt_height * CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
-    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
     assert(CONFIG_T::pad_top == 0 && CONFIG_T::pad_bottom == 0 && CONFIG_T::pad_left == 0 && CONFIG_T::pad_right == 0);
 
     static ap_shift_reg<typename data_T::value_type, CONFIG_T::in_width> line_buffer[MAX(CONFIG_T::filt_height - 1, 1)]
@@ -64,11 +68,15 @@ ReadInputHeight:
 
 template <class data_T, class res_T, typename CONFIG_T>
 void conv_2d_cl(
-    hls::stream<data_T> &data, hls::stream<res_T> &res,
+    hls::stream<data_T> &data,
+    hls::stream<res_T> &res,
     typename CONFIG_T::weight_t weights[CONFIG_T::filt_height * CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
-    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
-    assert(CONFIG_T::implementation == conv_implementation::linebuffer &&
-           "Only \"linebuffer\" implementation is supported in Vitis HLS.");
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
+    assert(
+        CONFIG_T::implementation == conv_implementation::linebuffer &&
+        "Only \"linebuffer\" implementation is supported in Vitis HLS."
+    );
 
     #pragma HLS INLINE recursive
     if (CONFIG_T::strategy == nnet::latency) {

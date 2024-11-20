@@ -44,14 +44,16 @@ struct conv1d_config {
 };
 
 template <class data_T, class res_T, typename CONFIG_T>
-void conv_1d_cl(const data_T &data, res_T &res, const typename CONFIG_T::weight_t &weights,
-                const typename CONFIG_T::bias_t &biases) {
+void conv_1d_cl(
+    const data_T &data, res_T &res, const typename CONFIG_T::weight_t &weights, const typename CONFIG_T::bias_t &biases
+) {
     conv_1d_resource_cl<data_T, res_T, CONFIG_T>(data, res, weights, biases);
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void pointwise_conv_1d_cl(const data_T &data, res_T &res, const typename CONFIG_T::weight_t &weights,
-                          const typename CONFIG_T::bias_t &biases) {
+void pointwise_conv_1d_cl(
+    const data_T &data, res_T &res, const typename CONFIG_T::weight_t &weights, const typename CONFIG_T::bias_t &biases
+) {
     assert(CONFIG_T::filt_width == 1);
     pointwise_conv_1d_resource_cl<data_T, res_T, CONFIG_T>(data, res, weights, biases);
 }

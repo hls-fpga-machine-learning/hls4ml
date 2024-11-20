@@ -7,9 +7,11 @@
 namespace nnet {
 
 template <class data_T, typename CONFIG_T>
-void im2col_2d(data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_chan],
-               data_T data_col[CONFIG_T::filt_height * CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::out_height *
-                               CONFIG_T::out_width]) {
+void im2col_2d(
+    data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_chan],
+    data_T data_col
+        [CONFIG_T::filt_height * CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::out_height * CONFIG_T::out_width]
+) {
     const int output_h = (CONFIG_T::in_height + CONFIG_T::pad_top + CONFIG_T::pad_bottom -
                           (CONFIG_T::dilation_height * (CONFIG_T::filt_height - 1) + 1)) /
                              CONFIG_T::stride_height +
@@ -52,9 +54,10 @@ void conv_2d_full(
     data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_chan],
     res_T res[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt],
     typename CONFIG_T::weight_t weights[CONFIG_T::filt_height * CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
-    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
-    data_T data_conv[CONFIG_T::filt_height * CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::out_height *
-                     CONFIG_T::out_width];
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
+    data_T data_conv
+        [CONFIG_T::filt_height * CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::out_height * CONFIG_T::out_width];
     data_T data_col[CONFIG_T::filt_height * CONFIG_T::filt_width * CONFIG_T::n_chan];
     res_T res_col[CONFIG_T::n_filt];
 
@@ -77,9 +80,12 @@ void conv_2d_full(
 }
 
 template <class data_T, typename CONFIG_T>
-void im2col_2d_cf(data_T data[CONFIG_T::n_chan * CONFIG_T::in_height * CONFIG_T::in_width],
-                  data_T data_col[CONFIG_T::n_chan * CONFIG_T::filt_height * CONFIG_T::filt_width], const int row,
-                  const int col) {
+void im2col_2d_cf(
+    data_T data[CONFIG_T::n_chan * CONFIG_T::in_height * CONFIG_T::in_width],
+    data_T data_col[CONFIG_T::n_chan * CONFIG_T::filt_height * CONFIG_T::filt_width],
+    const int row,
+    const int col
+) {
     const int channel_size = CONFIG_T::in_height * CONFIG_T::in_width;
     int index = 0;
     for (int channel = CONFIG_T::n_chan; channel--; data += channel_size) {
@@ -111,7 +117,8 @@ void conv_2d_resource_cf(
     data_T data[CONFIG_T::n_chan * CONFIG_T::in_height * CONFIG_T::in_width],
     res_T res[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt],
     typename CONFIG_T::weight_t weights[CONFIG_T::filt_height * CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
-    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
     const int nin = CONFIG_T::n_chan * CONFIG_T::filt_width;
     const int nout = CONFIG_T::n_filt;
     const int rufactor = CONFIG_T::reuse_factor;
@@ -147,9 +154,12 @@ HeightLoop:
 }
 
 template <class data_T, typename CONFIG_T>
-void im2col_2d_cl(data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_chan],
-                  data_T data_col[CONFIG_T::filt_height * CONFIG_T::filt_width * CONFIG_T::n_chan], const int row,
-                  const int col) {
+void im2col_2d_cl(
+    data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_chan],
+    data_T data_col[CONFIG_T::filt_height * CONFIG_T::filt_width * CONFIG_T::n_chan],
+    const int row,
+    const int col
+) {
     int index = 0;
     for (int kernel_row = 0; kernel_row < CONFIG_T::filt_height; kernel_row++) {
         int input_row = -CONFIG_T::pad_top + kernel_row * CONFIG_T::dilation_height + row * CONFIG_T::stride_height;
@@ -173,8 +183,12 @@ void im2col_2d_cl(data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_
 }
 
 template <class data_T, typename CONFIG_T>
-void im2col_2d_pointwise_cl(data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_chan],
-                            data_T data_col[CONFIG_T::n_chan], const int row, const int col) {
+void im2col_2d_pointwise_cl(
+    data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_chan],
+    data_T data_col[CONFIG_T::n_chan],
+    const int row,
+    const int col
+) {
     int index = 0;
     int input_row = -CONFIG_T::pad_top + row * CONFIG_T::stride_height;
 
@@ -199,7 +213,8 @@ void conv_2d_resource_cl(
     data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_chan],
     res_T res[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt],
     typename CONFIG_T::weight_t weights[CONFIG_T::filt_height * CONFIG_T::filt_width * CONFIG_T::n_chan * CONFIG_T::n_filt],
-    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
     const int nin = CONFIG_T::n_chan * CONFIG_T::filt_width;
     const int nout = CONFIG_T::n_filt;
     const int rufactor = CONFIG_T::reuse_factor;
@@ -233,10 +248,12 @@ HeightLoop:
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void pointwise_conv_2d_resource_cl(data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_chan],
-                                   res_T res[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt],
-                                   typename CONFIG_T::weight_t weights[CONFIG_T::n_chan * CONFIG_T::n_filt],
-                                   typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]) {
+void pointwise_conv_2d_resource_cl(
+    data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_chan],
+    res_T res[CONFIG_T::out_height * CONFIG_T::out_width * CONFIG_T::n_filt],
+    typename CONFIG_T::weight_t weights[CONFIG_T::n_chan * CONFIG_T::n_filt],
+    typename CONFIG_T::bias_t biases[CONFIG_T::n_filt]
+) {
     assert(CONFIG_T::filt_height == 1 && CONFIG_T::filt_width == 1);
 
     const int nin = CONFIG_T::n_chan;

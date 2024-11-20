@@ -37,8 +37,9 @@ KernelLoop:
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void conv_1d_im2col_cl(const data_T &data, res_T &res, const typename CONFIG_T::weight_t &weights,
-                       const typename CONFIG_T::bias_t &biases) {
+void conv_1d_im2col_cl(
+    const data_T &data, res_T &res, const typename CONFIG_T::weight_t &weights, const typename CONFIG_T::bias_t &biases
+) {
     // im2col performs no filter transformations; therefore, filter size remains constant
     assert(CONFIG_T::filt_width == CONFIG_T::impl_filt_width);
 
@@ -86,8 +87,9 @@ inline void winograd_transform_input_tile_3x1_kernel(const data_T I[4], res_T D[
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void winograd_conv1d_3x1_kernel_cl(const data_T &data, res_T &res, const typename CONFIG_T::weight_t &weights,
-                                   const typename CONFIG_T::bias_t &biases) {
+void winograd_conv1d_3x1_kernel_cl(
+    const data_T &data, res_T &res, const typename CONFIG_T::weight_t &weights, const typename CONFIG_T::bias_t &biases
+) {
     // Ensure Winograd conditions are met
     assert(CONFIG_T::filt_width == 3);
     assert(CONFIG_T::stride_width == 1);
@@ -175,8 +177,9 @@ ChannelLoop:
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void pointwise_conv_1d_resource_cl(const data_T &data, res_T &res, const typename CONFIG_T::weight_t &weights,
-                                   const typename CONFIG_T::bias_t &biases) {
+void pointwise_conv_1d_resource_cl(
+    const data_T &data, res_T &res, const typename CONFIG_T::weight_t &weights, const typename CONFIG_T::bias_t &biases
+) {
     assert(CONFIG_T::filt_width == 1);
 
     // Unroll factor for loop traversing input image, derived from parallelization_factor
@@ -213,8 +216,9 @@ ColLoop:
 //      Top-level function - handles different implementations
 // ****************************************************************
 template <class data_T, class res_T, typename CONFIG_T>
-void conv_1d_resource_cl(const data_T &data, res_T &res, const typename CONFIG_T::weight_t &weights,
-                         const typename CONFIG_T::bias_t &biases) {
+void conv_1d_resource_cl(
+    const data_T &data, res_T &res, const typename CONFIG_T::weight_t &weights, const typename CONFIG_T::bias_t &biases
+) {
     static constexpr bool winograd_conditions =
         // Winograd's minimal filtering algorithm not applicable to stride != 1
         CONFIG_T::stride_width == 1 &&

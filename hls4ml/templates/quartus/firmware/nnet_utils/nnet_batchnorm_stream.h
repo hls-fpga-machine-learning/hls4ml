@@ -12,8 +12,12 @@ namespace nnet {
 //       Streaming Batch Normalization
 // ****************************************************
 template <class data_T, class res_T, typename CONFIG_T>
-void normalize(stream<data_T> &data, stream<res_T> &res, const typename CONFIG_T::scale_t scale[CONFIG_T::n_scale_bias],
-               const typename CONFIG_T::bias_t bias[CONFIG_T::n_scale_bias]) {
+void normalize(
+    stream<data_T> &data,
+    stream<res_T> &res,
+    const typename CONFIG_T::scale_t scale[CONFIG_T::n_scale_bias],
+    const typename CONFIG_T::bias_t bias[CONFIG_T::n_scale_bias]
+) {
 
     constexpr unsigned multiplier_limit = DIV_ROUNDUP(CONFIG_T::n_in, CONFIG_T::reuse_factor);
     constexpr unsigned pipeline = CONFIG_T::n_in / multiplier_limit;
@@ -34,7 +38,8 @@ BatchNormLoop:
             else
                 norm_index = j % CONFIG_T::n_filt;
             out_data[j] = CONFIG_T::template product<typename data_T::value_type, typename CONFIG_T::scale_t>::product(
-                              in_data[j], scale[norm_index]) +
+                              in_data[j], scale[norm_index]
+                          ) +
                           bias[norm_index];
         }
 
@@ -46,8 +51,11 @@ BatchNormLoop:
 //       Merged Batch Normalization and Quantized Tanh
 // ****************************************************
 template <class data_T, typename CONFIG_T>
-void normalize_binary_tanh(stream<data_T> &data, stream<nnet::array<ac_int<1, false>, CONFIG_T::n_scale_bias>> &res,
-                           const typename data_T::value_type threshold[CONFIG_T::n_scale_bias]) {
+void normalize_binary_tanh(
+    stream<data_T> &data,
+    stream<nnet::array<ac_int<1, false>, CONFIG_T::n_scale_bias>> &res,
+    const typename data_T::value_type threshold[CONFIG_T::n_scale_bias]
+) {
 
 BinaryNormLoop:
     #pragma ii 1
@@ -72,9 +80,12 @@ BinaryNormLoop:
 }
 
 template <class data_T, typename CONFIG_T>
-void normalize_ternary_tanh(stream<data_T> &data, stream<nnet::array<ac_int<2, true>, CONFIG_T::n_scale_bias>> &res,
-                            const typename data_T::value_type threshold_hi[CONFIG_T::n_scale_bias],
-                            const typename data_T::value_type threshold_lo[CONFIG_T::n_scale_bias]) {
+void normalize_ternary_tanh(
+    stream<data_T> &data,
+    stream<nnet::array<ac_int<2, true>, CONFIG_T::n_scale_bias>> &res,
+    const typename data_T::value_type threshold_hi[CONFIG_T::n_scale_bias],
+    const typename data_T::value_type threshold_lo[CONFIG_T::n_scale_bias]
+) {
 
 TernaryNormLoop:
     #pragma ii 1
