@@ -213,15 +213,17 @@ def _exec_einsum(recipe: EinsumRecipe, input0: np.ndarray, input1: np.ndarray) -
 
     for l0 in range(L0):
         for i in range(I):
-            output[(i * L0 + l0) * L1 : (i * L0 + l0 + 1) * L1] = (
-                input1[i * L1 * C : (i + 1) * L1 * C].reshape((L1, C)) @ input0[(i * L0 + l0) * C : (i * L0 + l0 + 1) * C]
-            )
+            A = input1[i * L1 * C : (i + 1) * L1 * C].reshape((L1, C))
+            B = input0[(i * L0 + l0) * C : (i * L0 + l0 + 1) * C]
+            output[(i * L0 + l0) * L1 : (i * L0 + l0 + 1) * L1] = A @ B
 
     return output.reshape(recipe['out_interpert_shape']).transpose(recipe['out_transpose_idxs'])
 
 
 def einsum(fn: str, input0: np.ndarray, input1: np.ndarray) -> np.ndarray:
-    """Execute einsum operation on two input arrays
+    """Execute einsum operation on two input arrays.
+
+    WARNING: Order of multiplication is reversed -- watchout if you are using non-commutative operators
 
     Parameters
     ----------
