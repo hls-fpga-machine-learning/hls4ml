@@ -69,16 +69,18 @@ class KV3MergeHandler(KerasV3LayerHandler):
         layer: 'Merge',
         in_tensors: Sequence['KerasTensor'],
         out_tensors: Sequence['KerasTensor'],
+        cls_name: str | None = None,
     ):
         assert len(out_tensors) == 1, f"Merge layer {layer.name} has more than one output"
         output_shape = list(out_tensors[0].shape[1:])
 
+        cls_name = cls_name or layer.__class__.__name__
         config: dict[str, Any] = {
             'output_shape': output_shape,
-            'op': layer.__class__.__name__.lower(),
+            'op': cls_name.lower(),
         }
 
-        match layer.__class__.__name__:
+        match cls_name.lower():
             case 'Concatenate':
                 rank = len(output_shape)
                 class_name = f'Concatenate{rank}d'

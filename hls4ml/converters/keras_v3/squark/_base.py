@@ -6,7 +6,7 @@ from keras.api import Layer
 
 from hls4ml.converters.keras_v3._base import KerasV3LayerHandler, register
 from hls4ml.converters.keras_v3.conv import KV3ConvHandler
-from hls4ml.converters.keras_v3.core import KV3ActivationHandler, KV3DenseHandler
+from hls4ml.converters.keras_v3.core import KV3ActivationHandler, KV3DenseHandler, KV3MergeHandler
 from hls4ml.converters.keras_v3.einsum_dense import KV3EinsumDenseHandler
 
 if TYPE_CHECKING:
@@ -70,7 +70,7 @@ class SQLayerHandler(KerasV3LayerHandler):
 
         if layer._enable_iq:
             if len(in_tensors) > 1:
-                iq_confs = [extract_fixed_quantizer_config(q, tensor, True) for q, tensor in zip(layer._iqs, in_tensors)]
+                iq_confs = [extract_fixed_quantizer_config(q, tensor, True) for q, tensor in zip(layer._iq, in_tensors)]
             else:
                 iq_confs = [extract_fixed_quantizer_config(layer._iq, in_tensors[0], True)]
         else:
@@ -78,7 +78,7 @@ class SQLayerHandler(KerasV3LayerHandler):
 
         if layer._enable_oq:
             if len(out_tensors) > 1:
-                oq_confs = [extract_fixed_quantizer_config(q, tensor, False) for q, tensor in zip(layer._oqs, out_tensors)]
+                oq_confs = [extract_fixed_quantizer_config(q, tensor, False) for q, tensor in zip(layer._oq, out_tensors)]
             else:
                 oq_confs = [extract_fixed_quantizer_config(layer._oq, out_tensors[0], False)]
         else:
@@ -172,3 +172,25 @@ class SQBatchNormalizationHandler(SQLayerHandler):
             'scale_data': scale,
             'bias_data': offset,
         }
+
+
+@register
+class SQMergeHandler(SQLayerHandler, KV3MergeHandler):
+    handles = (
+        'squark.layers.ops.merge.QAdd',
+        'squark.layers.ops.merge.QSubtract',
+        'squark.layers.ops.merge.QMultiply',
+        'squark.layers.ops.merge.QAverage',
+        'squark.layers.ops.merge.QMaximum',
+        'squark.layers.ops.merge.QMinimum',
+        'squark.layers.ops.merge.QConcatenate',
+    )
+
+    def handle(
+        self,
+        layer: 'squark.layers.ops.merge.QMerge',
+        in_tensors: Sequence['KerasTensor'],
+        out_tensors: Sequence['KerasTensor'],
+    ):
+        cls_name = layer.__class__.__name__[1:]
+        return super().handle(layer, in_tensors, out_tensors, cls_name)
