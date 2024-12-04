@@ -4,7 +4,17 @@ from typing import Sequence
 
 import numpy as np
 
-from hls4ml.model.layers import Conv1D, Conv2D, Dense, EinsumDense, GlobalPooling1D, Layer, Pooling1D, Reshape
+from hls4ml.model.layers import (
+    BatchNormalization,
+    Conv1D,
+    Conv2D,
+    Dense,
+    EinsumDense,
+    GlobalPooling1D,
+    Layer,
+    Pooling1D,
+    Reshape,
+)
 from hls4ml.model.optimizer.passes.hgq_proxy_model import FixedPointQuantizer
 
 if typing.TYPE_CHECKING:
@@ -259,6 +269,20 @@ def _(layer: Conv1D | Conv2D):
     qint_in = QIntervalArray.from_kif(k_in, i_in, f_in)
     qint_out = qint_in @ kernel
     qint_out = qint_out + bias
+    k, i, f = qint_out.to_kif()
+    return k.astype(np.int8), i, f
+
+
+@produce_kif.register
+def _(layer: BatchNormalization):
+    k_in, i_in, f_in = get_input_kifs(layer)[0]
+    qint_in = QIntervalArray.from_kif(k_in, i_in, f_in)
+    scale = layer.attributes.attributes['scale'].data
+
+    _bias = layer.attributes.attributes['bias']
+    bias = _bias.data if _bias is not None else 0
+
+    qint_out = qint_in * scale + bias
     k, i, f = qint_out.to_kif()
     return k.astype(np.int8), i, f
 

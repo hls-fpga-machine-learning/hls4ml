@@ -1,3 +1,4 @@
+from math import prod
 from typing import TYPE_CHECKING, Any, Sequence
 
 import numpy as np
@@ -145,3 +146,29 @@ class SQDenseHandler(SQLayerHandler, KV3DenseHandler):
 @register
 class SQActivationHandler(SQLayerHandler, KV3ActivationHandler):
     handles = ('squark.layers.activation.QActivation',)
+
+
+@register
+class SQBatchNormalizationHandler(SQLayerHandler):
+    handles = ('squark.layers.batch_normalization.QBatchNormalization',)
+
+    def handle(
+        self,
+        layer: 'squark.layers.QBatchNormalization',
+        in_tensors: Sequence['KerasTensor'],
+        out_tensors: Sequence['KerasTensor'],
+    ):
+        from keras import ops
+
+        scale, offset = layer.qscaler_and_qoffset
+        scale = ops.convert_to_numpy(scale)
+        offset = ops.convert_to_numpy(offset)
+
+        assert layer.axis in (len(in_tensors[0].shape) - 1, -1), 'Only batch_norm with axis=-1 is supported'
+
+        return {
+            'n_filt': scale.size,
+            'n_in': prod(in_tensors[0].shape[1:]),  # type: ignore
+            'scale_data': scale,
+            'bias_data': offset,
+        }
