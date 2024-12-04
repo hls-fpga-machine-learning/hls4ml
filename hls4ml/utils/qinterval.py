@@ -123,38 +123,47 @@ class QIntervalArray(_QIntervalArray):
 
     @singledispatchmethod
     def __matmul__(self, other: np.ndarray):
-        v1 = np.einsum('ij,j...->ij...', self.min, other, optimize=True)
-        v2 = np.einsum('ij,j...->ij...', self.max, other, optimize=True)
+        seq = ''.join(chr(ord('a') + i) for i in range(self.min.ndim))
+        eq = f'{seq},{seq[-1]}...->{seq}...'
+        ax = self.min.ndim - 1
+        v1 = np.einsum(eq, self.min, other, optimize=True)
+        v2 = np.einsum(eq, self.max, other, optimize=True)
         other_delta = 2.0 ** -_minimal_f(other)
-        _delta = np.einsum('ij,j...->ij...', self.delta, other_delta, optimize=True)
-        delta = np.min(np.where(_delta == 0, np.inf, _delta), axis=1)
-        _min = np.sum(np.minimum(v1, v2), axis=1)
-        _max = np.sum(np.maximum(v1, v2), axis=1)
+        _delta = np.einsum(eq, self.delta, other_delta, optimize=True)
+        delta = np.min(np.where(_delta == 0, np.inf, _delta), axis=ax)
+        _min = np.sum(np.minimum(v1, v2), axis=ax)
+        _max = np.sum(np.maximum(v1, v2), axis=ax)
         return QIntervalArray(_min, _max, delta)
 
     @__matmul__.register
     def _(self, other: _QIntervalArray):
-        v1 = np.einsum('ij,j...->ij...', self.min, other.min, optimize=True)
-        v2 = np.einsum('ij,j...->ij...', self.max, other.max, optimize=True)
-        v3 = np.einsum('ij,j...->ij...', self.min, other.max, optimize=True)
-        v4 = np.einsum('ij,j...->ij...', self.max, other.min, optimize=True)
+        seq = ''.join(chr(ord('a') + i) for i in range(self.min.ndim))
+        eq = f'{seq},{seq[-1]}...->{seq}...'
+        ax = self.min.ndim - 1
+        v1 = np.einsum(eq, self.min, other.min, optimize=True)
+        v2 = np.einsum(eq, self.max, other.max, optimize=True)
+        v3 = np.einsum(eq, self.min, other.max, optimize=True)
+        v4 = np.einsum(eq, self.max, other.min, optimize=True)
 
-        _max = np.sum(np.maximum(np.maximum(v1, v2), np.maximum(v3, v4)), axis=1)
-        _min = np.sum(np.minimum(np.minimum(v1, v2), np.minimum(v3, v4)), axis=1)
+        _max = np.sum(np.maximum(np.maximum(v1, v2), np.maximum(v3, v4)), axis=ax)
+        _min = np.sum(np.minimum(np.minimum(v1, v2), np.minimum(v3, v4)), axis=ax)
 
-        _delta = np.einsum('ij,j...->ij...', self.delta, other.delta, optimize=True)
-        delta = np.min(_delta, axis=1)
+        _delta = np.einsum(eq, self.delta, other.delta, optimize=True)
+        delta = np.min(_delta, axis=ax)
 
         return QIntervalArray(_min, _max, delta)
 
     def __rmatmul__(self, other: np.ndarray):
-        v1 = np.einsum('ij,j...->ij...', other, self.min, optimize=True)
-        v2 = np.einsum('ij,j...->ij...', other, self.max, optimize=True)
+        seq = ''.join(chr(ord('a') + i) for i in range(other.ndim))
+        eq = f'{seq},{seq[-1]}...->{seq}...'
+        ax = other.ndim - 1
+        v1 = np.einsum(eq, other, self.min, optimize=True)
+        v2 = np.einsum(eq, other, self.max, optimize=True)
         other_delta = 2.0 ** -_minimal_f(other)
-        _delta = np.einsum('ij,j...->ij...', other_delta, self.delta, optimize=True)
-        delta = np.min(np.where(_delta == 0, np.inf, _delta), axis=1)
-        _min = np.sum(np.minimum(v1, v2), axis=1)
-        _max = np.sum(np.maximum(v1, v2), axis=1)
+        _delta = np.einsum(eq, other_delta, self.delta, optimize=True)
+        delta = np.min(np.where(_delta == 0, np.inf, _delta), axis=ax)
+        _min = np.sum(np.minimum(v1, v2), axis=ax)
+        _max = np.sum(np.maximum(v1, v2), axis=ax)
         return QIntervalArray(_min, _max, delta)
 
     def transpose(self, axes: Sequence[int]):
@@ -222,7 +231,7 @@ class QIntervalArray(_QIntervalArray):
         """
 
         _min = np.asarray(-(2.0**i) * k)
-        _max = np.asarray(2.0**i * k - 2.0**-f)
+        _max = np.asarray(2.0**i - 2.0**-f)
         _delta = np.asarray(2.0**-f)
         return cls(_min, _max, _delta)
 

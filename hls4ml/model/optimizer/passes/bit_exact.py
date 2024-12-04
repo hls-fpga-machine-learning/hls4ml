@@ -1,9 +1,10 @@
 import typing
 from functools import singledispatch
+from typing import Sequence
 
 import numpy as np
 
-from hls4ml.model.layers import Dense, EinsumDense, GlobalPooling1D, Layer, Pooling1D, Reshape
+from hls4ml.model.layers import Conv1D, Conv2D, Dense, EinsumDense, GlobalPooling1D, Layer, Pooling1D, Reshape
 from hls4ml.model.optimizer.passes.hgq_proxy_model import FixedPointQuantizer
 
 if typing.TYPE_CHECKING:
@@ -42,9 +43,9 @@ def get_input_shapes(layer: Layer):
 
 @singledispatch
 def request_kif(layer: Layer):
-    output_shape = get_output_shape(layer)
-    k = np.ones(output_shape, dtype=np.int8)
-    i = f = np.full(output_shape, 127, dtype=np.int8)
+    input_shape = get_input_shapes(layer)[0]
+    k = np.ones(input_shape, dtype=np.int8)
+    i = f = np.full(input_shape, 127, dtype=np.int8)
     return k, i, f
 
 
@@ -181,6 +182,83 @@ def _(layer: Dense):
     qint_out = qint_in @ kernel
     if _bias is not None:
         qint_out = qint_out + _bias.data
+    k, i, f = qint_out.to_kif()
+    return k.astype(np.int8), i, f
+
+
+def r_im2col(kernel_size: Sequence[int], arr: np.ndarray, buffer: np.ndarray, axis: int):
+    w = kernel_size[0]
+    if len(kernel_size) == 3:  # 1D
+        for i in range(arr.shape[axis] - w + 1):
+            patch = np.take(arr, range(i, i + w), axis=axis)
+            buffer[i] = patch.flatten()
+    else:  # 2D+
+        for i in range(arr.shape[axis] - w + 1):
+            patch = arr[i : i + w]
+            r_im2col(kernel_size[1:], patch, buffer[i], axis + 1)
+
+
+def _im2col(kernel_size: Sequence[int], arr: np.ndarray):
+    if len(kernel_size) < 3:
+        return arr
+    shape = [inp_d - ker_d + 1 for inp_d, ker_d in zip(arr.shape, kernel_size[:-2])]
+    shape.append(np.prod(kernel_size[:-1]))  # type: ignore
+    buf = np.empty(shape, dtype=arr.dtype)
+    r_im2col(kernel_size, arr, buf, 0)
+    return buf
+
+
+def im2col(kernel_size: Sequence[int], *arrs: np.ndarray):
+    """im2col for multidimensional arrays. Assumes Channel Last format.
+
+    Parameters
+    ----------
+    kernel_size : Sequence[int]
+        The size of the kernel, in the form (*kernel_shape, ch_in, ch_out)
+
+    *arrs : np.ndarray
+        The input arrays to be transformed
+
+    Returns
+    -------
+    list[np.ndarray]
+        The transformed arrays
+    """
+    return [_im2col(kernel_size, arr) for arr in arrs]
+
+
+def pad_and_stride_inp_arr(node: Layer, arr: np.ndarray, pad_val: float = 0):
+    if node.class_name.endswith('Conv2D'):
+        pad_top = node.attributes.attributes['pad_top']
+        pad_bottom = node.attributes.attributes['pad_bottom']
+        pad_left = node.attributes.attributes['pad_left']
+        pad_right = node.attributes.attributes['pad_right']
+        st_h = node.attributes.attributes['stride_height']
+        st_w = node.attributes.attributes['stride_width']
+        return np.pad(arr, ((pad_top, pad_bottom), (pad_left, pad_right), (0, 0)), constant_values=pad_val)[::st_h, ::st_w]
+    if node.class_name.endswith('Conv1D'):
+        pad_left = node.attributes.attributes['pad_left']
+        pad_right = node.attributes.attributes['pad_right']
+        st_w = node.attributes.attributes['stride_width']
+        return np.pad(arr, ((pad_left, pad_right), (0, 0)), constant_values=pad_val)[::st_w]
+    return arr
+
+
+@produce_kif.register(Conv1D)
+@produce_kif.register(Conv2D)
+def _(layer: Conv1D | Conv2D):
+    kernel = layer.attributes.attributes['weight'].data
+    _bias = layer.attributes.attributes['bias']
+    bias = _bias.data if _bias is not None else 0
+    k_in, i_in, f_in = get_input_kifs(layer)[0]
+    k_in, i_in, f_in = im2col(kernel.shape, k_in, i_in, f_in)
+    k_in = pad_and_stride_inp_arr(layer, k_in, 0)
+    i_in = pad_and_stride_inp_arr(layer, i_in, 0)
+    f_in = pad_and_stride_inp_arr(layer, f_in, 0)
+    kernel = kernel.reshape(-1, kernel.shape[-1])
+    qint_in = QIntervalArray.from_kif(k_in, i_in, f_in)
+    qint_out = qint_in @ kernel
+    qint_out = qint_out + bias
     k, i, f = qint_out.to_kif()
     return k.astype(np.int8), i, f
 
