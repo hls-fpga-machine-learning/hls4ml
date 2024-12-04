@@ -22,15 +22,17 @@ class KV3DenseHandler(KerasV3LayerHandler):
         in_tensors: Sequence['KerasTensor'],
         out_tensors: Sequence['KerasTensor'],
     ):
-        kernel = np.array(layer.kernel)
-        assert layer._build_shapes_dict is not None, f"Layer {layer.name} is not built"
-        # inp_shape = layer._build_shapes_dict['input_shape'][1:]
+
+        kernel = self.load_weight(layer, 'kernel')
+        bias = self.load_weight(layer, 'bias') if layer.use_bias else None
+        n_in, n_out = kernel.shape
+
         config = {
             'data_format': 'channels_last',
             'weight_data': kernel,
-            'bias_data': self.load_weight(layer, 'bias') if layer.use_bias else None,
-            'n_out': kernel.shape[1],
-            'n_in': kernel.shape[0],
+            'bias_data': bias,
+            'n_out': n_out,
+            'n_in': n_in,
         }
         return config
 

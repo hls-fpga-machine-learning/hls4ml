@@ -139,7 +139,7 @@ class SQConvHandler(SQLayerHandler, KV3ConvHandler):
 
 @register
 class SQDenseHandler(SQLayerHandler, KV3DenseHandler):
-    handles = ('squark.layers.core.QDense',)
+    handles = ('squark.layers.core.dense.QDense',)
 
 
 @register
