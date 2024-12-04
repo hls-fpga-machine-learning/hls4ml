@@ -156,21 +156,25 @@ def _(layer: Reshape):
 
 @produce_kif.register
 def _(layer: EinsumDense):
-    kernel = layer.attributes.attributes['weight'].data[0]  # unsqueezed on axis 0 for unknown reason
+    t_kernel = layer.attributes.attributes['weight'].data
+    to_original_kernel = layer.attributes.attributes['to_original_kernel']
+    kernel = to_original_kernel(t_kernel)
     _bias = layer.attributes.attributes['bias']
     eq = layer.attributes.attributes['equation']
     k_in, i_in, f_in = get_input_kifs(layer)[0]
     qint_in = QIntervalArray.from_kif(k_in, i_in, f_in)
     qint_out = einsum(eq, qint_in, kernel)
     if _bias is not None:
-        qint_out = qint_out + _bias.data
+        t_bias = _bias.data
+        bias = t_bias.transpose(layer.attributes.attributes['out_tpose_idxs'])
+        qint_out = qint_out + bias
     k, i, f = qint_out.to_kif()
     return k.astype(np.int8), i, f
 
 
 @produce_kif.register
 def _(layer: Dense):
-    kernel = layer.attributes.attributes['weight'].data[0]  # unsqueezed on axis 0 for unknown reason
+    kernel = layer.attributes.attributes['weight'].data
     _bias = layer.attributes.attributes['bias']
     k_in, i_in, f_in = get_input_kifs(layer)[0]
     qint_in = QIntervalArray.from_kif(k_in, i_in, f_in)

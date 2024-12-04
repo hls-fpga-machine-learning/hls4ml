@@ -1646,7 +1646,8 @@ class EinsumDense(Layer):
         inp_shape = self.attributes['inp_shape']
         out_shape = self.attributes['out_shape']
 
-        recipe = parse_einsum(equation, inp_shape, kernel.shape)
+        kernel_shape = kernel.shape
+        recipe = parse_einsum(equation, inp_shape, kernel_shape)
         inp_tpose_idxs, ker_tpose_idxs = recipe['in_transpose_idxs']
         out_tpose_idxs = recipe['out_transpose_idxs']
 
@@ -1655,6 +1656,11 @@ class EinsumDense(Layer):
         # parser assumes ij,j->i, so we need to transpose the kernel to match
         kernel = kernel.transpose(ker_tpose_idxs)
         kernel = kernel.reshape(recipe['I'], recipe['L1'], recipe['C']).transpose(0, 2, 1)
+
+        def to_original_kernel(tkernel: np.ndarray) -> np.ndarray:
+            _kernel = tkernel.transpose(0, 2, 1)
+            _kernel = _kernel.reshape(tuple(kernel_shape[i] for i in ker_tpose_idxs))
+            return _kernel.transpose(np.argsort(ker_tpose_idxs))
 
         # TODO: for weight in bram mode (resource), broadcasting bias here shall be avoided.
         if bias is not None:
@@ -1666,6 +1672,7 @@ class EinsumDense(Layer):
             bias = np.zeros(out_shape).transpose(np.argsort(out_tpose_idxs))
 
         self.attributes.attributes['weight_data'] = kernel
+        self.attributes.attributes['to_original_kernel'] = to_original_kernel
         self.attributes.attributes['bias_data'] = bias
         self.attributes['inp_tpose_idxs'] = inp_tpose_idxs
         self.attributes['out_tpose_idxs'] = out_tpose_idxs
