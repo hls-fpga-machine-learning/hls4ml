@@ -3,15 +3,19 @@ from functools import singledispatch
 from typing import Sequence
 
 import numpy as np
+from numpy.typing import NDArray
 
 from hls4ml.model.layers import (
     BatchNormalization,
     Conv1D,
     Conv2D,
     Dense,
+    Einsum,
     EinsumDense,
     GlobalPooling1D,
+    Input,
     Layer,
+    Merge,
     Pooling1D,
     Reshape,
 )
@@ -20,15 +24,22 @@ from hls4ml.model.optimizer.passes.hgq_proxy_model import FixedPointQuantizer
 if typing.TYPE_CHECKING:
     from hls4ml.model import ModelGraph
 
+from functools import reduce
+
 from hls4ml.model.optimizer import OptimizerPass
 from hls4ml.model.types import FixedPrecisionType, NamedType
 from hls4ml.utils.qinterval import QIntervalArray, einsum, minimal_kif
 
+KIF_t = tuple[NDArray[np.int8], NDArray[np.int8], NDArray[np.int8]]
+
 
 def to_hls4ml_fixed(k, i, f, name, *args):
-    signed, b, i = k != 0, int(k + i + f), int(k + i)
+    signed, b, I = k != 0, int(k + i + f), int(k + i)
+    if b <= 0:
+        b = 1
+        I = 0
     args = [arg.upper() for arg in args]
-    ptype = FixedPrecisionType(b, i, signed, *args)
+    ptype = FixedPrecisionType(b, I, signed, *args)
     return NamedType(name, ptype)
 
 
@@ -43,20 +54,25 @@ def get_output_layers(layer: Layer):
     return [l for l in model.graph.values() if layer.name in l.attributes.attributes['inputs']]
 
 
-def get_output_shape(layer: Layer):
-    return layer.attributes.attributes[layer.name].shape
+def get_output_shape(layer: Layer) -> tuple[int, ...]:
+    return tuple(layer.attributes.attributes[layer.name].shape)
 
 
-def get_input_shapes(layer: Layer):
+def get_input_shapes(layer: Layer) -> list[tuple[int, ...]]:
     return [get_output_shape(inp) for inp in get_input_layers(layer)]
 
 
-@singledispatch
-def request_kif(layer: Layer):
-    input_shape = get_input_shapes(layer)[0]
-    k = np.ones(input_shape, dtype=np.int8)
-    i = f = np.full(input_shape, 127, dtype=np.int8)
+def _maximum_kif_at_shape(shape: tuple[int, ...]):
+    k = np.ones(shape, dtype=np.int8)
+    i = np.full(shape, 127, dtype=np.int8)
+    f = np.full(shape, 127, dtype=np.int8)
     return k, i, f
+
+
+@singledispatch
+def request_kif(layer: Layer) -> tuple[KIF_t, ...]:
+    input_shapes = get_input_shapes(layer)
+    return tuple(_maximum_kif_at_shape(shape) for shape in input_shapes)
 
 
 @request_kif.register
@@ -73,7 +89,7 @@ def _(layer: FixedPointQuantizer):
         f += 1
     else:
         f += 2
-    return k, i, f
+    return ((k, i, f),)
 
 
 @request_kif.register(Pooling1D)
@@ -96,7 +112,7 @@ def _(layer: Pooling1D | GlobalPooling1D):
     i = np.full(out_shape, -128, dtype=np.int8)
     f = np.full(out_shape, 127, dtype=np.int8)
 
-    _, i_out, f_out = np.max([request_kif(next_layer) for next_layer in get_output_layers(layer)], axis=0)
+    _, i_out, f_out = requested_kif(layer)
 
     if not is_ch_last:
         i = np.moveaxis(i, 0, -1)
@@ -119,28 +135,41 @@ def _(layer: Pooling1D | GlobalPooling1D):
         i += np.ceil(ln2_size).astype(np.int8)
         if not ln2_size.is_integer():
             f[:] = 127
-    return k, i, f
+    return ((k, i, f),)
 
 
 @request_kif.register
 def _(layer: Reshape):
-    inp_shape = get_input_shapes(layer)[0]
-    k, i, f = np.max([request_kif(next_layer) for next_layer in get_output_layers(layer)], axis=0)
-    return k.reshape(inp_shape), i.reshape(inp_shape), f.reshape(inp_shape)
+    return (requested_kif(layer),)
 
 
 def requested_kif(layer: Layer):
     out_layers = get_output_layers(layer)
+    out_shape = get_output_shape(layer)
     if not out_layers:
-        out_shape = get_output_shape(layer)
-        k = np.ones(out_shape, dtype=np.int8)
-        i = f = np.full(out_shape, 127, dtype=np.int8)
-        return k, i, f
-    return tuple(np.max([request_kif(l) for l in out_layers], axis=0))
+        return _maximum_kif_at_shape(out_shape)
+
+    k = np.zeros(out_shape, dtype=np.int8)
+    i = np.full(out_shape, -128, dtype=np.int8)
+    f = i.copy()
+    for out_layer in out_layers:
+        _kif_s = request_kif(out_layer)
+        out_layer_inp_layers = get_input_layers(out_layer)
+        idx = out_layer_inp_layers.index(layer)
+        k = np.maximum(k, _kif_s[idx][0])
+        i = np.maximum(i, _kif_s[idx][1])
+        f = np.maximum(f, _kif_s[idx][2])
+
+    return k, i, f
 
 
 @singledispatch
-def produce_kif(layer: Layer):
+def produce_kif(layer: Layer) -> KIF_t:
+    raise NotImplementedError(f'No implementation of produce_kif for {layer.__class__}')
+
+
+@produce_kif.register
+def _(layer: Input):
     k = np.ones(get_output_shape(layer), dtype=np.int8)
     i = f = np.full(get_output_shape(layer), 127, dtype=np.int8)
     return k, i, f
@@ -166,6 +195,26 @@ def _(layer: Reshape):
 
 
 @produce_kif.register
+def _(layer: Merge):
+    op = layer.attributes.attributes['op'].lower()
+    kif_ins = get_input_kifs(layer)
+    match op:
+        case 'add':
+            qint_ins = [QIntervalArray.from_kif(*kif) for kif in kif_ins]
+            k, i, f = reduce(lambda a, b: a + b, qint_ins).to_kif()  # type: ignore
+            return k.astype(np.int8), i, f
+        case 'concatename':
+            axis = layer.attributes.attributes['axis']
+            _ks, _is, _fs = zip(*[kif for kif in kif_ins])
+            k = np.concatenate(_ks, axis=axis)
+            i = np.concatenate(_is, axis=axis)
+            f = np.concatenate(_fs, axis=axis)
+            return k, i, f
+        case _:
+            raise NotImplementedError(f'No implementation of Merge for {op}')
+
+
+@produce_kif.register
 def _(layer: EinsumDense):
     t_kernel = layer.attributes.attributes['weight'].data
     to_original_kernel = layer.attributes.attributes['to_original_kernel']
@@ -179,6 +228,17 @@ def _(layer: EinsumDense):
         t_bias = _bias.data
         bias = t_bias.transpose(layer.attributes.attributes['out_tpose_idxs'])
         qint_out = qint_out + bias
+    k, i, f = qint_out.to_kif()
+    return k.astype(np.int8), i, f
+
+
+@produce_kif.register
+def _(layer: Einsum):
+    kif_in1, kif_in2 = get_input_kifs(layer)
+    qint_in1 = QIntervalArray.from_kif(*kif_in1)
+    qint_in2 = QIntervalArray.from_kif(*kif_in2)
+    eq = layer.attributes.attributes['equation']
+    qint_out = einsum(eq, qint_in1, qint_in2)
     k, i, f = qint_out.to_kif()
     return k.astype(np.int8), i, f
 

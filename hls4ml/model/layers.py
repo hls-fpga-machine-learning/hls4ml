@@ -1693,6 +1693,55 @@ class EinsumDense(Layer):
         self.add_bias()
 
 
+class Matmul(Layer):
+    _expected_attributes = [
+        TypeAttribute('accum'),
+        Attribute('inup1_shape', value_type=tuple),
+        Attribute('inp2_shape', value_type=tuple),
+    ]
+
+
+class Einsum(Layer):
+    _expected_attributes = [
+        TypeAttribute('accum'),
+        Attribute('equation', value_type=str),
+        Attribute('inp0_shape', value_type=tuple),
+        Attribute('inp1_shape', value_type=tuple),
+        Attribute('out_shape', value_type=tuple),
+    ]
+
+    def initialize(self):
+        out_shape = self.attributes['out_shape']
+        if len(out_shape) > 1:
+            dims = [f'N_LAYER_{self.index}_D{i}' for i in range(1, len(out_shape) + 1)]
+        else:
+            dims = [f'N_LAYER_{self.index}']
+        self.add_output_variable(list(out_shape), dims)
+
+        equation = self.attributes['equation']
+        inp0_shape = self.attributes['inp0_shape']
+        inp1_shape = self.attributes['inp1_shape']
+        out_shape = self.attributes['out_shape']
+
+        recipe = parse_einsum(equation, inp0_shape, inp1_shape)
+        inp0_tpose_idxs, inp1_tpose_idxs = recipe['in_transpose_idxs']
+        out_tpose_idxs = recipe['out_transpose_idxs']
+
+        self.attributes.attributes.update(recipe)
+        self.attributes['n_free0'] = recipe['L0']
+        self.attributes['n_free1'] = recipe['L1']
+        self.attributes['n_inplace'] = recipe['I']
+        self.attributes['n_contract'] = recipe['C']
+        self.attributes['out_interpert_shape'] = recipe['out_interpert_shape']
+
+        self.attributes['inp0_tpose_idxs'] = inp0_tpose_idxs
+        self.attributes['inp1_tpose_idxs'] = inp1_tpose_idxs
+        self.attributes['out_tpose_idxs'] = out_tpose_idxs
+
+        pf = self.attributes.attributes.get('parallelization_factor', recipe['L0'])
+        self.attributes['parallelization_factor'] = pf
+
+
 layer_map = {
     'Input': Input,
     'InputLayer': Input,
@@ -1762,6 +1811,7 @@ layer_map = {
     # TensorFlow-specific layers:
     'BiasAdd': BiasAdd,
     'EinsumDense': EinsumDense,
+    'Einsum': Einsum,
 }
 
 

@@ -6,7 +6,7 @@ from .reshaping_templates import transpose_config_gen
 
 # Shared Dense template
 
-conv_dense_config_template = """struct config{index}_dense : nnet::dense_config {{
+dense_config_template = """struct config{index}_dense : nnet::dense_config {{
     static const unsigned n_in = {n_in};
     static const unsigned n_out = {n_out};
     static const unsigned reuse_factor = {reuse};
@@ -54,7 +54,7 @@ class EinsumDenseConfigTemplate(LayerConfigTemplate):
     def __init__(self):
         super().__init__(EinsumDense)
         self.template = einsum_dense_config_template
-        self.dense_template = conv_dense_config_template
+        self.dense_template = dense_config_template
 
     def format(self, node: EinsumDense):
         default_params = self._default_config_params(node)
