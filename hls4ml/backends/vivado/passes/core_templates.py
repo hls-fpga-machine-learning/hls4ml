@@ -150,13 +150,17 @@ const {shift_t.name} {type}_config{index}::shift = {shift};\n"""
 
 softmax_config_template = """struct {type}_config{index} : nnet::activ_config {{
     static const unsigned n_in = {n_in};
-    static const unsigned table_size = {table_size};
+    static const unsigned exp_table_size = {table_size};
+    static const unsigned inv_table_size = {table_size};
     static const unsigned io_type = nnet::{iotype};
     static const unsigned reuse_factor = {reuse};
     static const unsigned axis = {axis};
     static const nnet::softmax_implementation implementation = nnet::softmax_implementation::{implementation};
     typedef {exp_table_t.name} exp_table_t;
     typedef {inv_table_t.name} inv_table_t;
+    typedef {accum_t.name} accum_t;
+    typedef {inv_inp_t.name} inv_inp_t;
+    typedef {inp_norm_t_str} inp_norm_t;
 }};\n"""
 
 activ_function_template = 'nnet::{activation}<{input_t}, {output_t}, {config}>({input}, {output});'
@@ -207,6 +211,19 @@ class SoftmaxConfigTemplate(ActivationConfigTemplate):
     def __init__(self):
         super(ActivationConfigTemplate, self).__init__(Softmax)  # Skip ActivationConfigTemplate's __init__
         self.template = softmax_config_template
+
+    def format(self, node):
+        params = self._default_config_params(node)
+        params['type'] = node.get_attr('activation')
+        if 'exp_table_size' not in params:
+            params['exp_table_size'] = params['table_size']
+        if 'inv_table_size' not in params:
+            params['inv_table_size'] = params['table_size']
+        if 'inp_norm_t_str' not in params:
+            input_t = node.get_input_variable().type.precision
+            width, iwidth = input_t.width, input_t.integer
+            params['inp_norm_t_str'] = f'ap_fixed<{width}, {iwidth}, AP_RND, AP_SAT>'
+        return self.template.format(**params)
 
 
 class ActivationFunctionTemplate(FunctionCallTemplate):
