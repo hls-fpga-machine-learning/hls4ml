@@ -1,37 +1,12 @@
 import typing
 from typing import Sequence
 
+from ..einsum_dense import strip_batch_dim
 from ._base import SQLayerHandler, register
 
 if typing.TYPE_CHECKING:
     import squark
     from keras.api import KerasTensor
-
-
-def strip_batch_dim(equation: str, einsum_dense: bool = True):
-    """Remove the batch dimension from the equation.
-
-    Args:
-        equation (str): The einsum equation.
-        einsum_dense (bool): Whether the equation is for EinsumDense layer.
-
-    Returns:
-        str: The einsum equation without the batch dimension.
-    """
-
-    _inps, out = equation.split('->')
-    inp0, inp1 = _inps.split(',')
-    if einsum_dense:
-        if inp0.startswith('...'):
-            assert out.startswith('...'), f'Error in eq: {equation}: Batch dim mismatch for the input and output.'
-        else:
-            assert inp0[0] == out[0], f'Error in eq: {equation}: Batch dim mismatch for the input and output.'
-            assert inp0[0] not in inp1, f'Error in eq: {equation}: Batch dim is used in the kernel.'
-            inp0, out = inp0[1:], out[1:]
-    else:
-        assert inp0[0] == inp1[0] == out[0], f'Error in eq: {equation}: Batch dim mismatch for the inputs and output.'
-        inp0, inp1, out = inp0[1:], inp1[1:], out[1:]
-    return f'{inp0},{inp1}->{out}'
 
 
 @register
