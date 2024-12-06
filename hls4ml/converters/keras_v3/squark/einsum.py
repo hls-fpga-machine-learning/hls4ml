@@ -35,7 +35,7 @@ def strip_batch_dim(equation: str, einsum_dense: bool = True):
 
 
 @register
-class KV3EinsumDenseHandler(SQLayerHandler):
+class SQEinsumDenseHandler(SQLayerHandler):
     handles = ('squark.layers.ops.einsum.QEinsum',)
 
     def handle(
@@ -69,8 +69,3 @@ class KV3EinsumDenseHandler(SQLayerHandler):
             'inp1_shape': inp1_shape,
             'out_shape': out_shape,
         }
-
-
-# @register
-# class SQEinsumDenseHandler(SQLayerHandler, KV3EinsumDenseHandler):
-#     handles = ('squark.layers.ops.einsum.QEinsum',)
