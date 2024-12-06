@@ -21,6 +21,8 @@ from hls4ml.model.types import (
     FixedPrecisionType,
     IntegerPrecisionType,
     NamedType,
+    RoundingMode,
+    SaturationMode,
     TensorVariable,
     UnspecifiedPrecisionType,
     WeightVariable,
@@ -977,6 +979,21 @@ class PReLU(Activation):
 
 
 class Softmax(Activation):
+    _expected_attributes = [
+        Attribute('n_in'),
+        Attribute('activation', value_type=str),
+        ChoiceAttribute('implementation', ['latency', 'stable', 'argmax', 'legacy'], default='stable'),
+        ConfigurableAttribute('skip', value_type=bool, default=False),
+        TypeAttribute(
+            'exp_table',
+            default=FixedPrecisionType(18, 8, rounding_mode=RoundingMode.RND, saturation_mode=SaturationMode.SAT),
+        ),
+        TypeAttribute(
+            'inv_table',
+            default=FixedPrecisionType(18, 8, rounding_mode=RoundingMode.RND, saturation_mode=SaturationMode.SAT),
+        ),
+    ]
+
     def initialize(self):
         super().initialize()
 

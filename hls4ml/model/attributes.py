@@ -36,7 +36,7 @@ class Attribute:
 
     """
 
-    def __init__(self, name, value_type=Integral, default=None, configurable=False, description=None):
+    def __init__(self, name, value_type: type = Integral, default=None, configurable=False, description=None):
         self.name = name
         self.value_type = value_type
         self.default = default
