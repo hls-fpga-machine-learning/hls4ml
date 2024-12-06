@@ -2,7 +2,6 @@ from math import prod
 from typing import TYPE_CHECKING, Any, Sequence
 
 import numpy as np
-from keras.api import Layer
 
 from hls4ml.converters.keras_v3._base import KerasV3LayerHandler, register
 from hls4ml.converters.keras_v3.conv import KV3ConvHandler
@@ -11,7 +10,7 @@ from hls4ml.converters.keras_v3.einsum_dense import KV3EinsumDenseHandler
 
 if TYPE_CHECKING:
     import squark
-    from keras import KerasTensor
+    from keras.api import KerasTensor, Layer
 
 
 def extract_fixed_quantizer_config(q, tensor: 'KerasTensor', is_input: bool) -> dict[str, Any]:
@@ -98,7 +97,7 @@ class SQLayerHandler(KerasV3LayerHandler):
 
         return *iq_confs, *ret, *oq_confs
 
-    def load_weight(self, layer: Layer, key: str):
+    def load_weight(self, layer: 'Layer', key: str):
         from keras.api.ops import convert_to_numpy
 
         if hasattr(layer, f'q{key}'):
