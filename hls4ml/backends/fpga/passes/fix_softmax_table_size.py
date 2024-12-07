@@ -6,7 +6,11 @@ from hls4ml.model.optimizer import OptimizerPass
 
 class FixSoftmaxTableSize(OptimizerPass):
     def match(self, node):
-        return isinstance(node, Softmax)
+        if not isinstance(node, Softmax):
+            return False
+        if 'inv_table_size' in node.attributes:
+            return False  # handler generating inv_table_size sets it properly
+        return True
 
     def transform(self, model, node: Layer):
         inp_layer = node.get_input_node()  # type: ignore
