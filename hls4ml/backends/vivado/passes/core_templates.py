@@ -150,8 +150,8 @@ const {shift_t.name} {type}_config{index}::shift = {shift};\n"""
 
 softmax_config_template = """struct {type}_config{index} : nnet::activ_config {{
     static const unsigned n_in = {n_in};
-    static const unsigned exp_table_size = {table_size};
-    static const unsigned inv_table_size = {table_size};
+    static const unsigned exp_table_size = {exp_table_size};
+    static const unsigned inv_table_size = {inv_table_size};
     static const unsigned io_type = nnet::{iotype};
     static const unsigned reuse_factor = {reuse};
     static const unsigned axis = {axis};
