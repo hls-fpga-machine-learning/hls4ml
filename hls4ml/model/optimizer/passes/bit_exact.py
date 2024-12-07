@@ -1,5 +1,5 @@
 import typing
-from functools import singledispatch
+from functools import reduce, singledispatch
 from typing import Sequence
 
 import numpy as np
@@ -18,17 +18,15 @@ from hls4ml.model.layers import (
     Merge,
     Pooling1D,
     Reshape,
+    Softmax,
 )
+from hls4ml.model.optimizer import OptimizerPass
 from hls4ml.model.optimizer.passes.hgq_proxy_model import FixedPointQuantizer
+from hls4ml.model.types import FixedPrecisionType, NamedType
+from hls4ml.utils.qinterval import QIntervalArray, einsum, minimal_kif
 
 if typing.TYPE_CHECKING:
     from hls4ml.model import ModelGraph
-
-from functools import reduce
-
-from hls4ml.model.optimizer import OptimizerPass
-from hls4ml.model.types import FixedPrecisionType, NamedType
-from hls4ml.utils.qinterval import QIntervalArray, einsum, minimal_kif
 
 KIF_t = tuple[NDArray[np.int8], NDArray[np.int8], NDArray[np.int8]]
 
@@ -45,13 +43,13 @@ def to_hls4ml_fixed(k, i, f, name, *args):
 
 def get_input_layers(layer: Layer):
     model: 'ModelGraph' = layer.model
-    inp_names = layer.attributes.attributes['inputs']
+    inp_names = layer.attributes.get('inputs', ())
     return [model.graph[name] for name in inp_names]
 
 
 def get_output_layers(layer: Layer):
     model: 'ModelGraph' = layer.model
-    return [l for l in model.graph.values() if layer.name in l.attributes.attributes['inputs']]
+    return [l for l in model.graph.values() if layer.name in l.attributes.get('inputs', ())]
 
 
 def get_output_shape(layer: Layer) -> tuple[int, ...]:
@@ -347,11 +345,30 @@ def _(layer: BatchNormalization):
     return k.astype(np.int8), i, f
 
 
+@produce_kif.register
+def _(layer: Softmax):
+    out_shape = get_output_shape(layer)
+
+    inv_table_t: FixedPrecisionType = layer.attributes['inv_table_t'].precision
+    exp_table_t: FixedPrecisionType = layer.attributes['exp_table_t'].precision
+
+    b_exp, I_exp = exp_table_t.width, exp_table_t.integer
+    b_inv, I_inv = inv_table_t.width, inv_table_t.integer
+
+    i_exp, f_exp = I_exp, b_exp - I_exp
+    i_inv, f_inv = I_inv, b_inv - I_inv
+    k = np.zeros(out_shape, dtype=np.int8)
+    i = np.full(out_shape, i_exp + i_inv, dtype=np.int8)
+    f = np.full(out_shape, f_exp + f_inv, dtype=np.int8)
+
+    return k, i, f
+
+
 def kif_arrs_to_ints(arr: tuple[np.ndarray, np.ndarray, np.ndarray]):
     return tuple(int(np.max(a)) for a in arr)
 
 
-def register_precision(layer: Layer):
+def default_register_precision(layer: Layer):
     _pk, _pi, _pf = produce_kif(layer)
     _rk, _ri, _rf = requested_kif(layer)
     _out_kif = np.minimum(_pk, _rk), np.minimum(_pi, _ri), np.minimum(_pf, _rf)
@@ -379,6 +396,20 @@ def register_precision(layer: Layer):
             bias_kif = kif_arrs_to_ints(minimal_kif(_bias.data))
             bias_t = to_hls4ml_fixed(*bias_kif, f'{layer.name}_bias_t')
         layer.attributes.attributes['bias_t'] = bias_t
+
+    return (_pk, _pi, _pf), (_rk, _ri, _rf), _out_kif
+
+
+@singledispatch
+def register_precision(node: Layer):
+    default_register_precision(node)
+
+
+@register_precision.register
+def _(node: Softmax):
+    accum_t = node.attributes['accum_t']
+    default_register_precision(node)
+    node.attributes['accum_t'] = accum_t
 
 
 class BitExact(OptimizerPass):

@@ -1,1 +1,1 @@
-from . import _base, einsum
+from . import _base, einsum, softmax
