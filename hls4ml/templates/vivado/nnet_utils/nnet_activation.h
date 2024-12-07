@@ -146,11 +146,14 @@ template <class data_T, unsigned table_size> inline unsigned softmax_idx_from_re
 }
 
 template <class data_T, typename CONFIG_T>
-void init_exp_table(typename CONFIG_T::exp_table_t table_out[CONFIG_T::exp_table_size]) {
+void init_exp_table(typename CONFIG_T::exp_table_t table_out[CONFIG_T::exp_table_size], bool negative = false) {
     // The template data_T is the data type used to address the table
     for (unsigned i = 0; i < CONFIG_T::exp_table_size; i++) {
         // Slicing bits for address is going to round towards 0, so take the central value
         float x = softmax_real_val_from_idx<data_T, CONFIG_T::exp_table_size>(i);
+        if (negative) {
+            x = -x;
+        }
         typename CONFIG_T::exp_table_t exp_x = exp_fcn_float(x);
         table_out[i] = exp_x;
     }
@@ -227,7 +230,7 @@ void softmax_stable(data_T data[CONFIG_T::n_in], res_T res[CONFIG_T::n_in]) {
 #endif
     if (!initialized) {
         // Note we are exponentiating the inputs, which have type data_T
-        init_exp_table<typename CONFIG_T::inp_norm_t, CONFIG_T>(exp_table);
+        init_exp_table<typename CONFIG_T::inp_norm_t, CONFIG_T>(exp_table, true);
         // Note we are inverting the exponentials, which have type exp_table_t
         init_invert_table<typename CONFIG_T::inv_inp_t, CONFIG_T>(invert_table);
         initialized = true;
@@ -241,7 +244,7 @@ void softmax_stable(data_T data[CONFIG_T::n_in], res_T res[CONFIG_T::n_in]) {
     typename CONFIG_T::inp_norm_t d_xi_xmax[CONFIG_T::n_in];
     for (unsigned i = 0; i < CONFIG_T::n_in; i++) {
         #pragma HLS unroll
-        d_xi_xmax[i] = data[i] - x_max;
+        d_xi_xmax[i] = x_max - data[i];
     }
 
     // Calculate all the e^x's

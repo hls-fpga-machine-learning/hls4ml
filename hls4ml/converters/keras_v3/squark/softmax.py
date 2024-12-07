@@ -1,6 +1,4 @@
 import typing
-from copy import copy
-from math import ceil, log2, prod
 from typing import Sequence
 
 from hls4ml.model.types import FixedPrecisionType, RoundingMode, SaturationMode
@@ -73,21 +71,6 @@ class SQSoftmaxDenseHandler(SQLayerHandler, KV3SoftmaxHandler):
 
         inv_table_size = 2**inv_inp_t.width
 
-        # Set accum_t
-        accum_t = copy(inv_inp_t)
-        if inv_inp_t.saturation_mode != SaturationMode.WRAP:
-            accum_t.saturation_bits = SaturationMode.WRAP
-            L = prod(in_tensors[0].shape[ax] for ax in layer.axis)  # type: ignore
-            scale = ceil(log2(L))
-            accum_t.width += scale
-            accum_t.integer += scale
-        if inv_inp_t.rounding_mode == RoundingMode.TRN:
-            pass
-        elif inv_inp_t.rounding_mode == RoundingMode.RND:
-            accum_t.width += 1
-        else:
-            accum_t.width += 2
-
         config = super().handle(layer, in_tensors, out_tensors)
         assert len(config) == 1
         config[0].update(
@@ -99,9 +82,11 @@ class SQSoftmaxDenseHandler(SQLayerHandler, KV3SoftmaxHandler):
                 'inv_table_t': inv_table_t,
                 'inv_table_size': inv_table_size,
                 'inv_inp_t': inv_inp_t,
-                'accum_t': accum_t,
             }
         )
         if layer.stable:
-            config[0]['inp_norm_t'] = fixed_quantizer_to_hls4ml_t(layer.exp_table.iq.quantizer, take_max=True)
+            inp_norm_t = fixed_quantizer_to_hls4ml_t(layer.exp_table.iq.quantizer)
+            inp_norm_t.saturation_mode = SaturationMode.WRAP
+            inp_norm_t.rounding_mode = RoundingMode.TRN
+            config[0]['inp_norm_t'] = inp_norm_t
         return config

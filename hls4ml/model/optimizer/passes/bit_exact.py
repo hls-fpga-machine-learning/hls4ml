@@ -1,5 +1,7 @@
 import typing
+from copy import copy
 from functools import reduce, singledispatch
+from math import ceil, log2
 from typing import Sequence
 
 import numpy as np
@@ -22,7 +24,7 @@ from hls4ml.model.layers import (
 )
 from hls4ml.model.optimizer import OptimizerPass
 from hls4ml.model.optimizer.passes.hgq_proxy_model import FixedPointQuantizer
-from hls4ml.model.types import FixedPrecisionType, NamedType
+from hls4ml.model.types import FixedPrecisionType, NamedType, RoundingMode, SaturationMode
 from hls4ml.utils.qinterval import QIntervalArray, einsum, minimal_kif
 
 if typing.TYPE_CHECKING:
@@ -358,7 +360,7 @@ def _(layer: Softmax):
     i_exp, f_exp = I_exp, b_exp - I_exp
     i_inv, f_inv = I_inv, b_inv - I_inv
     k = np.zeros(out_shape, dtype=np.int8)
-    i = np.full(out_shape, i_exp + i_inv, dtype=np.int8)
+    i = np.full(out_shape, min(i_exp + i_inv, 1), dtype=np.int8)
     f = np.full(out_shape, f_exp + f_inv, dtype=np.int8)
 
     return k, i, f
@@ -407,9 +409,30 @@ def register_precision(node: Layer):
 
 @register_precision.register
 def _(node: Softmax):
-    accum_t = node.attributes['accum_t']
+    inv_inp_t: FixedPrecisionType = node.attributes['inv_inp_t'].precision
+    accum_t = copy(inv_inp_t)
+    if inv_inp_t.saturation_mode != SaturationMode.WRAP:
+        accum_t.saturation_bits = SaturationMode.WRAP
+        inp_shape = get_input_shapes(node)[0]
+        axis = node.attributes['axis']
+        L = inp_shape[axis]  # type: ignore
+        scale = ceil(log2(L))
+        accum_t.width += scale
+        accum_t.integer += scale
+    if inv_inp_t.rounding_mode == RoundingMode.TRN:
+        pass
+    elif inv_inp_t.rounding_mode == RoundingMode.RND:
+        accum_t.width += 1
+    else:
+        accum_t.width += 2
     default_register_precision(node)
-    node.attributes['accum_t'] = accum_t
+    exp_table_size = node.attributes['exp_table_size']
+    if exp_table_size is None:
+        k, i, f = get_input_kifs(node)[0]
+        b = np.max(k) + np.max(i) + np.max(f)
+        exp_table_size = 2 ** int(b)
+    node.attributes['exp_table_size'] = exp_table_size
+    node.attributes['accum_t'] = NamedType(f'{node.name}_accum_t', accum_t)
 
 
 class BitExact(OptimizerPass):

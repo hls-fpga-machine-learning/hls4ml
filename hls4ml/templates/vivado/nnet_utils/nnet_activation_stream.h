@@ -180,7 +180,7 @@ void softmax_stable(hls::stream<data_T> &data, hls::stream<res_T> &res) {
 #endif
     if (!initialized) {
         // Note we are exponentiating the inputs, which have type data_T
-        init_exp_table<typename CONFIG_T::inp_norm_t, CONFIG_T>(exp_table);
+        init_exp_table<typename CONFIG_T::inp_norm_t, CONFIG_T>(exp_table, true);
         // Note we are inverting the exponentials, which have type exp_table_t
         init_invert_table<typename CONFIG_T::inv_inp_t, CONFIG_T>(invert_table);
         initialized = true;
@@ -211,7 +211,7 @@ SoftmaxArrayLoop:
         typename CONFIG_T::inp_norm_t d_xi_xmax[data_T::size];
         for (unsigned j = 0; j < data_T::size; j++) {
             #pragma HLS UNROLL
-            d_xi_xmax[j] = data_array[j] - x_max;
+            d_xi_xmax[j] = x_max - data_array[j];
         }
 
         // Calculate all the e^x's

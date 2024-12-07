@@ -219,10 +219,12 @@ class SoftmaxConfigTemplate(ActivationConfigTemplate):
             params['exp_table_size'] = params['table_size']
         if 'inv_table_size' not in params:
             params['inv_table_size'] = params['table_size']
-        if 'inp_norm_t_str' not in params:
+        if 'inp_norm_t' not in params:
             input_t = node.get_input_variable().type.precision
             width, iwidth = input_t.width, input_t.integer
             params['inp_norm_t_str'] = f'ap_fixed<{width}, {iwidth}, AP_RND, AP_SAT>'
+        else:
+            params['inp_norm_t_str'] = params['inp_norm_t'].name  # type: ignore
         return self.template.format(**params)
 
 
