@@ -156,6 +156,7 @@ softmax_config_template = """struct {type}_config{index} : nnet::activ_config {{
     static const unsigned reuse_factor = {reuse};
     static const unsigned axis = {axis};
     static const nnet::softmax_implementation implementation = nnet::softmax_implementation::{implementation};
+    static constexpr float exp_scale = {exp_scale};
     typedef {exp_table_t.name} exp_table_t;
     typedef {inv_table_t.name} inv_table_t;
     typedef {accum_t.name} accum_t;
@@ -225,6 +226,7 @@ class SoftmaxConfigTemplate(ActivationConfigTemplate):
             params['inp_norm_t_str'] = f'ap_fixed<{width}, {iwidth}, AP_RND, AP_SAT>'
         else:
             params['inp_norm_t_str'] = params['inp_norm_t'].name  # type: ignore
+        params['exp_scale'] = node.get_attr('exp_scale', 1.0)
         return self.template.format(**params)
 
 

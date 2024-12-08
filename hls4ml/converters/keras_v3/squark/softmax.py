@@ -68,6 +68,7 @@ class SQSoftmaxDenseHandler(SQLayerHandler, KV3SoftmaxHandler):
         exp_table_t = fixed_quantizer_to_hls4ml_t(exp_oq)
         inv_table_t = fixed_quantizer_to_hls4ml_t(inv_oq)
         inv_inp_t = fixed_quantizer_to_hls4ml_t(inv_iq)
+        exp_scale = layer.input_scaler
 
         inv_table_size = 2**inv_inp_t.width
 
@@ -82,6 +83,7 @@ class SQSoftmaxDenseHandler(SQLayerHandler, KV3SoftmaxHandler):
                 'inv_table_t': inv_table_t,
                 'inv_table_size': inv_table_size,
                 'inv_inp_t': inv_inp_t,
+                'exp_scale': exp_scale,
             }
         )
         if layer.stable:
