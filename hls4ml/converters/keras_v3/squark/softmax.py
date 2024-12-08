@@ -1,4 +1,5 @@
 import typing
+from math import prod
 from typing import Sequence
 
 from hls4ml.model.types import FixedPrecisionType, RoundingMode, SaturationMode
@@ -49,7 +50,7 @@ class SQSoftmaxDenseHandler(SQLayerHandler, KV3SoftmaxHandler):
         out_tensors: Sequence['KerasTensor'],
     ):
         assert not layer._allow_heterogeneous_table, 'Heterogeneous table is not supported in QSoftmax layer'
-        assert len(layer.axis) == 1, 'Support softmax along one axis. Use transpose before & after softmax as workaround.'
+        assert len(layer.axis) == 1, 'Support softmax along one axis. Use transpose & reshape as workaround.'
 
         from keras import ops
         from squark.quantizer.internal import FixedPointQuantizerBase
@@ -74,9 +75,24 @@ class SQSoftmaxDenseHandler(SQLayerHandler, KV3SoftmaxHandler):
 
         config = super().handle(layer, in_tensors, out_tensors)
         assert len(config) == 1
+        parallelization_factor = layer.parallelization_factor
+
+        ax = layer.axis[0]
+        ax = ax if ax >= 0 else len(in_tensors[0].shape) + ax
+        # io_stream asserts axis=-1, convert to -1 when it is
+        n_outer: int = prod(in_tensors[0].shape[1:ax])  # type: ignore
+        n_inner: int = prod(in_tensors[0].shape[ax + 1 :])  # type: ignore
+        ax = -1 if ax == len(in_tensors[0].shape) - 1 else ax
+        n_in: int = in_tensors[0].shape[ax]  # type: ignore
+        if parallelization_factor < 0:
+            parallelization_factor = n_outer * n_inner
+
         config[0].update(
             {
-                'axis': layer.axis[0],
+                'axis': ax,
+                'n_in': n_in,
+                'n_outer': n_outer,
+                'n_inner': n_inner,
                 'implementation': impl,
                 'exp_table_t': exp_table_t,
                 'exp_table_size': exp_table_size,
@@ -84,6 +100,7 @@ class SQSoftmaxDenseHandler(SQLayerHandler, KV3SoftmaxHandler):
                 'inv_table_size': inv_table_size,
                 'inv_inp_t': inv_inp_t,
                 'exp_scale': exp_scale,
+                'parallelization_factor': parallelization_factor,
             }
         )
         if layer.stable:

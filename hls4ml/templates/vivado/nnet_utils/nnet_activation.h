@@ -395,6 +395,30 @@ void softmax(data_T data[CONFIG_T::n_in], res_T res[CONFIG_T::n_in]) {
     }
 }
 
+template <class data_T, class res_T, typename CONFIG_T>
+void softmax_multidim(data_T data[CONFIG_T::outer * CONFIG_T::n_in * CONFIG_T::n_inner],
+                      res_T res[CONFIG_T::outer * CONFIG_T::n_in * CONFIG_T::n_inner]) {
+    #pragma HLS inline
+    #pragma HLS allocation instances = softmax<CONFIG_T> limit = CONFIG_T::parallelization_factor function
+    data_T buffer_in[CONFIG_T::n_in];
+    res_T buffer_out[CONFIG_T::n_in];
+    for (signed i = 0; i < CONFIG_T::n_outer; i++) {
+        #pragma HLS UNROLL
+        for (signed k = 0; k < CONFIG_T::n_inner; k++) {
+            #pragma HLS UNROLL
+            for (signed j = 0; j < CONFIG_T::n_in; j++) {
+                #pragma HLS UNROLL
+                buffer_in[j] = data[i * CONFIG_T::n_in * CONFIG_T::n_inner + j * CONFIG_T::n_inner + k];
+            }
+            softmax<data_T, res_T, CONFIG_T>(buffer_in, buffer_out);
+            for (signed j = 0; j < CONFIG_T::n_in; j++) {
+                #pragma HLS UNROLL
+                res[i * CONFIG_T::n_in * CONFIG_T::n_inner + j * CONFIG_T::n_inner + k] = buffer_out[j];
+            }
+        }
+    }
+}
+
 // *************************************************
 //       TanH Activation
 // *************************************************

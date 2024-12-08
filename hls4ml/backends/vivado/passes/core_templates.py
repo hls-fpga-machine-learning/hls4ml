@@ -150,6 +150,9 @@ const {shift_t.name} {type}_config{index}::shift = {shift};\n"""
 
 softmax_config_template = """struct {type}_config{index} : nnet::activ_config {{
     static const unsigned n_in = {n_in};
+    static const unsigned n_outer = {n_outer};
+    static const unsigned n_inner = {n_inner};
+    static const unsigned parallelization_factor = {parallelization_factor};
     static const unsigned exp_table_size = {exp_table_size};
     static const unsigned inv_table_size = {inv_table_size};
     static const unsigned io_type = nnet::{iotype};
@@ -216,23 +219,41 @@ class SoftmaxConfigTemplate(ActivationConfigTemplate):
     def format(self, node):
         params = self._default_config_params(node)
         params['type'] = node.get_attr('activation')
-        if 'exp_table_size' not in params:
-            params['exp_table_size'] = params['table_size']
-        if 'inv_table_size' not in params:
-            params['inv_table_size'] = params['table_size']
+        params.setdefault('exp_table_size', params['table_size'])
+        params.setdefault('inv_table_size', params['table_size'])
+        params.setdefault('n_inner', 1)
+        params.setdefault('n_outer', 1)
+        params.setdefault('exp_scale', 1.0)
+        params.setdefault('parallelization_factor', -1)
+
         if 'inp_norm_t' not in params:
             input_t = node.get_input_variable().type.precision
             width, iwidth = input_t.width, input_t.integer
             params['inp_norm_t_str'] = f'ap_fixed<{width}, {iwidth}, AP_RND, AP_SAT>'
         else:
             params['inp_norm_t_str'] = params['inp_norm_t'].name  # type: ignore
-        params['exp_scale'] = node.get_attr('exp_scale', 1.0)
+
+        return self.template.format(**params)
+
+
+class SoftmaxFunctionTemplate(FunctionCallTemplate):
+    def __init__(self):
+        super().__init__(Softmax, include_header=activ_include_list)
+        self.template = activ_function_template
+
+    def format(self, node):
+        params = self._default_function_params(node)
+        use_multidim = node.get_attr('n_inner', 1) > 1 or node.get_attr('n_outer', 1) > 1
+        use_multidim = use_multidim and node.model.config.get_config_value('IOType') == 'io_parallel'
+        params['activation'] = 'softmax' if not use_multidim else 'softmax_multidim'
+        params['config'] = f'softmax_config{node.index}'
+
         return self.template.format(**params)
 
 
 class ActivationFunctionTemplate(FunctionCallTemplate):
     def __init__(self):
-        super().__init__((Activation, HardActivation, Softmax), include_header=activ_include_list)
+        super().__init__((Activation, HardActivation), include_header=activ_include_list)
         self.template = activ_function_template
 
     def format(self, node):
