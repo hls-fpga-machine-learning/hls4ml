@@ -10,11 +10,14 @@ def fixedpoint_quantizer_handler(keras_layer, input_names, input_shapes, data_re
     config['RND'] = keras_layer['config']['RND']
     config['SAT'] = keras_layer['config']['SAT']
     config['fusible'] = fusible
-    if not fusible:
-        k = data_reader.get_weights_data(name, 'keep_negative')
-        b = data_reader.get_weights_data(name, 'bits')
-        i = data_reader.get_weights_data(name, 'integers')
-        config['mask_kbi'] = k, b, i
+    k = data_reader.get_weights_data(name, 'keep_negative')
+    b = data_reader.get_weights_data(name, 'bits')
+    i = data_reader.get_weights_data(name, 'integers')
+
+    if fusible:
+        k, b, i = k.ravel()[0], b.ravel()[0], i.ravel()[0]
+
+    config['mask_kbi'] = k, b, i
     config['overrides'] = keras_layer['config']['overrides']
 
     layer = config

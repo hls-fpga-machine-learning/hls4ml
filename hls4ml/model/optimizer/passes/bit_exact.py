@@ -89,7 +89,7 @@ def _(layer: FixedPointQuantizer):
         f += 1
     else:
         f += 2
-    return ((k, i, f),)
+    return ((k[0], i[0], f[0]),)
 
 
 @request_kif.register(Pooling1D)
@@ -140,7 +140,12 @@ def _(layer: Pooling1D | GlobalPooling1D):
 
 @request_kif.register
 def _(layer: Reshape):
-    return (requested_kif(layer),)
+    inp_shape = get_input_shapes(layer)[0]
+    k, i, f = requested_kif(layer)
+    k = k.reshape(inp_shape)
+    i = i.reshape(inp_shape)
+    f = f.reshape(inp_shape)
+    return ((k, i, f),)
 
 
 def requested_kif(layer: Layer):
@@ -376,7 +381,7 @@ def default_register_precision(layer: Layer):
     _out_kif = np.minimum(_pk, _rk), np.minimum(_pi, _ri), np.minimum(_pf, _rf)
     _out_kif[1][(_pf > _rf) & (_pi <= _ri)] += 1
     result_kif = kif_arrs_to_ints(_out_kif)
-    result_t = to_hls4ml_fixed(*result_kif, f'{layer.name}_result_t')
+    result_t = to_hls4ml_fixed(*result_kif, f'{layer.name}_t')
     layer.attributes.attributes['result_t'] = result_t
     layer.attributes.attributes[layer.name].type = result_t  # Why??????
 
@@ -425,6 +430,7 @@ def _(node: Softmax):
         accum_t.width += 1
     else:
         accum_t.width += 2
+    accum_t.rounding_mode = RoundingMode.TRN
     default_register_precision(node)
     exp_table_size = node.attributes['exp_table_size']
     if exp_table_size is None:
@@ -437,8 +443,11 @@ def _(node: Softmax):
 
 class BitExact(OptimizerPass):
     def match(self, node):
+        if node.attributes.get('bit_exact_transformed'):
+            return False
         return True
 
     def transform(self, model, node):
         register_precision(node)
+        node.attributes['bit_exact_transformed'] = True
         return False

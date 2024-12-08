@@ -52,10 +52,6 @@ class ProcessFixedPointQuantizerLayer(OptimizerPass):
         return isinstance(node, FixedPointQuantizer)
 
     def transform(self, model, node: FixedPointQuantizer):
-        if node.fusible:
-            model.remove_node(node, rewire=True)
-            return True
-
         if model.config.config['IOType'] != 'io_parallel':
             raise NotImplementedError('Heterogenous quantization for activations is only supported with IOType=io_parallel')
 
