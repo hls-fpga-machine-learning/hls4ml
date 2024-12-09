@@ -90,7 +90,6 @@ class ProcessUnaryLUTCall(FunctionCallTemplate):
 
     def format(self, node):
         params = self._default_function_params(node)
-        node.attributes['result_t'].precision = node.attributes['table_t'].precision
         params['config'] = f'unary_lut_config{node.index}'
         params['table'] = node.get_weights('table').name
 

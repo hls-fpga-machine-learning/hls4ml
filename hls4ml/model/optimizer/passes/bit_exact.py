@@ -164,7 +164,7 @@ def _(layer: Activation):
         return (requested_kif(layer),)
     if fn_name == 'relu':
         k, i, f = requested_kif(layer)
-        k[:] = 1
+        k = np.ones_like(k)
         return ((k, i, f),)
     inp_shape = get_input_shapes(layer)[0]
     return (_maximum_kif_at_shape(inp_shape),)
@@ -421,27 +421,30 @@ def _(layer: Activation):
     if fn_name == 'linear':
         return k, i, f
     if fn_name == 'relu':
-        k[:] = 0
+        print(k.__class__)
+        k = np.zeros_like(k)
         return k, i, f
     if fn_name == 'tanh':
         i = np.minimum(i, 1)
-        f[:] = 126
+        f = np.full_like(f, 126)
         return k, i, f
     if fn_name == 'sigmoid':
-        k[:] = 0
+        k = np.zeros_like(k)
         i = np.minimum(i, 1)
-        f[:] = 126
+        f = np.full_like(f, 126)
         return k, i, f
 
-    k[:] = 1
-    i[:] = 126
-    f[:] = 126
+    k = np.zeros_like(k)
+    i = np.full_like(i, 1)
+    f = np.full_like(f, 126)
     return k, i, f
 
 
 @produce_kif.register
 def _(layer: UnaryLUT):
-    k, i, f = minimal_kif(layer.attributes['table'].data)
+    table_t = layer.attributes['table_t'].precision
+    k, I, f = table_t.signed, table_t.integer, table_t.fractional
+    i = I - k
     shape = get_output_shape(layer)
     k = np.full(shape, np.max(k), dtype=np.int8)
     i = np.full(shape, np.max(i), dtype=np.int8)

@@ -83,6 +83,7 @@ class KerasV3LayerHandler:
     """Base class for keras v3 layer handlers. Subclass this class to create a handler for a specific layer type."""
 
     handles = ()
+    default_config: DefaultConfig
 
     def __call__(
         self,
