@@ -26,7 +26,7 @@ from hls4ml.converters import convert_from_keras_model
 # tf.config.experimental_run_functions_eagerly(True)  # noqa
 
 
-test_path = Path('/tmp/test')
+test_path = Path(__file__).parent
 
 
 def _run_synth_match_test(proxy: keras.Model, data, io_type: str, backend: str, dir: str, cond=None):
@@ -154,12 +154,12 @@ def custom_activation_fn(x):
         "HConv2D(2, (3,3), padding='same', strides=2)",
         "HConv2DBatchNorm(2, (3,3), padding='valid')",
         "HAdd()",
-        # "HActivation('relu')",
-        # "HActivation('leaky_relu')",
-        # "HActivation('tanh')",
-        # "HActivation('sigmoid')",
+        "HActivation('relu')",
+        #   "HActivation('leaky_relu')",
+        "HActivation('tanh')",
+        "HActivation('sigmoid')",
         # "HActivation('softmax')",
-        # "HActivation(custom_activation_fn)",
+        "HActivation(custom_activation_fn)",
     ],
 )
 @pytest.mark.parametrize("N", [1000])

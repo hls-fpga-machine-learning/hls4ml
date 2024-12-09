@@ -1,5 +1,5 @@
-#ifndef NNET_DENSE_H_
-#define NNET_DENSE_H_
+#ifndef NNET_EINSUM_H_
+#define NNET_EINSUM_H_
 
 #include "nnet_common.h"
 #include "nnet_mult.h"

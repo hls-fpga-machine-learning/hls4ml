@@ -3,11 +3,13 @@ from copy import copy
 from functools import reduce, singledispatch
 from math import ceil, log2
 from typing import Sequence
+from warnings import warn
 
 import numpy as np
 from numpy.typing import NDArray
 
 from hls4ml.model.layers import (
+    Activation,
     BatchNormalization,
     Conv1D,
     Conv2D,
@@ -23,12 +25,13 @@ from hls4ml.model.layers import (
     Softmax,
 )
 from hls4ml.model.optimizer import OptimizerPass
-from hls4ml.model.optimizer.passes.hgq_proxy_model import FixedPointQuantizer
-from hls4ml.model.types import FixedPrecisionType, NamedType, RoundingMode, SaturationMode
+from hls4ml.model.optimizer.passes.hgq_proxy_model import FixedPointQuantizer, UnaryLUT
+from hls4ml.model.types import FixedPrecisionType, NamedType, RoundingMode, SaturationMode, WeightVariable
 from hls4ml.utils.qinterval import QIntervalArray, einsum, minimal_kif
 
 if typing.TYPE_CHECKING:
     from hls4ml.model import ModelGraph
+
 
 KIF_t = tuple[NDArray[np.int8], NDArray[np.int8], NDArray[np.int8]]
 
@@ -45,7 +48,7 @@ def to_hls4ml_fixed(k, i, f, name, *args):
 
 def get_input_layers(layer: Layer):
     model: 'ModelGraph' = layer.model
-    inp_names = layer.attributes.get('inputs', ())
+    inp_names = layer.inputs
     return [model.graph[name] for name in inp_names]
 
 
@@ -55,7 +58,7 @@ def get_output_layers(layer: Layer):
 
 
 def get_output_shape(layer: Layer) -> tuple[int, ...]:
-    return tuple(layer.attributes.attributes[layer.name].shape)
+    return tuple(layer.get_output_variable().shape)
 
 
 def get_input_shapes(layer: Layer) -> list[tuple[int, ...]]:
@@ -64,8 +67,8 @@ def get_input_shapes(layer: Layer) -> list[tuple[int, ...]]:
 
 def _maximum_kif_at_shape(shape: tuple[int, ...]):
     k = np.ones(shape, dtype=np.int8)
-    i = np.full(shape, 127, dtype=np.int8)
-    f = np.full(shape, 127, dtype=np.int8)
+    i = np.full(shape, 126, dtype=np.int8)
+    f = np.full(shape, 126, dtype=np.int8)
     return k, i, f
 
 
@@ -80,16 +83,22 @@ def _(layer: FixedPointQuantizer):
     assert layer.mask_kbi is not None
     k, b, I = layer.mask_kbi
     k, i, f = k, I - k, b - I
+
+    out_shape = get_output_shape(layer)
+    k = np.broadcast_to(k[0], out_shape).astype(np.int8)
+    i = np.broadcast_to(i[0], out_shape).astype(np.int8)
+    f = np.broadcast_to(f[0], out_shape).astype(np.int8)
+
     if layer.SAT != 'WRAP':
         k[:] = 1
-        i[:] = 127
+        i[:] = 126
     if layer.RND == 'TRN':
         pass
     elif layer.RND == 'RND':
         f += 1
     else:
         f += 2
-    return ((k[0], i[0], f[0]),)
+    return ((k, i, f),)
 
 
 @request_kif.register(Pooling1D)
@@ -109,8 +118,8 @@ def _(layer: Pooling1D | GlobalPooling1D):
     is_ch_last = layer.attributes.attributes['data_format'] == 'channels_last'
 
     k = np.ones(out_shape, dtype=np.int8)
-    i = np.full(out_shape, -128, dtype=np.int8)
-    f = np.full(out_shape, 127, dtype=np.int8)
+    i = np.full(out_shape, -127, dtype=np.int8)
+    f = np.full(out_shape, 126, dtype=np.int8)
 
     _, i_out, f_out = requested_kif(layer)
 
@@ -134,7 +143,7 @@ def _(layer: Pooling1D | GlobalPooling1D):
         ln2_size = np.log2(pool_width)
         i += np.ceil(ln2_size).astype(np.int8)
         if not ln2_size.is_integer():
-            f[:] = 127
+            f[:] = 126
     return ((k, i, f),)
 
 
@@ -148,14 +157,27 @@ def _(layer: Reshape):
     return ((k, i, f),)
 
 
-def requested_kif(layer: Layer):
+@request_kif.register
+def _(layer: Activation):
+    fn_name = layer.attributes.attributes.get('activation')
+    if fn_name == 'linear':
+        return (requested_kif(layer),)
+    if fn_name == 'relu':
+        k, i, f = requested_kif(layer)
+        k[:] = 1
+        return ((k, i, f),)
+    inp_shape = get_input_shapes(layer)[0]
+    return (_maximum_kif_at_shape(inp_shape),)
+
+
+def requested_kif(layer: Layer) -> KIF_t:
     out_layers = get_output_layers(layer)
     out_shape = get_output_shape(layer)
     if not out_layers:
         return _maximum_kif_at_shape(out_shape)
 
     k = np.zeros(out_shape, dtype=np.int8)
-    i = np.full(out_shape, -128, dtype=np.int8)
+    i = np.full(out_shape, -127, dtype=np.int8)
     f = i.copy()
     for out_layer in out_layers:
         _kif_s = request_kif(out_layer)
@@ -176,7 +198,7 @@ def produce_kif(layer: Layer) -> KIF_t:
 @produce_kif.register
 def _(layer: Input):
     k = np.ones(get_output_shape(layer), dtype=np.int8)
-    i = f = np.full(get_output_shape(layer), 127, dtype=np.int8)
+    i = f = np.full(get_output_shape(layer), 126, dtype=np.int8)
     return k, i, f
 
 
@@ -189,7 +211,13 @@ def _(layer: FixedPointQuantizer):
     assert layer.mask_kbi is not None
     k, b, I = layer.mask_kbi
     k, i, f = k, I - k, b - I
-    return k[0], i[0], f[0]
+
+    out_shape = get_output_shape(layer)
+    k = np.broadcast_to(k[0], out_shape)
+    i = np.broadcast_to(i[0], out_shape)
+    f = np.broadcast_to(f[0], out_shape)
+
+    return k, i, f
 
 
 @produce_kif.register
@@ -371,6 +399,42 @@ def _(layer: Softmax):
     return k, i, f
 
 
+@produce_kif.register
+def _(layer: Activation):
+    fn_name = layer.attributes.attributes['activation']
+    k, i, f = get_input_kifs(layer)[0]
+
+    if fn_name == 'linear':
+        return k, i, f
+    if fn_name == 'relu':
+        k[:] = 0
+        return k, i, f
+    if fn_name == 'tanh':
+        i = np.minimum(i, 1)
+        f[:] = 126
+        return k, i, f
+    if fn_name == 'sigmoid':
+        k[:] = 0
+        i = np.minimum(i, 1)
+        f[:] = 126
+        return k, i, f
+
+    k[:] = 1
+    i[:] = 126
+    f[:] = 126
+    return k, i, f
+
+
+@produce_kif.register
+def _(layer: UnaryLUT):
+    k, i, f = minimal_kif(layer.attributes['table'].data)
+    shape = get_output_shape(layer)
+    k = np.full(shape, np.max(k), dtype=np.int8)
+    i = np.full(shape, np.max(i), dtype=np.int8)
+    f = np.full(shape, np.max(f), dtype=np.int8)
+    return k, i, f
+
+
 def kif_arrs_to_ints(arr: tuple[np.ndarray, np.ndarray, np.ndarray]):
     return tuple(int(np.max(a)) for a in arr)
 
@@ -383,17 +447,18 @@ def default_register_precision(layer: Layer):
     result_kif = kif_arrs_to_ints(_out_kif)
     result_t = to_hls4ml_fixed(*result_kif, f'{layer.name}_t')
     layer.attributes.attributes['result_t'] = result_t
-    layer.attributes.attributes[layer.name].type = result_t  # Why??????
+    layer.get_output_variable().type = result_t
 
+    overrides = {}
     if 'accum_t' in layer.attributes.attributes:
         accum_kif = kif_arrs_to_ints((_pk, _pi, _pf))
         accum_t = to_hls4ml_fixed(*accum_kif, f'{layer.name}_accum_t')
-        layer.attributes.attributes['accum_t'] = accum_t
+        overrides['accum_t'] = accum_t
 
     if 'weight_t' in layer.attributes.attributes:
         kernel_kif = kif_arrs_to_ints(minimal_kif(layer.attributes.attributes['weight'].data))
         kernel_t = to_hls4ml_fixed(*kernel_kif, f'{layer.name}_weight_t')
-        layer.attributes.attributes['weight_t'] = kernel_t
+        overrides['weight_t'] = kernel_t
 
     if 'bias_t' in layer.attributes.attributes:
         _bias = layer.attributes.attributes.get('bias')
@@ -402,7 +467,20 @@ def default_register_precision(layer: Layer):
         else:
             bias_kif = kif_arrs_to_ints(minimal_kif(_bias.data))
             bias_t = to_hls4ml_fixed(*bias_kif, f'{layer.name}_bias_t')
-        layer.attributes.attributes['bias_t'] = bias_t
+        overrides['bias_t'] = bias_t
+
+    if 'table' in layer.attributes.attributes:
+        table_kif = kif_arrs_to_ints(minimal_kif(layer.attributes.attributes['table'].data))
+        table_t = to_hls4ml_fixed(*table_kif, f'{layer.name}_table_t')
+        overrides['table_t'] = table_t
+
+    for k, v in overrides.items():
+        layer.attributes.attributes[k] = v
+        if k[:-2] in layer.attributes.attributes:
+            weight_var: WeightVariable = layer.attributes.attributes[k[:-2]]
+            weight_var.type = v
+            weight_var.update_precision(v.precision)
+            layer.model.config.layer_name_precision[f'{layer.name}_{k[:-2]}'] = str(v.precision)
 
     return (_pk, _pi, _pf), (_rk, _ri, _rf), _out_kif
 
@@ -441,6 +519,15 @@ def _(node: Softmax):
     node.attributes['accum_t'] = NamedType(f'{node.name}_accum_t', accum_t)
 
 
+@register_precision.register
+def _(node: UnaryLUT):
+    k, i, f = minimal_kif(node.attributes['table'].data)
+    k, i, f = bool(np.max(k)), int(np.max(i)), int(np.max(f))
+    table_t = to_hls4ml_fixed(k, i, f, f'{node.name}_table_t')
+    node.attributes['table_t'] = table_t
+    default_register_precision(node)
+
+
 class BitExact(OptimizerPass):
     def match(self, node):
         if node.attributes.get('bit_exact_transformed'):
@@ -450,4 +537,35 @@ class BitExact(OptimizerPass):
     def transform(self, model, node):
         register_precision(node)
         node.attributes['bit_exact_transformed'] = True
+        return False
+
+
+class FixInputPrecision(OptimizerPass):
+    def match(self, node: Layer):
+        if not isinstance(node, Input):
+            return False
+
+        # Unhandled input precision, usually by a heterogeneous quantizer with non-WRAP saturation
+        return node.get_output_variable().type.precision.width > 120
+
+    def transform(self, model, node: Layer):
+        out_layers: list[FixedPointQuantizer] = get_output_layers(node)
+        if not all(isinstance(l, FixedPointQuantizer) for l in out_layers):
+            warn(f'Input {node.name} has unhandled high precision. Consider setting it manually before synthesising.')
+            return False
+
+        sat_modes = [l.SAT for l in out_layers]
+        sat_modes_set = set(sat_modes)
+        illegal_sat_modes = sat_modes_set - {'WRAP', 'SAT', 'SAT_SYM'}
+        if illegal_sat_modes:
+            raise ValueError(f'Input {node.name} has quantizer with illegal saturation mode {illegal_sat_modes} after.')
+
+        kifs = [produce_kif(l) for l in out_layers]
+        i = np.max([np.max(i) for _, i, _ in kifs])
+        k = np.max([np.max(k) for k, _, _ in kifs])
+        f = node.get_output_variable().type.precision.fractional
+        new_type = to_hls4ml_fixed(k, i, f, f'{node.name}_t')
+        new_type.precision.saturation_mode = 'SAT'
+        node.get_output_variable().type = new_type
+        node.model.config.layer_name_precision[node.name] = str(new_type)
         return False

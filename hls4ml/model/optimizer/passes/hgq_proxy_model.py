@@ -6,9 +6,9 @@ from warnings import warn
 import numpy as np
 
 from hls4ml.backends.fpga.fpga_types import NamedType
+from hls4ml.model.attributes import Attribute, TypeAttribute, WeightAttribute
 from hls4ml.model.layers import Layer, Reshape, register_layer
 from hls4ml.model.optimizer import OptimizerPass, register_pass
-from hls4ml.model.optimizer.passes.bit_exact import get_input_layers, get_output_layers
 from hls4ml.model.types import FixedPrecisionType, UnspecifiedPrecisionType, WeightVariable
 
 if typing.TYPE_CHECKING:
@@ -32,29 +32,23 @@ class FixedPointQuantizer(Layer):
 
 
 class UnaryLUT(Layer):
+    _expected_attributes = [
+        Attribute('n_in'),
+        TypeAttribute('table_t', default=FixedPrecisionType(18, 8, True)),
+        WeightAttribute('table'),
+    ]
+
     def initialize(self):
         inp = self.get_input_variable()
         shape = inp.shape
         dims = inp.dim_names
         self.add_output_variable(shape, dims)
         self.set_attr('n_in', inp.size())
-        self.table = self.attributes['table']
-        self.table_size = self.attributes['table_size']
+        self.table = self.attributes['table_data']
+        self.attributes['table_size'] = len(self.table)
+        self.table_size = len(self.table)
 
-        table_t = to_hls4ml_fixed(self.attributes['table_t'])
-        self.add_weights_variable(name='table', var_name='table{index}', precision=table_t, data=self.table)
-
-
-def to_hls4ml_fixed(fixed: str):
-    matched = re_parse_fixed.match(re_purge_prefix.sub('', fixed))
-    assert matched is not None, f'Cannot parse {fixed}'
-    signed = matched.group(1) != 'u'
-    b, i, *args = matched.group(2).split(',')
-    b, i = int(b), int(i)
-    args = [arg.upper() for arg in args]
-    new_type = FixedPrecisionType(b, i, signed, *args)
-    # For some reason, __class__ is overwritten in hls4ml
-    return new_type
+        self.add_weights_variable(name='table')
 
 
 def userconf_ifdef(key: str, layer_name: str, model):
@@ -91,7 +85,9 @@ class FuseFixedPointQuantizer(OptimizerPass):
         return True
 
     def propagate(self, node: Layer, precision: FixedPrecisionType):
-        node.attributes.attributes[node.name].type.precision = precision
+        from hls4ml.model.optimizer.passes.bit_exact import get_input_layers, get_output_layers
+
+        node.get_output_variable().type.precision = precision
         node.attributes.attributes['result_t'].precision = precision
 
         if not isinstance(node, Reshape):
@@ -110,7 +106,9 @@ class FuseFixedPointQuantizer(OptimizerPass):
         self.propagate(inp_layer, new_precision)
 
     def transform(self, model: 'ModelGraph', node: FixedPointQuantizer):
-        precision: FixedPrecisionType = copy(node.attributes[node.name].type.precision)
+        from hls4ml.model.optimizer.passes.bit_exact import get_input_layers, get_output_layers
+
+        precision: FixedPrecisionType = copy(node.get_output_variable().type.precision)
         # Rounding and saturation for FixedPointQuantizer are applied in generated code, thus not reflected in result_t.
         precision.rounding_mode = node.RND
         precision.saturation_mode = node.SAT
@@ -134,6 +132,17 @@ class EnforceProxyModelEmbeddedConfig(OptimizerPass):
     def transform(self, model, node: FixedPointQuantizer):
         if 'layers' not in node.overrides:
             return False
+
+        def to_hls4ml_fixed(fixed: str):
+            matched = re_parse_fixed.match(re_purge_prefix.sub('', fixed))
+            assert matched is not None, f'Cannot parse {fixed}'
+            signed = matched.group(1) != 'u'
+            b, i, *args = matched.group(2).split(',')
+            b, i = int(b), int(i)
+            args = [arg.upper() for arg in args]
+            new_type = FixedPrecisionType(b, i, signed, *args)
+            # For some reason, __class__ is overwritten in hls4ml
+            return new_type
 
         graph_changed = False
         layers = node.overrides['layers']

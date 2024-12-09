@@ -1,4 +1,5 @@
 from hls4ml.converters.keras_to_hls import KerasReader, keras_handler, parse_default_keras_layer
+from hls4ml.model.types import FixedPrecisionType
 
 
 @keras_handler('FixedPointQuantizer', 'HGQ>FixedPointQuantizer')
@@ -15,7 +16,7 @@ def fixedpoint_quantizer_handler(keras_layer, input_names, input_shapes, data_re
     i = data_reader.get_weights_data(name, 'integers')
 
     if fusible:
-        k, b, i = k.ravel()[0], b.ravel()[0], i.ravel()[0]
+        k, b, i = k.ravel()[:1], b.ravel()[:1], i.ravel()[:1]
 
     config['mask_kbi'] = k, b, i
     config['overrides'] = keras_layer['config']['overrides']
@@ -30,10 +31,9 @@ def unary_lut_keras_handler(keras_layer, input_names, input_shapes, data_reader:
 
     table = data_reader.get_weights_data(config['name'], 'table')
     k, i, f = keras_layer['config']['kif_out']
-    k, b, i = k, k + i + f, k + i
-    config['table_t'] = f'{"" if k else "u"}fixed<{b},{i}>'
-    config['table'] = table
-    config['table_size'] = len(table)
+    k, b, I = k, k + i + f, k + i  # noqa: E741
+    config['table_t'] = FixedPrecisionType(b, I, k)  # noqa: E741
+    config['table_data'] = table
     config['activation'] = 'unary_lut'
 
     layer = config
