@@ -330,21 +330,36 @@ def im2col(kernel_size: Sequence[int], *arrs: np.ndarray):
     return [_im2col(kernel_size, arr) for arr in arrs]
 
 
-def pad_and_stride_inp_arr(node: Layer, arr: np.ndarray, pad_val: float = 0):
+def pad_arrs(node: Layer, pad_val: float = 0, *arrs: np.ndarray):
+    out_arrs = []
     if node.class_name.endswith('Conv2D'):
         pad_top = node.attributes.attributes['pad_top']
         pad_bottom = node.attributes.attributes['pad_bottom']
         pad_left = node.attributes.attributes['pad_left']
         pad_right = node.attributes.attributes['pad_right']
-        st_h = node.attributes.attributes['stride_height']
-        st_w = node.attributes.attributes['stride_width']
-        return np.pad(arr, ((pad_top, pad_bottom), (pad_left, pad_right), (0, 0)), constant_values=pad_val)[::st_h, ::st_w]
-    if node.class_name.endswith('Conv1D'):
+        for arr in arrs:
+            r = np.pad(arr, ((pad_top, pad_bottom), (pad_left, pad_right), (0, 0)), constant_values=pad_val)
+            out_arrs.append(r)
+    elif node.class_name.endswith('Conv1D'):
         pad_left = node.attributes.attributes['pad_left']
         pad_right = node.attributes.attributes['pad_right']
+        for arr in arrs:
+            r = np.pad(arr, ((pad_left, pad_right), (0, 0)), constant_values=pad_val)
+            out_arrs.append(r)
+    else:
+        raise ValueError(f'Layer {node.class_name} is not supported for pad_arrs')
+    return tuple(out_arrs)
+
+
+def stride_arrs(node: Layer, *arrs: np.ndarray):
+    if node.class_name.endswith('Conv2D'):
+        st_h = node.attributes.attributes['stride_height']
         st_w = node.attributes.attributes['stride_width']
-        return np.pad(arr, ((pad_left, pad_right), (0, 0)), constant_values=pad_val)[::st_w]
-    return arr
+        return tuple(arr[::st_h, ::st_w] for arr in arrs)
+    if node.class_name.endswith('Conv1D'):
+        st_w = node.attributes.attributes['stride_width']
+        return tuple(arr[::st_w] for arr in arrs)
+    raise ValueError(f'Layer {node.class_name} is not supported for stride_arrs')
 
 
 @produce_kif.register(Conv1D)
@@ -354,10 +369,9 @@ def _(layer: Conv1D | Conv2D):
     _bias = layer.attributes.attributes['bias']
     bias = _bias.data if _bias is not None else 0
     k_in, i_in, f_in = get_input_kifs(layer)[0]
+    k_in, i_in, f_in = pad_arrs(layer, 0, k_in, i_in, f_in)
     k_in, i_in, f_in = im2col(kernel.shape, k_in, i_in, f_in)
-    k_in = pad_and_stride_inp_arr(layer, k_in, 0)
-    i_in = pad_and_stride_inp_arr(layer, i_in, 0)
-    f_in = pad_and_stride_inp_arr(layer, f_in, 0)
+    k_in, i_in, f_in = stride_arrs(layer, k_in, i_in, f_in)
     kernel = kernel.reshape(-1, kernel.shape[-1])
     qint_in = QIntervalArray.from_kif(k_in, i_in, f_in)
     qint_out = qint_in @ kernel
