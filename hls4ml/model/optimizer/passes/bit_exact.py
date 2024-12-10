@@ -467,37 +467,35 @@ def default_register_precision(layer: Layer):
     layer.get_output_variable().type = result_t
 
     overrides = {}
+
     if 'accum_t' in layer.attributes.attributes:
         accum_kif = kif_arrs_to_ints((_pk, _pi, _pf))
         accum_t = to_hls4ml_fixed(*accum_kif, f'{layer.name}_accum_t')
         overrides['accum_t'] = accum_t
 
-    if 'weight_t' in layer.attributes.attributes:
-        kernel_kif = kif_arrs_to_ints(minimal_kif(layer.attributes.attributes['weight'].data))
-        kernel_t = to_hls4ml_fixed(*kernel_kif, f'{layer.name}_weight_t')
-        overrides['weight_t'] = kernel_t
+    for w_name_t, v in layer.attributes.attributes.items():
+        if isinstance(v, NamedType) and w_name_t.endswith('_t'):
+            w_name = w_name_t[:-2]
+            if w_name not in layer.attributes.attributes:
+                continue
+            _data = layer.attributes.attributes[w_name]
+            if _data is None:
+                precision = to_hls4ml_fixed(0, 0, 1, f'{layer.name}_{w_name_t}')
+            else:
+                data = _data.data
+                if not isinstance(data, np.ndarray):
+                    raise ValueError(f'Expected data to be np.ndarray, got {type(data)} on layer {layer.name}')
+                k, i, f = kif_arrs_to_ints(minimal_kif(data))
+                precision = to_hls4ml_fixed(k, i, f, f'{layer.name}_{w_name_t}')
+            overrides[w_name_t] = precision
 
-    if 'bias_t' in layer.attributes.attributes:
-        _bias = layer.attributes.attributes.get('bias')
-        if _bias is None:
-            bias_t = to_hls4ml_fixed(0, 0, 1, f'{layer.name}_bias_t')
-        else:
-            bias_kif = kif_arrs_to_ints(minimal_kif(_bias.data))
-            bias_t = to_hls4ml_fixed(*bias_kif, f'{layer.name}_bias_t')
-        overrides['bias_t'] = bias_t
-
-    if 'table' in layer.attributes.attributes:
-        table_kif = kif_arrs_to_ints(minimal_kif(layer.attributes.attributes['table'].data))
-        table_t = to_hls4ml_fixed(*table_kif, f'{layer.name}_table_t')
-        overrides['table_t'] = table_t
-
-    for k, v in overrides.items():
-        layer.attributes.attributes[k] = v
-        if k[:-2] in layer.attributes.attributes:
-            weight_var: WeightVariable = layer.attributes.attributes[k[:-2]]
+    for w_name_t, v in overrides.items():
+        layer.attributes.attributes[w_name_t] = v
+        if w_name_t[:-2] in layer.attributes.attributes:
+            weight_var: WeightVariable = layer.attributes.attributes[w_name_t[:-2]]
             weight_var.type = v
             weight_var.update_precision(v.precision)
-            layer.model.config.layer_name_precision[f'{layer.name}_{k[:-2]}'] = str(v.precision)
+            layer.model.config.layer_name_precision[f'{layer.name}_{w_name_t[:-2]}'] = str(v.precision)
 
     return (_pk, _pi, _pf), (_rk, _ri, _rf), _out_kif
 
