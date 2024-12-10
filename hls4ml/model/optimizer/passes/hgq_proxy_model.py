@@ -76,6 +76,9 @@ def userconf_ifdef(key: str, layer_name: str, model):
     return key in layer_conf
 
 
+q_kifRS_t = tuple[np.ndarray, np.ndarray, np.ndarray, str, str]
+
+
 class FuseFixedPointQuantizer(OptimizerPass):
     def match(self, node: Layer):
         if not isinstance(node, FixedPointQuantizer):
@@ -91,13 +94,13 @@ class FuseFixedPointQuantizer(OptimizerPass):
         node.attributes.attributes['result_t'].precision = precision
 
         if not isinstance(node, Reshape):
-            return
+            return node
 
         inp_layer = get_input_layers(node)[0]
         can_propagate = len(get_output_layers(inp_layer)) == 1
 
         if not can_propagate:
-            return
+            return node
 
         new_precision = copy(precision)
         precision.saturation_bits = 0
@@ -108,15 +111,19 @@ class FuseFixedPointQuantizer(OptimizerPass):
     def transform(self, model: 'ModelGraph', node: FixedPointQuantizer):
         from hls4ml.model.optimizer.passes.bit_exact import get_input_layers, get_output_layers
 
-        precision: FixedPrecisionType = copy(node.get_output_variable().type.precision)
         # Rounding and saturation for FixedPointQuantizer are applied in generated code, thus not reflected in result_t.
-        precision.rounding_mode = node.RND
-        precision.saturation_mode = node.SAT
-        ino_layer = get_input_layers(node)[0]
-        can_fuse = len(get_output_layers(ino_layer)) == 1
+        if node.RND == 'TRN' and node.SAT == 'WRAP':
+            precision: FixedPrecisionType = copy(node.get_output_variable().type.precision)
+        else:
+            k, b, i = node.mask_kbi
+            k, b, i = bool(k.ravel()[0]), int(b.ravel()[0]), int(i.ravel()[0])
+            precision = FixedPrecisionType(b, i, k, node.RND, node.SAT)
+
+        inp_layer = get_input_layers(node)[0]
+        can_fuse = len(get_output_layers(inp_layer)) == 1
         if not can_fuse:
             return False
-        self.propagate(ino_layer, precision)
+        self.propagate(inp_layer, precision)
         model.remove_node(node)
         return True
 

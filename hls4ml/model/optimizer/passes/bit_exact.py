@@ -97,7 +97,7 @@ def _(layer: FixedPointQuantizer):
     elif layer.RND == 'RND':
         f += 1
     else:
-        f += 2
+        f += 3
     return ((k, i, f),)
 
 
@@ -524,7 +524,7 @@ def _(node: Softmax):
     elif inv_inp_t.rounding_mode == RoundingMode.RND:
         accum_t.width += 1
     else:
-        accum_t.width += 2
+        accum_t.width += 3
     accum_t.rounding_mode = RoundingMode.TRN
     default_register_precision(node)
     exp_table_size = node.attributes['exp_table_size']
