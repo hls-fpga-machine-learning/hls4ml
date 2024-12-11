@@ -396,8 +396,8 @@ void softmax(data_T data[CONFIG_T::n_in], res_T res[CONFIG_T::n_in]) {
 }
 
 template <class data_T, class res_T, typename CONFIG_T>
-void softmax_multidim(data_T data[CONFIG_T::outer * CONFIG_T::n_in * CONFIG_T::n_inner],
-                      res_T res[CONFIG_T::outer * CONFIG_T::n_in * CONFIG_T::n_inner]) {
+void softmax_multidim(data_T data[CONFIG_T::n_outer * CONFIG_T::n_in * CONFIG_T::n_inner],
+                      res_T res[CONFIG_T::n_outer * CONFIG_T::n_in * CONFIG_T::n_inner]) {
     #pragma HLS inline
     #pragma HLS allocation instances = softmax<CONFIG_T> limit = CONFIG_T::parallelization_factor function
     data_T buffer_in[CONFIG_T::n_in];

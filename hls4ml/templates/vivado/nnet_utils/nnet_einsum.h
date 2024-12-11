@@ -42,7 +42,6 @@ void einsum(const data0_T data0[CONFIG_T::tpose_inp0_conf::N], const data1_T dat
     #pragma HLS ARRAY_PARTITION variable = tpose_i0 complete
     #pragma HLS ARRAY_PARTITION variable = tpose_i1 complete
     #pragma HLS ARRAY_PARTITION variable = tpose_o complete
-    #pragma HLS ARRAY_PARTITION variable = res_buffer complete
 
     nnet::transpose<data0_T, data0_T, typename CONFIG_T::tpose_inp0_conf>(data0, tpose_i0);
     nnet::transpose<data1_T, data1_T, typename CONFIG_T::tpose_inp1_conf>(data1, tpose_i1);
