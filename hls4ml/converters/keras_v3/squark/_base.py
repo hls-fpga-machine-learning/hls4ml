@@ -67,7 +67,7 @@ class SQLayerHandler(KerasV3LayerHandler):
     ):
         ret = super().__call__(layer, in_tensors, out_tensors)
 
-        if layer._enable_iq:
+        if layer._enable_iq and hasattr(layer, '_iq'):
             if len(in_tensors) > 1:
                 iq_confs = [extract_fixed_quantizer_config(q, tensor, True) for q, tensor in zip(layer._iq, in_tensors)]
             else:
