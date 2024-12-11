@@ -10,7 +10,7 @@ if typing.TYPE_CHECKING:
 
 
 @register
-class SQEinsumDenseHandler(SQLayerHandler):
+class SQEinsumHandler(SQLayerHandler):
     handles = ('squark.layers.ops.einsum.QEinsum',)
 
     def handle(
@@ -19,8 +19,8 @@ class SQEinsumDenseHandler(SQLayerHandler):
         in_tensors: Sequence['KerasTensor'],
         out_tensors: Sequence['KerasTensor'],
     ):
-        assert len(in_tensors) == 2, 'EinsumDense layer must have exactly one input tensor'
-        assert len(out_tensors) == 1, 'EinsumDense layer must have exactly one output tensor'
+        assert len(in_tensors) == 2, 'Einsum layer must have exactly two input tensors'
+        assert len(out_tensors) == 1, 'Einsum layer must have exactly one output tensor'
 
         inp0_shape: tuple[int, ...] = in_tensors[0].shape[1:]  # type: ignore
         inp1_shape: tuple[int, ...] = in_tensors[1].shape[1:]  # type: ignore

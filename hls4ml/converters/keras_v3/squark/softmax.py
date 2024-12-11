@@ -39,7 +39,7 @@ def fixed_quantizer_to_hls4ml_t(q: 'FixedPointQuantizerBase', take_max=False):
 
 
 @register
-class SQSoftmaxDenseHandler(SQLayerHandler):
+class SQSoftmaxHandler(SQLayerHandler):
     handles = ('squark.layers.softmax.QSoftmax',)
 
     def handle(
