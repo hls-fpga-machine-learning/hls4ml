@@ -28,11 +28,11 @@ class SQEinsumDenseHandler(SQLayerHandler):
 
         # fmt: off
         assert all(d is not None for d in inp0_shape), \
-            f'Error when processing {layer.name}: Einsum layer requires fully inp shapes, got {inp0_shape} for inp1'
+            f'Error when processing {layer.name}: Einsum layer requires full inp shapes, got {inp0_shape} for inp1'
         assert all(d is not None for d in inp1_shape), \
-            f'Error when processing {layer.name}: Einsum layer requires fully inp shapes, got {inp1_shape} for inp2'
+            f'Error when processing {layer.name}: Einsum layer requires full inp shapes, got {inp1_shape} for inp2'
         assert all(d is not None for d in out_shape), \
-            f'Error when processing {layer.name}: EinsumDense layer requires fully out shapes. got {out_shape} for output'
+            f'Error when processing {layer.name}: EinsumDense layer requires full out shapes. got {out_shape} for output'
         # fmt: on
 
         equation = strip_batch_dim(layer.equation, einsum_dense=False)
