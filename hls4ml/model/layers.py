@@ -990,6 +990,8 @@ class Softmax(Activation):
     _expected_attributes = [
         Attribute('n_in'),
         Attribute('activation', value_type=str),
+        Attribute('n_outer', value_type=int, default=1),
+        Attribute('n_inner', value_type=int, default=1),
         ChoiceAttribute('implementation', ['latency', 'stable', 'argmax', 'legacy'], default='stable'),
         ConfigurableAttribute('skip', value_type=bool, default=False),
         TypeAttribute(

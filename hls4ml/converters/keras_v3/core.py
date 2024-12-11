@@ -1,5 +1,6 @@
 import inspect
 import typing
+from math import prod
 from typing import Any, Sequence
 
 import numpy as np
@@ -178,12 +179,25 @@ class KV3SoftmaxHandler(KerasV3LayerHandler):
         in_tensors: Sequence['KerasTensor'],
         out_tensors: Sequence['KerasTensor'],
     ):
+        ax = layer.axis
+        ax = ax if ax >= 0 else len(in_tensors[0].shape) + ax
+        # io_stream asserts axis=-1, convert to -1 when it is
+        n_outer: int = prod(in_tensors[0].shape[1:ax])  # type: ignore
+        n_inner: int = prod(in_tensors[0].shape[ax + 1 :])  # type: ignore
+        ax = -1 if ax == len(in_tensors[0].shape) - 1 else ax
         config = {}
         config.update(self.default_config)
-
-        config['class_name'] = 'Softmax'
+        if len(in_tensors) == 2:
+            raise NotImplementedError("Masked softmax not supported yet")
+            config['class_name'] = 'MaskedSoftmax'
+        elif len(in_tensors) == 1:
+            config['class_name'] = 'Softmax'
+        else:
+            raise ValueError(f"Too many inputs for softmax layer {layer.name}: expected 1 or 2, got {len(in_tensors)}")
         config['axis'] = layer.axis
         config['activation'] = 'softmax'
+        config['n_outer'] = (n_outer,)
+        config['n_inner'] = n_inner
 
         return (config,)
 

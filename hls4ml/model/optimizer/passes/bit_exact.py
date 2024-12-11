@@ -510,11 +510,9 @@ def _(node: Softmax):
     inv_inp_t: FixedPrecisionType = node.attributes['inv_inp_t'].precision
     accum_t = copy(inv_inp_t)
     if inv_inp_t.saturation_mode != SaturationMode.WRAP:
-        accum_t.saturation_bits = SaturationMode.WRAP
-        inp_shape = get_input_shapes(node)[0]
-        axis = node.attributes['axis']
-        L = inp_shape[axis]  # type: ignore
-        scale = ceil(log2(L))
+        accum_t.saturation_mode = SaturationMode.WRAP
+        n_in = node.attributes['n_in']
+        scale = ceil(log2(n_in))
         accum_t.width += scale
         accum_t.integer += scale
     if inv_inp_t.rounding_mode == RoundingMode.TRN:
@@ -525,11 +523,22 @@ def _(node: Softmax):
         accum_t.width += 3
     accum_t.rounding_mode = RoundingMode.TRN
     default_register_precision(node)
-    exp_table_size = node.attributes['exp_table_size']
-    if exp_table_size is None:
-        k, i, f = get_input_kifs(node)[0]
-        b = np.max(k) + np.max(i) + np.max(f)
-        exp_table_size = 2 ** int(b)
+    impl = node.attributes['implementation']
+    match impl:
+        case 'latency':
+            k, i, f = get_input_kifs(node)[0]
+            b = np.max(k) + np.max(i) + np.max(f)
+        case 'stable':
+            inp_norm_t: FixedPrecisionType = node.attributes['inp_norm_t'].precision
+            b = inp_norm_t.width
+        case 'lagency':
+            raise ValueError('lagency softmax is not supported')
+        case 'argmax':
+            b = 0
+        case _:
+            raise ValueError(f'Unknown softmax implementation {impl}')
+
+    exp_table_size = 2 ** int(b)
     node.attributes['exp_table_size'] = exp_table_size
     node.attributes['accum_t'] = NamedType(f'{node.name}_accum_t', accum_t)
 

@@ -4,7 +4,6 @@ from typing import Sequence
 
 from hls4ml.model.types import FixedPrecisionType, RoundingMode, SaturationMode
 
-from ..core import KV3SoftmaxHandler
 from ._base import SQLayerHandler, register
 
 if typing.TYPE_CHECKING:
@@ -40,7 +39,7 @@ def fixed_quantizer_to_hls4ml_t(q: 'FixedPointQuantizerBase', take_max=False):
 
 
 @register
-class SQSoftmaxDenseHandler(SQLayerHandler, KV3SoftmaxHandler):
+class SQSoftmaxDenseHandler(SQLayerHandler):
     handles = ('squark.layers.softmax.QSoftmax',)
 
     def handle(
@@ -50,7 +49,22 @@ class SQSoftmaxDenseHandler(SQLayerHandler, KV3SoftmaxHandler):
         out_tensors: Sequence['KerasTensor'],
     ):
         assert not layer._allow_heterogeneous_table, 'Heterogeneous table is not supported in QSoftmax layer'
-        assert len(layer.axis) == 1, 'Support softmax along one axis. Use transpose & reshape as workaround.'
+        if len(layer.axis) == 1:
+            ax = layer.axis[0]
+            ax = ax if ax >= 0 else len(in_tensors[0].shape) + ax
+            # io_stream asserts axis=-1, convert to -1 when it is
+            n_outer: int = prod(in_tensors[0].shape[1:ax])  # type: ignore
+            n_inner: int = prod(in_tensors[0].shape[ax + 1 :])  # type: ignore
+            n_in: int = in_tensors[0].shape[ax]  # type: ignore
+            ax = -1 if ax == len(in_tensors[0].shape) - 1 else ax
+        else:  # softmax along multiple axes
+            axs = [ax if ax >= 0 else len(in_tensors[0].shape) + ax for ax in layer.axis]
+            axs = sorted(axs)
+            assert all(ax1 - ax0 == 1 for ax0, ax1 in zip(axs[:-1], axs[1:])), 'Softmax must act on adjacent axes'
+            n_outer: int = prod(in_tensors[0].shape[1 : axs[0]])  # type: ignore
+            n_inner: int = prod(in_tensors[0].shape[axs[-1] + 1 :])  # type: ignore
+            n_in: int = prod(in_tensors[0].shape[axs[0] : axs[-1] + 1])  # type: ignore
+            ax = -1  # if n_inner == 1 else 999  # 999 as placeholder
 
         from keras import ops
         from squark.quantizer.internal import FixedPointQuantizerBase
@@ -60,7 +74,7 @@ class SQSoftmaxDenseHandler(SQLayerHandler, KV3SoftmaxHandler):
         if impl == 'stable':
             exp_table_size = 2 ** int(ops.convert_to_numpy(ops.max(layer.exp_table.iq.quantizer.bits)))
         else:
-            exp_table_size = None
+            exp_table_size = None  # Placeholder, will be overridden in bit-exact pass
 
         exp_oq = layer.exp_table.oq.quantizer
         inv_oq = layer.inv_table.oq.quantizer
@@ -73,24 +87,26 @@ class SQSoftmaxDenseHandler(SQLayerHandler, KV3SoftmaxHandler):
 
         inv_table_size = 2**inv_inp_t.width
 
-        config = super().handle(layer, in_tensors, out_tensors)
-        assert len(config) == 1
         parallelization_factor = layer.parallelization_factor
 
-        ax = layer.axis[0]
-        ax = ax if ax >= 0 else len(in_tensors[0].shape) + ax
-        # io_stream asserts axis=-1, convert to -1 when it is
-        n_outer: int = prod(in_tensors[0].shape[1:ax])  # type: ignore
-        n_inner: int = prod(in_tensors[0].shape[ax + 1 :])  # type: ignore
-        ax = -1 if ax == len(in_tensors[0].shape) - 1 else ax
-        n_in: int = in_tensors[0].shape[ax]  # type: ignore
         if parallelization_factor < 0:
             parallelization_factor = n_outer * n_inner
 
-        config[0].update(
+        if len(in_tensors) == 2:
+            raise NotImplementedError("Masked softmax not supported yet")
+            class_name = 'MaskedSoftmax'
+        elif len(in_tensors) == 1:
+            class_name = 'Softmax'
+        else:
+            raise ValueError(f"Too many inputs for softmax layer {layer.name}: expected 1 or 2, got {len(in_tensors)}")
+
+        config = {}
+        config.update(self.default_config)
+        config.update(
             {
                 'axis': ax,
                 'n_in': n_in,
+                'activation': 'softmax',
                 'n_outer': n_outer,
                 'n_inner': n_inner,
                 'implementation': impl,
@@ -101,11 +117,14 @@ class SQSoftmaxDenseHandler(SQLayerHandler, KV3SoftmaxHandler):
                 'inv_inp_t': inv_inp_t,
                 'exp_scale': exp_scale,
                 'parallelization_factor': parallelization_factor,
+                'class_name': class_name,
             }
         )
+
         if layer.stable:
             inp_norm_t = fixed_quantizer_to_hls4ml_t(layer.exp_table.iq.quantizer)
             inp_norm_t.saturation_mode = SaturationMode.WRAP
             inp_norm_t.rounding_mode = RoundingMode.TRN
-            config[0]['inp_norm_t'] = inp_norm_t
-        return config
+            config['inp_norm_t'] = inp_norm_t
+
+        return (config,)
