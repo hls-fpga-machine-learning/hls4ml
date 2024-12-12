@@ -5,6 +5,7 @@ import numpy as np
 
 
 class EinsumRecipe(TypedDict):
+    direct_sum_axis: tuple[tuple[int, ...], tuple[int, ...]]
     in_transpose_idxs: tuple[tuple[int, ...], tuple[int, ...]]
     L0: int
     L1: int
@@ -127,7 +128,7 @@ def _validate_einsum_expr(fn: str, shape0: tuple[int, ...], shape1: tuple[int, .
 
 
 def parse_einsum(fn: str, input_shape0: tuple[int, ...], input_shape1: tuple[int, ...]) -> EinsumRecipe:
-    """Execute einsum operation on two input arrays
+    """Parse einsum operation on two input arrays, return a recipe for execution
 
     Parameters
     ----------
@@ -140,8 +141,8 @@ def parse_einsum(fn: str, input_shape0: tuple[int, ...], input_shape1: tuple[int
 
     Returns
     -------
-    np.ndarray
-        output array
+    EinsumRecipe
+        einsum recipe; executed by _exec_einsum
     """
 
     fn, _ = _validate_einsum_expr(fn, input_shape0, input_shape1)
@@ -158,6 +159,12 @@ def parse_einsum(fn: str, input_shape0: tuple[int, ...], input_shape1: tuple[int
     inplace = sorted(_inplace, key=lambda x: in1.index(x))
     invariant0 = sorted((s_out - _common) & s_in0, key=lambda x: in0.index(x))
     invariant1 = sorted((s_out - _common) & s_in1, key=lambda x: in1.index(x))
+    direct_sum0 = s_in0 - s_out - _common
+    direct_sum1 = s_in1 - s_out - _common
+    direct_sum_axis = (
+        tuple(sorted(in0.index(x) for x in direct_sum0)),
+        tuple(sorted(in1.index(x) for x in direct_sum1)),
+    )
 
     contract_idxs = tuple(map(in0.index, contract)), tuple(map(in1.index, contract))
     inplace_idxs = tuple(map(in0.index, inplace)), tuple(map(in1.index, inplace))
@@ -178,6 +185,7 @@ def parse_einsum(fn: str, input_shape0: tuple[int, ...], input_shape1: tuple[int
     out_transpose_idx = tuple(int(i) for i in _out_transpose_idx)
 
     return EinsumRecipe(
+        direct_sum_axis=direct_sum_axis,
         in_transpose_idxs=(transpose_idx0, transpose_idx1),
         out_interpert_shape=out_shape_pretranspose,
         out_transpose_idxs=out_transpose_idx,
@@ -205,6 +213,11 @@ def _exec_einsum(recipe: EinsumRecipe, input0: np.ndarray, input1: np.ndarray) -
     np.ndarray
         output array
     """
+    sum_axis0, sum_axis1 = recipe['direct_sum_axis']
+    if sum_axis0:
+        input0 = np.sum(input0, axis=sum_axis0)
+    if sum_axis1:
+        input1 = np.sum(input1, axis=sum_axis1)
     input0 = input0.transpose(recipe['in_transpose_idxs'][0]).ravel()
     input1 = input1.transpose(recipe['in_transpose_idxs'][1]).ravel()
     output = np.zeros(recipe['L0'] * recipe['L1'] * recipe['I'], dtype=input0.dtype)

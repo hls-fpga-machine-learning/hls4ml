@@ -1688,6 +1688,10 @@ class EinsumDense(Layer):
 
         kernel_shape = kernel.shape
         recipe = parse_einsum(equation, inp_shape, kernel_shape)
+        assert not any(recipe['direct_sum_axis']), (
+            'Do not put direct sum indices (e.g., only appears in one of the operands) in the equation.'
+            'Use explicit addition operator before instead.'
+        )
         inp_tpose_idxs, ker_tpose_idxs = recipe['in_transpose_idxs']
         out_tpose_idxs = recipe['out_transpose_idxs']
 
@@ -1759,6 +1763,10 @@ class Einsum(Layer):
         out_shape = self.attributes['out_shape']
 
         recipe = parse_einsum(equation, inp0_shape, inp1_shape)
+        assert not any(recipe['direct_sum_axis']), (
+            'Do not put direct sum indices (e.g., only appears in one of the operands) in the equation.'
+            'Use explicit addition operator before instead.'
+        )
         inp0_tpose_idxs, inp1_tpose_idxs = recipe['in_transpose_idxs']
         out_tpose_idxs = recipe['out_transpose_idxs']
 
