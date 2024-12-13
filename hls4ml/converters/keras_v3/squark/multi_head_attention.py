@@ -29,11 +29,11 @@ class SQMultiHeadAttentionHandler(SQLayerHandler):
         assert len(in_tensors) in (3, 4), 'MultiHead layer must have 3 (Q, K, V) or 4 (Q, K, V, M) input tensors'
         assert len(out_tensors) == 1, 'Attention score output is not supported yet'
         assert len(in_tensors) == 3, 'Mask tensor is not supported yet'
-        tensor_q, tensor_k, tensor_v, *mask = in_tensors
+        tensor_q, *_ = in_tensors
         tensor_O, *tensor_attn = out_tensors
         unique_name: str = layer.name
 
-        node_index = layer.input[0]._keras_history.node_index
+        node_index: int = tensor_q._keras_history.node_index  # type: ignore
         assert all(
             [node_index == inp._keras_history.node_index for inp in layer.input[1:]]
         ), f'Critical error handling layer {layer.name}'
