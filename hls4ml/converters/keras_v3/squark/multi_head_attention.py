@@ -56,18 +56,15 @@ class SQMultiHeadAttentionHandler(SQLayerHandler):
         tensor_attn_mask = bound.arguments['attention_mask']
         return_scores = bound.arguments['return_attention_scores']  # noqa: F841
 
-        n_mask_def = (
-            np.sum(
-                [
-                    tensor_q_mask is not None,
-                    tensor_k_mask is not None,
-                    tensor_v_mask is not None,
-                    tensor_attn_mask is not None,
-                ]
-            )
-            <= 1
+        n_mask_def = np.sum(
+            [
+                tensor_q_mask is not None,
+                tensor_k_mask is not None,
+                tensor_v_mask is not None,
+                tensor_attn_mask is not None,
+            ]
         )
-        assert n_mask_def, f'Layer {layer.name} has {n_mask_def} masks defined, expected at most 1'
+        assert n_mask_def <= 1, f'Layer {layer.name} has {n_mask_def} masks defined, expected at most 1'
 
         unique_name = f'{layer.name}_{node_index}'
         to_Q = layer.query_dense
