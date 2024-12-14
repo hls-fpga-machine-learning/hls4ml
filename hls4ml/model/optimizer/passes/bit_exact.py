@@ -24,7 +24,7 @@ from hls4ml.model.layers import (
     Reshape,
     Softmax,
 )
-from hls4ml.model.optimizer import OptimizerPass
+from hls4ml.model.optimizer import ModelOptimizerPass, OptimizerPass
 from hls4ml.model.optimizer.passes.hgq_proxy_model import FixedPointQuantizer, UnaryLUT
 from hls4ml.model.types import FixedPrecisionType, NamedType, RoundingMode, SaturationMode, WeightVariable
 from hls4ml.utils.qinterval import QIntervalArray, einsum, minimal_kif
@@ -545,22 +545,32 @@ def _(node: Softmax):
 
 @register_precision.register
 def _(node: UnaryLUT):
-    k, i, f = minimal_kif(node.attributes['table'].data)
+    k, i, f = minimal_kif(node.attributes['table'].data)  # type: ignore
     k, i, f = bool(np.max(k)), int(np.max(i)), int(np.max(f))
     table_t = to_hls4ml_fixed(k, i, f, f'{node.name}_table_t')
     node.attributes['table_t'] = table_t
     default_register_precision(node)
 
 
-class BitExact(OptimizerPass):
-    def match(self, node):
-        if node.attributes.get('bit_exact_transformed'):
+class BitExact(ModelOptimizerPass):
+    def __init__(self):
+        pass
+
+    def _match(self, model: 'ModelGraph'):
+        if not any(isinstance(node, FixedPointQuantizer) for node in model.graph.values()):
             return False
         return True
 
-    def transform(self, model, node):
-        register_precision(node)
-        node.attributes['bit_exact_transformed'] = True
+    def transform(self, model):
+        if not self._match(model):
+            return False
+
+        for node in model.graph.values():
+            if node.attributes.get('bit_exact_transformed'):
+                return False
+            register_precision(node)
+            node.attributes['bit_exact_transformed'] = True
+
         return False
 
 
