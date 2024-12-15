@@ -542,6 +542,24 @@ def _(node: UnaryLUT):
     default_register_precision(node)
 
 
+@register_precision.register(Pooling1D)
+@register_precision.register(Pooling2D)
+@register_precision.register(GlobalPooling1D)
+@register_precision.register(GlobalPooling2D)
+def _(node: Pooling1D | Pooling2D | GlobalPooling1D | GlobalPooling2D):
+    default_register_precision(node)
+    pool_op = node.attributes['pool_op']
+    if pool_op != 'Average':
+        return
+    if isinstance(node, (Pooling1D, GlobalPooling1D)):
+        px_shape = (node.attributes['pool_width'],)
+    else:
+        px_shape = (node.attributes['pool_height'], node.attributes['pool_width'])
+    i_add = int(log2(prod(px_shape)))
+    node.attributes['accum_t'].precision.width += i_add
+    node.attributes['accum_t'].precision.integer += i_add
+
+
 class BitExact(ModelOptimizerPass):
     def __init__(self):
         pass
