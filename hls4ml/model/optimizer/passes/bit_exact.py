@@ -574,6 +574,13 @@ class FixInputPrecision(OptimizerPass):
 
     def transform(self, model, node: Layer):
         out_layers: list[FixedPointQuantizer] = get_output_layers(node)
+
+        if len(out_layers) == 0:  # Input connected to nothing
+            new_type = to_hls4ml_fixed(0, 0, 1, f'{node.name}_t')
+            node.get_output_variable().type = new_type
+            node.model.config.layer_name_precision[node.name] = str(new_type)
+            return False
+
         if not all(isinstance(l, FixedPointQuantizer) for l in out_layers):
             warn(f'Input {node.name} has unhandled high precision. Consider setting it manually before synthesising.')
             return False
