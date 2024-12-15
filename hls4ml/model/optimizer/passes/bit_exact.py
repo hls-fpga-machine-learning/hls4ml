@@ -11,6 +11,7 @@ from numpy.typing import NDArray
 from hls4ml.model.layers import (
     Activation,
     BatchNormalization,
+    Concatenate,
     Conv1D,
     Conv2D,
     Dense,
@@ -124,6 +125,20 @@ def _(layer: Activation):
         return ((k, i, f),)
     inp_shape = get_input_shapes(layer)[0]
     return (_maximum_kif_at_shape(inp_shape),)
+
+
+@request_kif.register
+def _(layer: Concatenate):
+    inp_shape0, inp_shape1 = get_input_shapes(layer)
+    k, i, f = requested_kif(layer)
+    ax = layer.attributes['axis']
+    n_split = inp_shape0[ax]
+
+    k0, k1 = np.split(k, [n_split], axis=ax)
+    i0, i1 = np.split(i, [n_split], axis=ax)
+    f0, f1 = np.split(f, [n_split], axis=ax)
+
+    return ((k0, i0, f0), (k1, i1, f1))
 
 
 def requested_kif(layer: Layer) -> KIF_t:
@@ -400,6 +415,17 @@ def _(layer: Softmax):
     i = np.full(out_shape, min(i_exp + i_inv, 1), dtype=np.int8)
     f = np.full(out_shape, f_exp + f_inv, dtype=np.int8)
 
+    return k, i, f
+
+
+@produce_kif.register
+def _(layer: Concatenate):
+    kifs_in = get_input_kifs(layer)
+    ks, is_, fs = zip(*kifs_in)
+    ax = layer.attributes.attributes['axis']
+    k = np.concatenate(ks, axis=ax)
+    i = np.concatenate(is_, axis=ax)
+    f = np.concatenate(fs, axis=ax)
     return k, i, f
 
 
