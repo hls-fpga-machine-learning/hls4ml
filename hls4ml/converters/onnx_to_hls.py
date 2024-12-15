@@ -76,6 +76,7 @@ def get_input_shape(graph, node):
 def get_constant_value(graph, constant_name):
     tensor = next((x for x in graph.initializer if x.name == constant_name), None)
     from onnx import numpy_helper
+
     return numpy_helper.to_array(tensor)
 
 
@@ -274,6 +275,7 @@ def onnx_to_hls(config):
     print('Interpreting Model ...')
 
     import onnx
+
     onnx_model = onnx.load(config['OnnxModel']) if isinstance(config['OnnxModel'], str) else config['OnnxModel']
 
     layer_list, input_layers, output_layers = parse_onnx_model(onnx_model)
