@@ -1,7 +1,7 @@
 import typing
 from copy import copy
 from functools import reduce, singledispatch
-from math import ceil, log2
+from math import ceil, log2, prod
 from typing import Sequence
 from warnings import warn
 
@@ -17,10 +17,12 @@ from hls4ml.model.layers import (
     Einsum,
     EinsumDense,
     GlobalPooling1D,
+    GlobalPooling2D,
     Input,
     Layer,
     Merge,
     Pooling1D,
+    Pooling2D,
     Reshape,
     Softmax,
 )
@@ -98,52 +100,6 @@ def _(layer: FixedPointQuantizer):
         f += 1
     else:
         f += 3
-    return ((k, i, f),)
-
-
-@request_kif.register(Pooling1D)
-# @request_kif.register(Pooling2D)
-@request_kif.register(GlobalPooling1D)
-# @request_kif.register(GlobalPooling2D)
-def _(layer: Pooling1D | GlobalPooling1D):
-    # inp_shape = get_input_shapes(layer)[0]
-    out_shape = get_output_shape(layer)
-    pool_width = layer.attributes.attributes['pool_width']
-    stride_width = layer.attributes.attributes['stride_width']
-    pool_op = layer.attributes.attributes['pool_op']
-    if isinstance(layer, Pooling1D):
-        pad_0_0: int = layer.attributes.attributes['pad_left']
-    else:
-        pad_0_0 = 0
-    is_ch_last = layer.attributes.attributes['data_format'] == 'channels_last'
-
-    k = np.ones(out_shape, dtype=np.int8)
-    i = np.full(out_shape, -127, dtype=np.int8)
-    f = np.full(out_shape, 126, dtype=np.int8)
-
-    _, i_out, f_out = requested_kif(layer)
-
-    if not is_ch_last:
-        i = np.moveaxis(i, 0, -1)
-        f = np.moveaxis(f, 0, -1)
-
-    for idx_out in range(k.shape[-1]):
-        i_in_0 = i_out * stride_width - pad_0_0
-        i_in_1 = i_in_0 + pool_width
-        if i_in_0 < 0:
-            i_in_0 = 0
-        i[..., i_in_0:i_in_1] = i_out[..., idx_out]
-        f[..., i_in_0:i_in_1] = f_out[..., idx_out]
-
-    if not is_ch_last:
-        i = np.moveaxis(i, -1, 0)
-        f = np.moveaxis(f, -1, 0)
-
-    if pool_op == 'Average':
-        ln2_size = np.log2(pool_width)
-        i += np.ceil(ln2_size).astype(np.int8)
-        if not ln2_size.is_integer():
-            f[:] = 126
     return ((k, i, f),)
 
 
@@ -332,7 +288,7 @@ def im2col(kernel_size: Sequence[int], *arrs: np.ndarray):
 
 def pad_arrs(node: Layer, pad_val: float = 0, *arrs: np.ndarray):
     out_arrs = []
-    if node.class_name.endswith('Conv2D'):
+    if node.class_name.endswith('2D'):
         pad_top = node.attributes.attributes['pad_top']
         pad_bottom = node.attributes.attributes['pad_bottom']
         pad_left = node.attributes.attributes['pad_left']
@@ -340,7 +296,7 @@ def pad_arrs(node: Layer, pad_val: float = 0, *arrs: np.ndarray):
         for arr in arrs:
             r = np.pad(arr, ((pad_top, pad_bottom), (pad_left, pad_right), (0, 0)), constant_values=pad_val)
             out_arrs.append(r)
-    elif node.class_name.endswith('Conv1D'):
+    elif node.class_name.endswith('1D'):
         pad_left = node.attributes.attributes['pad_left']
         pad_right = node.attributes.attributes['pad_right']
         for arr in arrs:
@@ -352,11 +308,11 @@ def pad_arrs(node: Layer, pad_val: float = 0, *arrs: np.ndarray):
 
 
 def stride_arrs(node: Layer, *arrs: np.ndarray):
-    if node.class_name.endswith('Conv2D'):
+    if node.class_name.endswith('2D'):
         st_h = node.attributes.attributes['stride_height']
         st_w = node.attributes.attributes['stride_width']
         return tuple(arr[::st_h, ::st_w] for arr in arrs)
-    if node.class_name.endswith('Conv1D'):
+    if node.class_name.endswith('1D'):
         st_w = node.attributes.attributes['stride_width']
         return tuple(arr[::st_w] for arr in arrs)
     raise ValueError(f'Layer {node.class_name} is not supported for stride_arrs')
@@ -365,6 +321,7 @@ def stride_arrs(node: Layer, *arrs: np.ndarray):
 @produce_kif.register(Conv1D)
 @produce_kif.register(Conv2D)
 def _(layer: Conv1D | Conv2D):
+    assert layer.attributes.attributes['data_format'] == 'channels_last', 'Only channels_last format is supported'
     kernel = layer.attributes.attributes['weight'].data
     _bias = layer.attributes.attributes['bias']
     bias = _bias.data if _bias is not None else 0
@@ -378,6 +335,39 @@ def _(layer: Conv1D | Conv2D):
     qint_out = qint_out + bias
     k, i, f = qint_out.to_kif()
     return k.astype(np.int8), i, f
+
+
+@produce_kif.register(Pooling1D)
+@produce_kif.register(Pooling2D)
+@produce_kif.register(GlobalPooling1D)
+@produce_kif.register(GlobalPooling2D)
+def _(layer: Pooling1D | Pooling2D | GlobalPooling1D | GlobalPooling2D):
+    if isinstance(layer, (Pooling1D, GlobalPooling1D)):
+        px_shape = (layer.attributes['pool_width'],)
+    else:
+        px_shape = (layer.attributes['pool_height'], layer.attributes['pool_width'])
+    ch_out = ch_in = layer.attributes['n_filt']
+
+    im2col_shape = *px_shape, ch_in, ch_out  # conv kernel shape
+    k_in, i_in, f_in = get_input_kifs(layer)[0]
+    if isinstance(layer, (Pooling1D, Pooling2D)):
+        k_in, i_in, f_in = pad_arrs(layer, 0, k_in, i_in, f_in)
+    k_in, i_in, f_in = im2col(im2col_shape, k_in, i_in, f_in)
+    if isinstance(layer, (Pooling1D, Pooling2D)):
+        k_in, i_in, f_in = stride_arrs(layer, k_in, i_in, f_in)
+
+    k_out = k_in.reshape(*k_in.shape[:-1], -1, ch_in).max(axis=-2).astype(np.int8)
+    i_out = i_in.reshape(*i_in.shape[:-1], -1, ch_in).max(axis=-2).astype(np.int8)
+    f_out = f_in.reshape(*f_in.shape[:-1], -1, ch_in).max(axis=-2).astype(np.int8)
+
+    pool_op = layer.attributes['pool_op']
+    if pool_op == 'Average':
+        f_add = log2(prod(px_shape))
+        if not f_add.is_integer():
+            raise ValueError('Average pooling with non-power-of-2 pool size cannot be bit-exact')
+        f_out += int(f_add)
+
+    return k_out, i_out, f_out
 
 
 @produce_kif.register
