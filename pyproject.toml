@@ -89,10 +89,6 @@ skip-string-normalization = true
 profile = "black"
 line_length = 125
 
-[tool.flake8]
-max-line-length = 125
-extend-ignore = [ "E203", "T201" ]
-
 [tool.check-manifest]
 ignore = [
   ".github/**",
