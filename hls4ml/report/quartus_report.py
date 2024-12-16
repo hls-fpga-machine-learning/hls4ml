@@ -2,6 +2,8 @@ import os
 import webbrowser
 from ast import literal_eval
 
+from hls4ml.utils.dependency import requires
+
 
 def parse_quartus_report(hls_dir, write_to_file=True):
     '''
@@ -39,6 +41,7 @@ def parse_quartus_report(hls_dir, write_to_file=True):
     return results
 
 
+@requires('quantus-report')
 def read_quartus_report(hls_dir, open_browser=False):
     '''
     Parse and print the Quartus report to print the report. Optionally open a browser.
@@ -89,6 +92,7 @@ def _find_project_dir(hls_dir):
     return top_func_name + '-fpga.prj'
 
 
+@requires('quantus-report')
 def read_js_object(js_script):
     '''
     Reads the JavaScript file and return a dictionary of variables definded in the script.

@@ -1,4 +1,5 @@
 from hls4ml.model import ModelGraph
+from hls4ml.utils.dependency import requires
 
 
 # ----------------------Helpers---------------------
@@ -17,6 +18,7 @@ def replace_char_inconsitency(name):
     return name.replace('.', '_')
 
 
+@requires('onnx')
 def get_onnx_attribute(operation, name, default=None):
     from onnx import helper
 
@@ -73,6 +75,7 @@ def get_input_shape(graph, node):
     return rv
 
 
+@requires('onnx')
 def get_constant_value(graph, constant_name):
     tensor = next((x for x in graph.initializer if x.name == constant_name), None)
     from onnx import numpy_helper
@@ -258,6 +261,7 @@ def parse_onnx_model(onnx_model):
     return layer_list, input_layers, output_layers
 
 
+@requires('onnx')
 def onnx_to_hls(config):
     """Convert onnx model to hls model from configuration.
 

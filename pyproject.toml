@@ -34,6 +34,7 @@ optional-dependencies.doc = [
   "sphinx-rtd-theme",
 ]
 optional-dependencies.HGQ = [ "hgq~=0.2.0" ]
+optional-dependencies.onnx = [ "onnx>=1.4" ]
 optional-dependencies.optimization = [
   "keras-tuner==1.1.3",
   "ortools==9.4.1874",
