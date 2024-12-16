@@ -1,4 +1,4 @@
-include LICENSE README.md CONTRIBUTING.md CITATION.cff pyproject.toml setup.py .clang-format
+include LICENSE README.md CONTRIBUTING.md CITATION.cff pyproject.toml .clang-format
 graft example-models
 graft test
 graft contrib
