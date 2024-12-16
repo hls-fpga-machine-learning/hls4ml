@@ -3,5 +3,6 @@ graft example-models
 graft test
 graft contrib
 recursive-include hls4ml/templates *
-global-exclude .git .gitmodules .gitlab-ci.yml
+recursive-include hls4ml *.py
+global-exclude .git .gitmodules .gitlab-ci.yml *.pyc
 include hls4ml/backends/vivado_accelerator/supported_boards.json
