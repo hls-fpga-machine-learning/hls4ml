@@ -660,17 +660,8 @@ class Conv2DBatchnorm(Conv2D):
     def initialize(self):
         super().initialize()
         folded_weights, folded_bias = self._get_folded_weights()
-        if self.model.config.is_resource_strategy(self) and self.model.config.backend.name in [
-            'Vivado',
-            'VivadoAccelerator',
-            'Catapult',
-        ]:
-            self.weights['weight'].data_unquantized = np.transpose(folded_weights, axes=[3, 0, 1, 2])
-            self.weights['weight'].data = self.get_attr('weight_quantizer')(self.weights['weight'].data_unquantized)
-
-        else:
-            self.weights['weight'].data_unquantized = folded_weights
-            self.weights['weight'].data = self.get_attr('weight_quantizer')(folded_weights)
+        self.weights['weight'].data_unquantized = folded_weights
+        self.weights['weight'].data = self.get_attr('weight_quantizer')(folded_weights)
         self.weights['bias'].data_unquantized = folded_bias
         bias_q = self.get_attr('bias_quantizer')
         if bias_q is not None:
