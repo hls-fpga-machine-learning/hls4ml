@@ -9,6 +9,41 @@ from enum import Enum
 
 import numpy as np
 
+# region Serialization
+
+
+class Serializable:
+    """Classes should implement this interface to provide serialization support.
+
+    Objects are serialized into a JSON format, with two fields, ``class_name`` and ``state``. Objects need to provide both.
+    ``class_name`` is used to map the object to the class which which can deserialize the object via ``deserialize`` class
+    method. ``state`` represents the current state of the object and will be passed to ``deserialize``. Implementations are
+    expected to capture all internal state to be able to recreate the object indistinguishable from the original.
+    """
+
+    def serialize_class_name(self):
+        # Wrapped classes are serialized as original types, since many of wrapped classes are created dynamically.
+        if hasattr(self, '_wrapped'):
+            cls_name = self._wrapped
+        else:
+            cls = self.__class__
+            cls_name = cls.__module__ + '.' + cls.__qualname__
+
+        return cls_name
+
+    def serialize_state(self):
+        raise NotImplementedError
+
+    def serialize(self):
+        return {'class_name': self.serialize_class_name(), 'state': self.serialize_state()}
+
+    @classmethod
+    def deserialize(cls, state):
+        return cls(**state)
+
+
+# endregion
+
 # region Precision types
 
 
@@ -49,7 +84,7 @@ class SaturationMode(Enum):
         return cls[mode]
 
 
-class PrecisionType:
+class PrecisionType(Serializable):
     """
     Base class representing a precision type of specified width.
 
@@ -72,6 +107,13 @@ class PrecisionType:
 
     def __hash__(self) -> int:
         return hash((self.width, self.signed))
+
+    def serialize_state(self):
+        state = {
+            'width': self.width,
+            'signed': self.signed,
+        }
+        return state
 
 
 class IntegerPrecisionType(PrecisionType):
@@ -206,6 +248,18 @@ class FixedPrecisionType(PrecisionType):
     def __hash__(self) -> int:
         return super().__hash__() ^ hash((self.integer, self.rounding_mode, self.saturation_mode, self.saturation_bits))
 
+    def serialize_state(self):
+        state = super().serialize_state()
+        state.update(
+            {
+                'integer': self.integer,
+                'rounding_mode': str(self.rounding_mode),
+                'saturation_mode': str(self.saturation_mode),
+                'saturation_bits': self.saturation_bits,
+            }
+        )
+        return state
+
 
 class XnorPrecisionType(PrecisionType):
     """
@@ -283,7 +337,7 @@ def find_minimum_width(data, signed=True):
 # region Data type definitions
 
 
-class NamedType:
+class NamedType(Serializable):
     """Class representing a named type.
 
     For convenience, hls4ml gives names to data types used in the generated HLS. This is equivalent to defining types
@@ -300,6 +354,13 @@ class NamedType:
         self.name = name.format(**kwargs)
         self.precision = precision
 
+    def serialize_state(self):
+        state = {
+            'name': self.name,
+            'precision': self.precision.serialize(),
+        }
+        return state
+
 
 class CompressedType(NamedType):
     """Class representing a compressed type in COO format.
@@ -315,6 +376,15 @@ class CompressedType(NamedType):
             name = 'compressed_' + name
         super().__init__(name, precision, **kwargs)
         self.index_precision = index_precision
+
+    def serialize_state(self):
+        state = super().serialize_state()
+        state.update(
+            {
+                'index_precision': self.index_precision.serialize(),
+            }
+        )
+        return state
 
 
 class ExponentType(NamedType):
@@ -356,13 +426,23 @@ class PackedType(NamedType):
             self.n_pack = n_pack
             self.unpack = False
 
+    def serialize_state(self):
+        state = super().serialize_state()
+        state.update(
+            {
+                'n_elem': self.n_elem,
+                'n_pack': self.n_pack,
+            }
+        )
+        return state
+
 
 # endregion
 
 # region Variables
 
 
-class Variable:
+class Variable(Serializable):
     """Base class representing a named multidimensional tensor.
 
     Args:
@@ -373,6 +453,13 @@ class Variable:
     def __init__(self, var_name, atype, **kwargs):
         self.name = var_name.format(**kwargs)
         self.type = atype
+
+    def serialize_state(self):
+        state = {
+            'name': self.name,
+            'type': self.type.serialize(),
+        }
+        return state
 
 
 class TensorVariable(Variable):
@@ -404,6 +491,26 @@ class TensorVariable(Variable):
         # TODO get rid of size_cpp() (and dim_names)
         return '*'.join([str(k) for k in self.dim_names])
 
+    def serialize_state(self):
+        state = super().serialize_state()
+        state.update(
+            {
+                'shape': [int(dim) for dim in self.shape],  # In case shape was handled by numpy
+                'dim_names': self.dim_names,
+            }
+        )
+        return state
+
+    @classmethod
+    def deserialize(cls, state):
+        shape = state['shape']
+        dim_names = state['dim_names']
+        var_name = state['name']
+        type_name = state['type'].name
+        precision = state['type'].precision
+
+        return cls(shape, dim_names, var_name, type_name, precision)
+
 
 class InplaceTensorVariable(TensorVariable):
     """A ``TensorVariable`` that is just a link to another ``TensorVariable``.
@@ -417,6 +524,22 @@ class InplaceTensorVariable(TensorVariable):
         self.__dict__.update(tv.__dict__)
         self.type = input_var.type
         self.input_var = input_var
+
+    def serialize_state(self):
+        state = super().serialize_state()
+        state.update(
+            {
+                'input_var': self.input_var.serialize(),
+            }
+        )
+        return state
+
+    @classmethod
+    def deserialize(cls, state):
+        tv = TensorVariable.deserialize(state)
+        input_var = state['input_var']
+
+        return cls(tv, input_var)
 
 
 class WeightVariable(Variable):
@@ -472,6 +595,26 @@ class WeightVariable(Variable):
 
         else:
             raise RuntimeError(f"Unexpected new precision type: {new_precision}")
+
+    def serialize_state(self):
+        state = super().serialize_state()
+        state.update(
+            {
+                'data': self.data,
+                'quantizer': self.quantizer.serialize() if self.quantizer is not None else None,
+            }
+        )
+        return state
+
+    @classmethod
+    def deserialize(cls, state):
+        var_name = state['name']
+        type_name = state['type'].name
+        precision = state['type'].precision
+        data = state['data']
+        quantizer = state['quantizer']
+
+        return cls(var_name, type_name, precision, data, quantizer)
 
 
 class CompressedWeightVariable(WeightVariable):
@@ -575,7 +718,7 @@ class ExponentWeightVariable(WeightVariable):
 # region Custom source
 
 
-class Source:
+class Source(Serializable):
     """Class representing generated source code blocks.
 
     Args:
@@ -587,6 +730,17 @@ class Source:
 
     def __str__(self):
         return str(self.code)
+
+    def serialize_class_name(self):
+        cls = self.__class__
+        cls_name = cls.__module__ + '.' + cls.__qualname__
+        return cls_name
+
+    def serialize_state(self):
+        state = {
+            'code': str(self.code),
+        }
+        return state
 
 
 # endregion

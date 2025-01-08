@@ -143,8 +143,12 @@ class FPGABackend(Backend):
             if issubclass(layer_class, cls):
                 new_attrubutes.extend(attributes)
 
+        layer_cls_fqn = layer_class.__module__ + '.' + layer_class.__qualname__
+
         return type(
-            self.name + layer_class.__name__, (layer_class,), {'_expected_attributes': new_attrubutes, '_wrapped': True}
+            self.name + layer_class.__name__,
+            (layer_class,),
+            {'_expected_attributes': new_attrubutes, '_wrapped': layer_cls_fqn},
         )
 
     def compile(self, model):

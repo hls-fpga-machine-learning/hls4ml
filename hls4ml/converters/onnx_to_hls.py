@@ -282,5 +282,5 @@ def onnx_to_hls(config):
     #################
 
     print('Creating HLS model')
-    hls_model = ModelGraph(config, layer_list, input_layers, output_layers)
+    hls_model = ModelGraph.from_layer_list(config, layer_list, input_layers, output_layers)
     return hls_model
