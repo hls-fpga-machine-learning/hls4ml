@@ -26,7 +26,6 @@ from hls4ml.model.layers import (
     SeparableConv1D,
     SeparableConv2D,
     SimpleRNN,
-    Softmax,
 )
 from hls4ml.model.optimizer import get_backend_passes, layer_optimizer
 from hls4ml.model.types import FixedPrecisionType, IntegerPrecisionType, NamedType, PackedType
@@ -550,13 +549,6 @@ class VivadoBackend(FPGABackend):
     @layer_optimizer(Pooling2D)
     def init_pooling2d(self, layer):
         layer.set_attr('implementation', layer.model.config.get_conv_implementation(layer).lower())
-
-    @layer_optimizer(Softmax)
-    def init_softmax(self, layer):
-        if layer.model.config.get_config_value('IOType') == 'io_parallel':
-            assert (
-                len(layer.get_input_variable().shape) == 1
-            ), 'Softmax with io_parallel strategy cannot be used on multidimensional tensors.'
 
     @layer_optimizer(Embedding)
     def init_embed(self, layer):

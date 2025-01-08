@@ -22,18 +22,20 @@ def generate_data(input_shape):
 @pytest.mark.parametrize('backend', ['Vivado', 'Vitis', 'Quartus', 'Catapult'])
 @pytest.mark.parametrize('strategy', ['stable', 'latency', 'argmax'])
 @pytest.mark.parametrize(
-    'input_bits,input_shape,table_bits,io_type',
+    'input_bits,input_shape,table_bits,io_type,custom_accum',
     [
-        ('16,6', (8,), '18,8', 'io_parallel'),
-        ('16,6', (8,), '18,8', 'io_stream'),
-        ('16,6', (8,), '9,6', 'io_parallel'),
-        ('16,6', (8,), '9,6', 'io_stream'),
-        ('9,6', (8,), '18,8', 'io_parallel'),
-        ('9,6', (8,), '18,8', 'io_stream'),
-        ('16,6', (8, 8, 3), '18,8', 'io_stream'),
+        ('16,6', (8,), '18,8', 'io_parallel', False),
+        ('16,6', (8,), '18,8', 'io_stream', False),
+        ('16,6', (8,), '18,8', 'io_parallel', True),
+        ('16,6', (8,), '18,8', 'io_stream', True),
+        ('16,6', (8,), '9,6', 'io_parallel', False),
+        ('16,6', (8,), '9,6', 'io_stream', False),
+        ('9,6', (8,), '18,8', 'io_parallel', False),
+        ('9,6', (8,), '18,8', 'io_stream', False),
+        ('16,6', (8, 8, 3), '18,8', 'io_stream', False),
     ],
 )
-def test_softmax(backend, strategy, generate_data, input_bits, input_shape, table_bits, io_type):
+def test_softmax(backend, strategy, generate_data, input_bits, input_shape, table_bits, io_type, custom_accum):
     X = generate_data
     model = tf.keras.models.Sequential()
     model.add(tf.keras.layers.Activation(input_shape=input_shape, activation='softmax', name='softmax'))
@@ -45,11 +47,23 @@ def test_softmax(backend, strategy, generate_data, input_bits, input_shape, tabl
     cfg['LayerName']['softmax']['Strategy'] = strategy
     cfg['LayerName']['softmax']['inv_table_t'] = table_type
     cfg['LayerName']['softmax']['exp_table_t'] = table_type
-    cfg['LayerName']['softmax_input']['Precision']['result'] = f'fixed<{input_bits}>'
+    cfg['LayerName']['softmax']['accum_t'] = table_type
+    cfg['LayerName']['softmax']['inv_inp_t'] = table_type
+    if custom_accum:
+        if backend not in ['Vivado', 'Vitis']:
+            pytest.skip('Custom accumulators are only supported for Vivado and Vitis backends')
+        W, I = map(int, input_bits.split(','))  # noqa: E741
+        cfg['LayerName']['softmax']['accum_t'] = f'fixed<{W+3},{I+3}>'
+        cfg['LayerName']['softmax']['inv_inp_t'] = f'fixed<{W+2},{I+2}>'
+    inp_layer_name = next(iter(cfg['LayerName'].keys()))
+    cfg['LayerName'][inp_layer_name]['Precision']['result'] = f'fixed<{input_bits}>'
 
     odir = str(
         test_root_path
-        / f'hls4mlprj_softmax_{backend}_{io_type}_{strategy}_{input_shape}_input-bits={input_bits}_table-bits={table_bits}'
+        / (
+            f'hls4mlprj_softmax_{backend}_{io_type}_{strategy}_{input_shape}'
+            f'_input-bits={input_bits}_table-bits={table_bits}_custom-accum={custom_accum}'
+        )
     )
     hls_model = hls4ml.converters.convert_from_keras_model(
         model, hls_config=cfg, io_type=io_type, output_dir=odir, backend=backend

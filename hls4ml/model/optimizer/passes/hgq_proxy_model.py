@@ -1,10 +1,18 @@
 import re
+import typing
+from copy import copy
 from warnings import warn
 
+import numpy as np
+
 from hls4ml.backends.fpga.fpga_types import NamedType
-from hls4ml.model.layers import Layer, register_layer
+from hls4ml.model.attributes import Attribute, TypeAttribute, WeightAttribute
+from hls4ml.model.layers import Layer, Reshape, register_layer
 from hls4ml.model.optimizer import OptimizerPass, register_pass
 from hls4ml.model.types import FixedPrecisionType, UnspecifiedPrecisionType, WeightVariable
+
+if typing.TYPE_CHECKING:
+    from hls4ml.model import ModelGraph
 
 re_purge_prefix = re.compile(r'(?<!\w)(?:ap_|ac_)', re.IGNORECASE)
 re_parse_fixed = re.compile(r'\s*(u?)fixed<([^>]+)>\s*', re.IGNORECASE)
@@ -20,33 +28,27 @@ class FixedPointQuantizer(Layer):
         self.overrides = self.attributes['overrides']
         self.fusible = self.attributes['fusible']
         self.SAT, self.RND = self.attributes['SAT'], self.attributes['RND']
-        self.mask_kbi = self.attributes.get('mask_kbi', None)
+        self.mask_kbi = self.attributes['mask_kbi']
 
 
 class UnaryLUT(Layer):
+    _expected_attributes = [
+        Attribute('n_in'),
+        TypeAttribute('table_t', default=FixedPrecisionType(18, 8, True)),
+        WeightAttribute('table'),
+    ]
+
     def initialize(self):
         inp = self.get_input_variable()
         shape = inp.shape
         dims = inp.dim_names
         self.add_output_variable(shape, dims)
         self.set_attr('n_in', inp.size())
-        self.table = self.attributes['table']
-        self.table_size = self.attributes['table_size']
+        self.table = self.attributes['table_data']
+        self.attributes['table_size'] = len(self.table)
+        self.table_size = len(self.table)
 
-        table_t = to_hls4ml_fixed(self.attributes['table_t'])
-        self.add_weights_variable(name='table', var_name='table{index}', precision=table_t, data=self.table)
-
-
-def to_hls4ml_fixed(fixed: str):
-    matched = re_parse_fixed.match(re_purge_prefix.sub('', fixed))
-    assert matched is not None, f'Cannot parse {fixed}'
-    signed = matched.group(1) != 'u'
-    b, i, *args = matched.group(2).split(',')
-    b, i = int(b), int(i)
-    args = [arg.upper() for arg in args]
-    new_type = FixedPrecisionType(b, i, signed, *args)
-    # For some reason, __class__ is overwritten in hls4ml
-    return new_type
+        self.add_weights_variable(name='table')
 
 
 def userconf_ifdef(key: str, layer_name: str, model):
@@ -74,6 +76,58 @@ def userconf_ifdef(key: str, layer_name: str, model):
     return key in layer_conf
 
 
+q_kifRS_t = tuple[np.ndarray, np.ndarray, np.ndarray, str, str]
+
+
+class FuseFixedPointQuantizer(OptimizerPass):
+    def match(self, node: Layer):
+        if not isinstance(node, FixedPointQuantizer):
+            return False
+        if any(np.unique(x).size > 1 for x in node.mask_kbi):
+            return False
+        return True
+
+    def propagate(self, node: Layer, precision: FixedPrecisionType):
+        from hls4ml.model.optimizer.passes.bit_exact import get_input_layers, get_output_layers
+
+        node.get_output_variable().type.precision = precision
+        node.attributes.attributes['result_t'].precision = precision
+
+        if not isinstance(node, Reshape):
+            return node
+
+        inp_layer = get_input_layers(node)[0]
+        can_propagate = len(get_output_layers(inp_layer)) == 1
+
+        if not can_propagate:
+            return node
+
+        new_precision = copy(precision)
+        precision.saturation_bits = 0
+        precision.rounding_mode = 'TRN'
+        precision.saturation_mode = 'WRAP'
+        self.propagate(inp_layer, new_precision)
+
+    def transform(self, model: 'ModelGraph', node: FixedPointQuantizer):
+        from hls4ml.model.optimizer.passes.bit_exact import get_input_layers, get_output_layers
+
+        # Rounding and saturation for FixedPointQuantizer are applied in generated code, thus not reflected in result_t.
+        if node.RND == 'TRN' and node.SAT == 'WRAP':
+            precision: FixedPrecisionType = copy(node.get_output_variable().type.precision)
+        else:
+            k, b, i = node.mask_kbi
+            k, b, i = bool(k.ravel()[0]), int(b.ravel()[0]), int(i.ravel()[0])
+            precision = FixedPrecisionType(b, i, k, node.RND, node.SAT)
+
+        inp_layer = get_input_layers(node)[0]
+        can_fuse = len(get_output_layers(inp_layer)) == 1
+        if not can_fuse:
+            return False
+        self.propagate(inp_layer, precision)
+        model.remove_node(node)
+        return True
+
+
 class EnforceProxyModelEmbeddedConfig(OptimizerPass):
     def match(self, node: Layer):
         if not isinstance(node, FixedPointQuantizer):
@@ -85,6 +139,17 @@ class EnforceProxyModelEmbeddedConfig(OptimizerPass):
     def transform(self, model, node: FixedPointQuantizer):
         if 'layers' not in node.overrides:
             return False
+
+        def to_hls4ml_fixed(fixed: str):
+            matched = re_parse_fixed.match(re_purge_prefix.sub('', fixed))
+            assert matched is not None, f'Cannot parse {fixed}'
+            signed = matched.group(1) != 'u'
+            b, i, *args = matched.group(2).split(',')
+            b, i = int(b), int(i)
+            args = [arg.upper() for arg in args]
+            new_type = FixedPrecisionType(b, i, signed, *args)
+            # For some reason, __class__ is overwritten in hls4ml
+            return new_type
 
         graph_changed = False
         layers = node.overrides['layers']
@@ -148,4 +213,5 @@ def register_hgq_proxy_model():
     register_layer('HGQ>FixedPointQuantizer', FixedPointQuantizer)
     register_layer('UnaryLUT', UnaryLUT)
     register_layer('HGQ>UnaryLUT', UnaryLUT)
-    register_pass('enforce_proxy_model_embedded_config', EnforceProxyModelEmbeddedConfig)
+    # register_pass('enforce_proxy_model_embedded_config', EnforceProxyModelEmbeddedConfig)
+    register_pass('fuse_fixed_point_quantizer', FuseFixedPointQuantizer)

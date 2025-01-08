@@ -417,6 +417,8 @@ class ModelGraph:
 
         for sub_flow in flow.requires:
             if sub_flow not in applied_flows.keys():
+                # if sub_flow != 'convert':
+                #     continue
                 self._apply_sub_flow(sub_flow, applied_flows)
 
         if len(flow.optimizers) > 0:

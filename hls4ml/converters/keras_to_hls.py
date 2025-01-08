@@ -4,6 +4,8 @@ import h5py
 
 from hls4ml.model import ModelGraph
 
+from .keras_v3_to_hls import parse_keras_v3_model
+
 MAXMULT = 4096
 
 
@@ -160,9 +162,9 @@ def get_model_arch(config):
         # Model instance passed in config from API
         keras_model = config['KerasModel']
         if isinstance(keras_model, str):
-            from tensorflow.keras.models import load_model
+            import keras
 
-            keras_model = load_model(keras_model)
+            keras_model = keras.models.load_model(keras_model)
         model_arch = json.loads(keras_model.to_json())
         reader = KerasModelReader(keras_model)
     elif 'KerasJson' in config:
@@ -323,6 +325,13 @@ def parse_keras_model(model_arch, reader):
 
 
 def keras_to_hls(config):
+    if 'KerasModel' in config:
+        import keras
+
+        if keras.__version__ >= '3.0':
+            layer_list, input_layers, output_layers, _ = parse_keras_v3_model(config['KerasModel'])
+            return ModelGraph(config, layer_list, input_layers, output_layers)
+
     model_arch, reader = get_model_arch(config)
     layer_list, input_layers, output_layers, _ = parse_keras_model(model_arch, reader)
     print('Creating HLS model')

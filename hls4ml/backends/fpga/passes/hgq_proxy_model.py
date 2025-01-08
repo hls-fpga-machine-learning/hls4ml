@@ -52,10 +52,6 @@ class ProcessFixedPointQuantizerLayer(OptimizerPass):
         return isinstance(node, FixedPointQuantizer)
 
     def transform(self, model, node: FixedPointQuantizer):
-        if node.fusible:
-            model.remove_node(node, rewire=True)
-            return True
-
         if model.config.config['IOType'] != 'io_parallel':
             raise NotImplementedError('Heterogenous quantization for activations is only supported with IOType=io_parallel')
 
@@ -94,7 +90,6 @@ class ProcessUnaryLUTCall(FunctionCallTemplate):
 
     def format(self, node):
         params = self._default_function_params(node)
-        node.attributes['result_t'].precision = node.attributes['table_t'].precision
         params['config'] = f'unary_lut_config{node.index}'
         params['table'] = node.get_weights('table').name
 

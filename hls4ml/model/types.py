@@ -206,6 +206,18 @@ class FixedPrecisionType(PrecisionType):
     def __hash__(self) -> int:
         return super().__hash__() ^ hash((self.integer, self.rounding_mode, self.saturation_mode, self.saturation_bits))
 
+    @property
+    def min(self):
+        if not self.signed:
+            return 0.0
+        if self.saturation_mode == SaturationMode.SAT_SYM:
+            return -(2.0 ** (self.integer - 1)) + 2.0**-self.fractional
+        return -(2.0 ** (self.integer - 1))
+
+    @property
+    def max(self):
+        return 2.0 ** (self.integer - 1) - 2.0**-self.fractional
+
 
 class XnorPrecisionType(PrecisionType):
     """

@@ -9,6 +9,11 @@ repos:
     args: ['--line-length=125',
            '--skip-string-normalization']
 
+- repo: https://github.com/tox-dev/pyproject-fmt
+  rev: v2.5.0
+  hooks:
+    - id: pyproject-fmt
+
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v5.0.0
   hooks:
@@ -16,6 +21,7 @@ repos:
   - id: check-case-conflict
   - id: check-merge-conflict
   - id: check-symlinks
+  - id: check-toml
   - id: check-yaml
   - id: debug-statements
   - id: end-of-file-fixer
@@ -27,18 +33,12 @@ repos:
   rev: 5.13.2
   hooks:
   - id: isort
-    args: ["--profile", "black", --line-length=125]
 
 - repo: https://github.com/asottile/pyupgrade
   rev: v3.19.1
   hooks:
   - id: pyupgrade
     args: ["--py36-plus"]
-
-- repo: https://github.com/asottile/setup-cfg-fmt
-  rev: v2.7.0
-  hooks:
-  - id: setup-cfg-fmt
 
 - repo: https://github.com/pycqa/flake8
   rev: 7.1.1
@@ -47,7 +47,11 @@ repos:
     exclude: docs/conf.py
     additional_dependencies: [flake8-bugbear, flake8-print]
     args: ['--max-line-length=125',  # github viewer width
-           '--extend-ignore=E203,T201']  # E203 is not PEP8 compliant
+           '--extend-ignore=E203,T201',  # E203 is not PEP8 compliant
+           '--per-file-ignores=hls4ml/model/optimizer/passes/bit_exact.py:E741,hls4ml/converters/keras_v3/squark/_base.py:E741,__init__.py:F401',
+           # i for #int w/o sign, I for #int w/ sign when massively processing bw conversions ......
+           # ignore unused imports in __init__.py .....
+    ]
 
 - repo: https://github.com/mgedmin/check-manifest
   rev: "0.50"

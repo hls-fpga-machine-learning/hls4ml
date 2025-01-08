@@ -21,16 +21,24 @@ from hls4ml.model.types import (
     FixedPrecisionType,
     IntegerPrecisionType,
     NamedType,
+    PrecisionType,
+    RoundingMode,
+    SaturationMode,
     TensorVariable,
     UnspecifiedPrecisionType,
     WeightVariable,
     find_minimum_width,
 )
 from hls4ml.utils import attribute_descriptions as descriptions
+from hls4ml.utils.einsum_utils import parse_einsum
 from hls4ml.utils.string_utils import convert_to_snake_case
 
+if typing.TYPE_CHECKING:
+    from hls4ml.model import ModelGraph
 
 # TODO move this to some utility module
+
+
 class classproperty:
     def __init__(self, func):
         self.func = func
@@ -80,7 +88,7 @@ class Layer:
                 "No model layer should be named 'input' because that is a reserved;"
                 + "layer name in ModelGraph; Please rename the layer in your model"
             )
-        self.model = model
+        self.model: 'ModelGraph' = model
         self.name = name
         self.index = model.next_layer()
         self.inputs = inputs
@@ -145,6 +153,9 @@ class Layer:
 
         # Validate existing attributes
         for attr_name, attr_value in self.attributes.items():
+            if isinstance(attr_value, PrecisionType):
+                attr_value = self._wrap_precision_to_type(f'{self.name}_{attr_name}', attr_value)
+                self.set_attr(attr_name, attr_value)
             exp_attr = all_attributes.pop(attr_name, None)
             if exp_attr is not None:
                 if not exp_attr.validate_value(attr_value):
@@ -910,7 +921,8 @@ class Activation(Layer):
         shape = inp.shape
         dims = inp.dim_names
         self.add_output_variable(shape, dims)
-        self.set_attr('n_in', self.get_input_variable().size())
+        if 'n_in' not in self.attributes:
+            self.set_attr('n_in', self.get_input_variable().size())
 
 
 class ParametrizedActivation(Activation):
@@ -975,6 +987,31 @@ class PReLU(Activation):
 
 
 class Softmax(Activation):
+    _expected_attributes = [
+        Attribute('n_in'),
+        Attribute('activation', value_type=str),
+        Attribute('n_outer', value_type=int, default=1),
+        Attribute('n_inner', value_type=int, default=1),
+        ChoiceAttribute('implementation', ['latency', 'stable', 'argmax', 'legacy'], default='stable'),
+        ConfigurableAttribute('skip', value_type=bool, default=False),
+        TypeAttribute(
+            'exp_table',
+            default=FixedPrecisionType(18, 8, rounding_mode=RoundingMode.RND, saturation_mode=SaturationMode.SAT),
+        ),
+        TypeAttribute(
+            'inv_table',
+            default=FixedPrecisionType(18, 8, rounding_mode=RoundingMode.RND, saturation_mode=SaturationMode.SAT),
+        ),
+        TypeAttribute(
+            'inv_inp',
+            default=FixedPrecisionType(18, 8, rounding_mode=RoundingMode.RND, saturation_mode=SaturationMode.SAT),
+        ),
+        TypeAttribute(
+            'accum',
+            default=FixedPrecisionType(18, 8, rounding_mode=RoundingMode.RND, saturation_mode=SaturationMode.SAT),
+        ),
+    ]
+
     def initialize(self):
         super().initialize()
 
@@ -1016,16 +1053,21 @@ class BatchNormalization(Layer):
         dims = inp.dim_names
         self.add_output_variable(shape, dims)
 
-        gamma = self.get_attr('gamma_data')
-        beta = self.get_attr('beta_data')
-        mean = self.get_attr('mean_data')
-        var = self.get_attr('variance_data')
+        if self.get_attr('scale_data') is None:
+            gamma = self.get_attr('gamma_data')
+            var = self.get_attr('variance_data')
+            scale = gamma / np.sqrt(var + self.get_attr('epsilon'))
+            self.add_weights_variable(name='scale', var_name='s{index}', data=scale)
+        else:
+            self.add_weights_variable(name='scale', var_name='s{index}')
 
-        scale = gamma / np.sqrt(var + self.get_attr('epsilon'))
-        bias = beta - scale * mean
-
-        self.add_weights_variable(name='scale', var_name='s{index}', data=scale)
-        self.add_weights_variable(name='bias', var_name='b{index}', data=bias)
+        if self.get_attr('bias_data') is None:
+            beta = self.get_attr('beta_data')
+            mean = self.get_attr('mean_data')
+            bias = beta - scale * mean
+            self.add_weights_variable(name='bias', var_name='b{index}', data=bias)
+        else:
+            self.add_weights_variable(name='bias', var_name='b{index}')
 
 
 # TODO:  discuss whether this should be renamed to soemthing more descriptive, and whether the class hierarchy makes sense
@@ -1221,8 +1263,7 @@ class Transpose(Layer):
         perm = self.get_attr('perm')
         self.set_attr('dim', f'{len(inp.shape)}d')
 
-        if len(perm) > 3:
-            raise Exception('ERROR: Transpose of tensors with rank > 3 is not yet supported.')
+        # TODO: dim>3 is only supported for vivado/vitis backend
 
         # ONNX double transpose specific, sometimes ONNX injects
         # useless double transpose layers when converting
@@ -1242,11 +1283,14 @@ class Transpose(Layer):
             self.set_attr('depth', 1)
             self.set_attr('height', inp.shape[0])
             self.set_attr('width', inp.shape[1])
-        elif len(shape) > 2:
+        elif len(shape) == 3:
             dims = [f'OUT_DEPTH_{self.index}', f'OUT_HEIGHT_{self.index}', f'OUT_WIDTH_{self.index}']
             self.set_attr('depth', inp.shape[0])
             self.set_attr('height', inp.shape[1])
             self.set_attr('width', inp.shape[2])
+        elif len(shape) > 3:
+            # Differentiate between 2/3/3+ dim does not really appear to be needed. To be removed?
+            dims = [f'OUT_DIM_{i}_{self.index}' for i in range(1, len(shape) + 1)]
         self.add_output_variable(shape, dims, precision=inp.type.precision)
 
 
@@ -1616,6 +1660,131 @@ class SymbolicExpression(Layer):
         self.add_output_variable([len(self.get_attr('expression'))], [f'N_OUTPUTS_{self.index}'], var_name='y')
 
 
+class EinsumDense(Layer):
+    _expected_attributes = [
+        WeightAttribute('weight'),
+        WeightAttribute('bias'),
+        TypeAttribute('weight'),
+        TypeAttribute('bias'),
+        TypeAttribute('accum'),
+        Attribute('equation', value_type=str),
+        Attribute('inp_shape', value_type=tuple),
+        Attribute('out_shape', value_type=tuple),
+    ]
+
+    def initialize(self):
+        out_shape = self.attributes['out_shape']
+        if len(out_shape) > 1:
+            dims = [f'N_LAYER_{self.index}_D{i}' for i in range(1, len(out_shape) + 1)]
+        else:
+            dims = [f'N_LAYER_{self.index}']
+        self.add_output_variable(list(out_shape), dims)
+
+        kernel: np.ndarray = self.attributes.attributes['weight_data']
+        bias: np.ndarray | None = self.attributes.attributes['bias_data']
+        equation = self.attributes['equation']
+        inp_shape = self.attributes['inp_shape']
+        out_shape = self.attributes['out_shape']
+
+        kernel_shape = kernel.shape
+        recipe = parse_einsum(equation, inp_shape, kernel_shape)
+        assert not any(recipe['direct_sum_axis']), (
+            'Do not put direct sum indices (e.g., only appears in one of the operands) in the equation.'
+            'Use explicit addition operator before instead.'
+        )
+        inp_tpose_idxs, ker_tpose_idxs = recipe['in_transpose_idxs']
+        out_tpose_idxs = recipe['out_transpose_idxs']
+
+        # Pre-transpose kernel (and bias) to save a transpose in cpp. Shouldn't matter for latency strategy though.
+        # hls4ml dense acts like i,ij->j
+        # parser assumes ij,j->i, so we need to transpose the kernel to match
+        kernel = kernel.transpose(ker_tpose_idxs)
+        kernel = kernel.reshape(recipe['I'], recipe['L1'], recipe['C']).transpose(0, 2, 1)
+
+        def to_original_kernel(tkernel: np.ndarray) -> np.ndarray:
+            _kernel = tkernel.transpose(0, 2, 1)
+            _kernel = _kernel.reshape(tuple(kernel_shape[i] for i in ker_tpose_idxs))
+            return _kernel.transpose(np.argsort(ker_tpose_idxs))
+
+        # TODO: for weight in bram mode (resource), broadcasting bias here shall be avoided.
+        if bias is not None:
+            bias = np.broadcast_to(bias, out_shape).transpose(np.argsort(out_tpose_idxs))
+        else:
+            # The automatically created bias is just the last dimension of the output shape
+            # Which is too small in general for einsum dense.
+            # The transpose is just to match the shape in case of have real bias, no real effect.
+            bias = np.zeros(out_shape).transpose(np.argsort(out_tpose_idxs))
+
+        self.attributes.attributes['weight_data'] = kernel
+        self.attributes.attributes['to_original_kernel'] = to_original_kernel
+        self.attributes.attributes['bias_data'] = bias
+        self.attributes['inp_tpose_idxs'] = inp_tpose_idxs
+        self.attributes['out_tpose_idxs'] = out_tpose_idxs
+        self.attributes['out_interpert_shape'] = recipe['out_interpert_shape']
+        self.attributes['n_free_data'] = recipe['L0']
+        self.attributes['n_free_kernel'] = recipe['L1']
+        self.attributes['n_inplace'] = recipe['I']
+        self.attributes['n_contract'] = recipe['C']
+        pf = self.attributes.attributes.get('parallelization_factor', recipe['L0'])
+        self.attributes['parallelization_factor'] = pf
+
+        self.add_weights(compression=self.model.config.get_compression(self))
+        self.add_bias()
+
+
+class Matmul(Layer):
+    _expected_attributes = [
+        TypeAttribute('accum'),
+        Attribute('inup1_shape', value_type=tuple),
+        Attribute('inp2_shape', value_type=tuple),
+    ]
+
+
+class Einsum(Layer):
+    _expected_attributes = [
+        TypeAttribute('accum'),
+        Attribute('equation', value_type=str),
+        Attribute('inp0_shape', value_type=tuple),
+        Attribute('inp1_shape', value_type=tuple),
+        Attribute('out_shape', value_type=tuple),
+    ]
+
+    def initialize(self):
+        out_shape = self.attributes['out_shape']
+        if len(out_shape) > 1:
+            dims = [f'N_LAYER_{self.index}_D{i}' for i in range(1, len(out_shape) + 1)]
+        else:
+            dims = [f'N_LAYER_{self.index}']
+        self.add_output_variable(list(out_shape), dims)
+
+        equation = self.attributes['equation']
+        inp0_shape = self.attributes['inp0_shape']
+        inp1_shape = self.attributes['inp1_shape']
+        out_shape = self.attributes['out_shape']
+
+        recipe = parse_einsum(equation, inp0_shape, inp1_shape)
+        assert not any(recipe['direct_sum_axis']), (
+            'Do not put direct sum indices (e.g., only appears in one of the operands) in the equation.'
+            'Use explicit addition operator before instead.'
+        )
+        inp0_tpose_idxs, inp1_tpose_idxs = recipe['in_transpose_idxs']
+        out_tpose_idxs = recipe['out_transpose_idxs']
+
+        self.attributes.attributes.update(recipe)
+        self.attributes['n_free0'] = recipe['L0']
+        self.attributes['n_free1'] = recipe['L1']
+        self.attributes['n_inplace'] = recipe['I']
+        self.attributes['n_contract'] = recipe['C']
+        self.attributes['out_interpert_shape'] = recipe['out_interpert_shape']
+
+        self.attributes['inp0_tpose_idxs'] = inp0_tpose_idxs
+        self.attributes['inp1_tpose_idxs'] = inp1_tpose_idxs
+        self.attributes['out_tpose_idxs'] = out_tpose_idxs
+
+        pf = self.attributes.attributes.get('parallelization_factor', recipe['L0'])
+        self.attributes['parallelization_factor'] = pf
+
+
 layer_map = {
     'Input': Input,
     'InputLayer': Input,
@@ -1684,6 +1853,8 @@ layer_map = {
     'SymbolicExpression': SymbolicExpression,
     # TensorFlow-specific layers:
     'BiasAdd': BiasAdd,
+    'EinsumDense': EinsumDense,
+    'Einsum': Einsum,
 }
 
 
