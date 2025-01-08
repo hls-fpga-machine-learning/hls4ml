@@ -5,8 +5,6 @@ behave like simple wrappers.
 """
 
 import numpy as np
-import tensorflow as tf
-from qkeras.quantizers import get_quantizer
 
 from hls4ml.model.types import (
     ExponentPrecisionType,
@@ -16,6 +14,7 @@ from hls4ml.model.types import (
     SaturationMode,
     XnorPrecisionType,
 )
+from hls4ml.utils.dependency import requires
 
 
 class Quantizer:
@@ -86,7 +85,10 @@ class QKerasQuantizer(Quantizer):
         config (dict): Config of the QKeras quantizer to wrap.
     """
 
+    @requires('qkeras')
     def __init__(self, config):
+        from qkeras.quantizers import get_quantizer
+
         self.quantizer_fn = get_quantizer(config)
         self.alpha = config['config'].get('alpha', None)
         if config['class_name'] == 'quantized_bits':
@@ -106,8 +108,8 @@ class QKerasQuantizer(Quantizer):
             self.hls_type = FixedPrecisionType(width=16, integer=6, signed=True)
 
     def __call__(self, data):
-        tf_data = tf.convert_to_tensor(data)
-        return self.quantizer_fn(tf_data).numpy()
+        data = np.array(data, dtype='float32')
+        return self.quantizer_fn(data).numpy()
         # return self.quantizer_fn(data)
 
     def _get_type(self, quantizer_config):
@@ -131,7 +133,10 @@ class QKerasBinaryQuantizer(Quantizer):
         config (dict): Config of the QKeras quantizer to wrap.
     """
 
+    @requires('qkeras')
     def __init__(self, config, xnor=False):
+        from qkeras.quantizers import get_quantizer
+
         self.bits = 1 if xnor else 2
         self.hls_type = XnorPrecisionType() if xnor else IntegerPrecisionType(width=2, signed=True)
         self.alpha = config['config']['alpha']
@@ -141,8 +146,8 @@ class QKerasBinaryQuantizer(Quantizer):
         self.binary_quantizer = BinaryQuantizer(1) if xnor else BinaryQuantizer(2)
 
     def __call__(self, data):
-        x = tf.convert_to_tensor(data)
-        y = self.quantizer_fn(x).numpy()
+        data = np.array(data, dtype='float32')
+        y = self.quantizer_fn(data).numpy()
         return self.binary_quantizer(y)
 
 
@@ -153,15 +158,18 @@ class QKerasPO2Quantizer(Quantizer):
         config (dict): Config of the QKeras quantizer to wrap.
     """
 
+    @requires('qkeras')
     def __init__(self, config):
+        from qkeras.quantizers import get_quantizer
+
         self.bits = config['config']['bits']
         self.quantizer_fn = get_quantizer(config)
         self.hls_type = ExponentPrecisionType(width=self.bits, signed=True)
 
     def __call__(self, data):
         # Weights are quantized to nearest power of two
-        x = tf.convert_to_tensor(data)
-        y = self.quantizer_fn(x)
+        data = np.array(data, dtype='float32')
+        y = self.quantizer_fn(data)
         if hasattr(y, 'numpy'):
             y = y.numpy()
         return y
