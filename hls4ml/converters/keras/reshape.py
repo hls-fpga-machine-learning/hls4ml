@@ -24,7 +24,7 @@ def parse_reshape_layer(keras_layer, input_names, input_shapes, data_reader):
     layer = parse_default_keras_layer(keras_layer, input_names)
 
     layer['target_shape'] = keras_layer['config']['target_shape']
-    output_shape = input_shapes[0][:1] + keras_layer['config']['target_shape']
+    output_shape = input_shapes[0][:1] + list(keras_layer['config']['target_shape'])
 
     return layer, output_shape
 

@@ -9,6 +9,11 @@ repos:
     args: ['--line-length=125',
            '--skip-string-normalization']
 
+- repo: https://github.com/tox-dev/pyproject-fmt
+  rev: v2.5.0
+  hooks:
+    - id: pyproject-fmt
+
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v5.0.0
   hooks:
@@ -16,6 +21,7 @@ repos:
   - id: check-case-conflict
   - id: check-merge-conflict
   - id: check-symlinks
+  - id: check-toml
   - id: check-yaml
   - id: debug-statements
   - id: end-of-file-fixer
@@ -27,18 +33,12 @@ repos:
   rev: 5.13.2
   hooks:
   - id: isort
-    args: ["--profile", "black", --line-length=125]
 
 - repo: https://github.com/asottile/pyupgrade
   rev: v3.19.1
   hooks:
   - id: pyupgrade
     args: ["--py36-plus"]
-
-- repo: https://github.com/asottile/setup-cfg-fmt
-  rev: v2.7.0
-  hooks:
-  - id: setup-cfg-fmt
 
 - repo: https://github.com/pycqa/flake8
   rev: 7.1.1

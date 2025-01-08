@@ -27,10 +27,12 @@ from hls4ml.model.types import (
     find_minimum_width,
 )
 from hls4ml.utils import attribute_descriptions as descriptions
+from hls4ml.utils.einsum_utils import parse_einsum
 from hls4ml.utils.string_utils import convert_to_snake_case
 
-
 # TODO move this to some utility module
+
+
 class classproperty:
     def __init__(self, func):
         self.func = func
@@ -1221,8 +1223,7 @@ class Transpose(Layer):
         perm = self.get_attr('perm')
         self.set_attr('dim', f'{len(inp.shape)}d')
 
-        if len(perm) > 3:
-            raise Exception('ERROR: Transpose of tensors with rank > 3 is not yet supported.')
+        # TODO: dim>3 is only supported for vivado/vitis backend
 
         # ONNX double transpose specific, sometimes ONNX injects
         # useless double transpose layers when converting
@@ -1242,11 +1243,14 @@ class Transpose(Layer):
             self.set_attr('depth', 1)
             self.set_attr('height', inp.shape[0])
             self.set_attr('width', inp.shape[1])
-        elif len(shape) > 2:
+        elif len(shape) == 3:
             dims = [f'OUT_DEPTH_{self.index}', f'OUT_HEIGHT_{self.index}', f'OUT_WIDTH_{self.index}']
             self.set_attr('depth', inp.shape[0])
             self.set_attr('height', inp.shape[1])
             self.set_attr('width', inp.shape[2])
+        elif len(shape) > 3:
+            # Differentiate between 2/3/3+ dim does not really appear to be needed. To be removed?
+            dims = [f'OUT_DIM_{i}_{self.index}' for i in range(1, len(shape) + 1)]
         self.add_output_variable(shape, dims, precision=inp.type.precision)
 
 
@@ -1616,6 +1620,67 @@ class SymbolicExpression(Layer):
         self.add_output_variable([len(self.get_attr('expression'))], [f'N_OUTPUTS_{self.index}'], var_name='y')
 
 
+class EinsumDense(Layer):
+    _expected_attributes = [
+        WeightAttribute('weight'),
+        WeightAttribute('bias'),
+        TypeAttribute('weight'),
+        TypeAttribute('bias'),
+        TypeAttribute('accum'),
+        Attribute('equation', value_type=str),
+        Attribute('inp_shape', value_type=tuple),
+        Attribute('out_shape', value_type=tuple),
+    ]
+
+    def initialize(self):
+        out_shape = self.attributes['out_shape']
+        if len(out_shape) > 1:
+            dims = [f'N_LAYER_{self.index}_D{i}' for i in range(1, len(out_shape) + 1)]
+        else:
+            dims = [f'N_LAYER_{self.index}']
+        self.add_output_variable(list(out_shape), dims)
+
+        kernel: np.ndarray = self.attributes.attributes['weight_data']
+        bias: np.ndarray | None = self.attributes.attributes['bias_data']
+        equation = self.attributes['equation']
+        inp_shape = self.attributes['inp_shape']
+        out_shape = self.attributes['out_shape']
+
+        recipe = parse_einsum(equation, inp_shape, kernel.shape)
+        inp_tpose_idxs, ker_tpose_idxs = recipe['in_transpose_idxs']
+        out_tpose_idxs = recipe['out_transpose_idxs']
+
+        # Pre-transpose kernel (and bias) to save a transpose in cpp. Shouldn't matter for latency strategy though.
+        # hls4ml dense acts like i,ij->j
+        # parser assumes ij,j->i, so we need to transpose the kernel to match
+        kernel = kernel.transpose(ker_tpose_idxs)
+        kernel = kernel.reshape(recipe['I'], recipe['L1'], recipe['C']).transpose(0, 2, 1)
+
+        # TODO: for weight in bram mode (resource), broadcasting bias here shall be avoided.
+        if bias is not None:
+            bias = np.broadcast_to(bias, out_shape).transpose(np.argsort(out_tpose_idxs))
+        else:
+            # The automatically created bias is just the last dimension of the output shape
+            # Which is too small in general for einsum dense.
+            # The transpose is just to match the shape in case of have real bias, no real effect.
+            bias = np.zeros(out_shape).transpose(np.argsort(out_tpose_idxs))
+
+        self.attributes.attributes['weight_data'] = kernel
+        self.attributes.attributes['bias_data'] = bias
+        self.attributes['inp_tpose_idxs'] = inp_tpose_idxs
+        self.attributes['out_tpose_idxs'] = out_tpose_idxs
+        self.attributes['out_interpert_shape'] = recipe['out_interpert_shape']
+        self.attributes['n_free_data'] = recipe['L0']
+        self.attributes['n_free_kernel'] = recipe['L1']
+        self.attributes['n_inplace'] = recipe['I']
+        self.attributes['n_contract'] = recipe['C']
+        pf = self.attributes.attributes.get('parallelization_factor', recipe['L0'])
+        self.attributes['parallelization_factor'] = pf
+
+        self.add_weights(compression=self.model.config.get_compression(self))
+        self.add_bias()
+
+
 layer_map = {
     'Input': Input,
     'InputLayer': Input,
@@ -1684,6 +1749,7 @@ layer_map = {
     'SymbolicExpression': SymbolicExpression,
     # TensorFlow-specific layers:
     'BiasAdd': BiasAdd,
+    'EinsumDense': EinsumDense,
 }
 
 
