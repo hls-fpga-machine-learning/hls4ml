@@ -1,7 +1,7 @@
 from tensorflow.keras.layers import Conv2D, Dense, Flatten, ReLU
 from tensorflow.keras.models import Sequential
 
-from hls4ml.optimization import get_attributes_from_keras_model_and_hls4ml_config
+from hls4ml.optimization.dsp_aware_pruning import get_attributes_from_keras_model_and_hls4ml_config
 from hls4ml.utils.config import config_from_keras_model
 
 

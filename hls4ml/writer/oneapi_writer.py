@@ -102,9 +102,10 @@ class OneAPIWriter(Writer):
         project_name = model.config.get_project_name()
 
         filedir = os.path.dirname(os.path.abspath(__file__))
-        with open(os.path.join(filedir, '../templates/oneapi/firmware/myproject.cpp')) as f, open(
-            f'{model.config.get_output_dir()}/src/firmware/{project_name}.cpp', 'w'
-        ) as fout:
+        with (
+            open(os.path.join(filedir, '../templates/oneapi/firmware/myproject.cpp')) as f,
+            open(f'{model.config.get_output_dir()}/src/firmware/{project_name}.cpp', 'w') as fout,
+        ):
             model_inputs = model.get_input_variables()
             model_outputs = model.get_output_variables()
             model_brams = [var for var in model.get_weight_variables() if var.storage.lower() == 'bram']
@@ -207,9 +208,10 @@ class OneAPIWriter(Writer):
         project_name = model.config.get_project_name()
 
         filedir = os.path.dirname(os.path.abspath(__file__))
-        with open(os.path.join(filedir, '../templates/oneapi/firmware/myproject.h')) as f, open(
-            f'{model.config.get_output_dir()}/src/firmware/{project_name}.h', 'w'
-        ) as fout:
+        with (
+            open(os.path.join(filedir, '../templates/oneapi/firmware/myproject.h')) as f,
+            open(f'{model.config.get_output_dir()}/src/firmware/{project_name}.h', 'w') as fout,
+        ):
             model_inputs = model.get_input_variables()
             model_outputs = model.get_output_variables()
             # model_brams = [var for var in model.get_weight_variables() if var.storage.lower() == 'bram']
@@ -254,9 +256,10 @@ class OneAPIWriter(Writer):
             model (ModelGraph): the hls4ml model.
         """
         filedir = os.path.dirname(os.path.abspath(__file__))
-        with open(os.path.join(filedir, '../templates/oneapi/firmware/defines.h')) as f, open(
-            f'{model.config.get_output_dir()}/src/firmware/defines.h', 'w'
-        ) as fout:
+        with (
+            open(os.path.join(filedir, '../templates/oneapi/firmware/defines.h')) as f,
+            open(f'{model.config.get_output_dir()}/src/firmware/defines.h', 'w') as fout,
+        ):
             for line in f.readlines():
                 # Insert numbers
                 if '// hls-fpga-machine-learning insert numbers' in line:
@@ -298,9 +301,10 @@ class OneAPIWriter(Writer):
             model (ModelGraph): the hls4ml model.
         """
         filedir = os.path.dirname(os.path.abspath(__file__))
-        with open(os.path.join(filedir, '../templates/oneapi/firmware/parameters.h')) as f, open(
-            f'{model.config.get_output_dir()}/src/firmware/parameters.h', 'w'
-        ) as fout:
+        with (
+            open(os.path.join(filedir, '../templates/oneapi/firmware/parameters.h')) as f,
+            open(f'{model.config.get_output_dir()}/src/firmware/parameters.h', 'w') as fout,
+        ):
             for line in f.readlines():
                 if '// hls-fpga-machine-learning insert includes' in line:
                     newline = line
@@ -376,9 +380,10 @@ class OneAPIWriter(Writer):
                     output_predictions, f'{model.config.get_output_dir()}/tb_data/tb_output_predictions.dat'
                 )
 
-        with open(os.path.join(filedir, '../templates/oneapi/myproject_test.cpp')) as f, open(
-            f'{model.config.get_output_dir()}/src/{project_name}_test.cpp', 'w'
-        ) as fout:
+        with (
+            open(os.path.join(filedir, '../templates/oneapi/myproject_test.cpp')) as f,
+            open(f'{model.config.get_output_dir()}/src/{project_name}_test.cpp', 'w') as fout,
+        ):
             for line in f.readlines():
                 indent = ' ' * (len(line) - len(line.lstrip(' ')))
 
@@ -434,9 +439,10 @@ class OneAPIWriter(Writer):
         indent = '    '
 
         filedir = os.path.dirname(os.path.abspath(__file__))
-        with open(os.path.join(filedir, '../templates/oneapi/myproject_bridge.cpp')) as f, open(
-            f'{model.config.get_output_dir()}/src/{project_name}_bridge.cpp', 'w'
-        ) as fout:
+        with (
+            open(os.path.join(filedir, '../templates/oneapi/myproject_bridge.cpp')) as f,
+            open(f'{model.config.get_output_dir()}/src/{project_name}_bridge.cpp', 'w') as fout,
+        ):
             for line in f.readlines():
                 if 'MYPROJECT' in line:
                     newline = line.replace('MYPROJECT', format(project_name.upper()))
@@ -511,9 +517,10 @@ class OneAPIWriter(Writer):
         # Makefile
         filedir = os.path.dirname(os.path.abspath(__file__))
         device = model.config.get_config_value('Part')
-        with open(os.path.join(filedir, '../templates/oneapi/CMakeLists.txt')) as f, open(
-            f'{model.config.get_output_dir()}/CMakeLists.txt', 'w'
-        ) as fout:
+        with (
+            open(os.path.join(filedir, '../templates/oneapi/CMakeLists.txt')) as f,
+            open(f'{model.config.get_output_dir()}/CMakeLists.txt', 'w') as fout,
+        ):
             for line in f.readlines():
                 line = line.replace('myproject', model.config.get_project_name())
                 line = line.replace('mystamp', model.config.get_config_value('Stamp'))

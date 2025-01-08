@@ -1,6 +1,5 @@
 import importlib
 import os
-import warnings
 
 import yaml
 
@@ -10,32 +9,18 @@ from hls4ml.converters.keras_to_hls import KerasReader  # noqa: F401
 from hls4ml.converters.keras_to_hls import get_supported_keras_layers  # noqa: F401
 from hls4ml.converters.keras_to_hls import parse_keras_model  # noqa: F401
 from hls4ml.converters.keras_to_hls import keras_to_hls, register_keras_layer_handler
+from hls4ml.converters.onnx_to_hls import get_supported_onnx_layers  # noqa: F401
 from hls4ml.converters.onnx_to_hls import parse_onnx_model  # noqa: F401
+from hls4ml.converters.onnx_to_hls import onnx_to_hls, register_onnx_layer_handler
+from hls4ml.converters.pytorch_to_hls import (  # noqa: F401
+    get_supported_pytorch_layers,
+    pytorch_to_hls,
+    register_pytorch_layer_handler,
+)
 from hls4ml.model import ModelGraph
 from hls4ml.utils.config import create_config
+from hls4ml.utils.dependency import requires
 from hls4ml.utils.symbolic_utils import LUTFunction
-
-# ----------Make converters available if the libraries can be imported----------#
-try:
-    from hls4ml.converters.pytorch_to_hls import (  # noqa: F401
-        get_supported_pytorch_layers,
-        pytorch_to_hls,
-        register_pytorch_layer_handler,
-    )
-
-    __pytorch_enabled__ = True
-except ImportError:
-    warnings.warn("WARNING: Pytorch converter is not enabled!", stacklevel=1)
-    __pytorch_enabled__ = False
-
-try:
-    from hls4ml.converters.onnx_to_hls import get_supported_onnx_layers  # noqa: F401
-    from hls4ml.converters.onnx_to_hls import onnx_to_hls, register_onnx_layer_handler
-
-    __onnx_enabled__ = True
-except ImportError:
-    warnings.warn("WARNING: ONNX converter is not enabled!", stacklevel=1)
-    __onnx_enabled__ = False
 
 # ----------Layer handling register----------#
 model_types = ['keras', 'pytorch', 'onnx']
@@ -51,7 +36,7 @@ for model_type in model_types:
                 # and has 'handles' attribute
                 # and is defined in this module (i.e., not imported)
                 if callable(func) and hasattr(func, 'handles') and func.__module__ == lib.__name__:
-                    for layer in func.handles:
+                    for layer in func.handles:  # type: ignore
                         if model_type == 'keras':
                             register_keras_layer_handler(layer, func)
                         elif model_type == 'pytorch':
@@ -93,10 +78,10 @@ def parse_yaml_config(config_file):
     """
 
     def construct_keras_model(loader, node):
-        from tensorflow.keras.models import load_model
-
         model_str = loader.construct_scalar(node)
-        return load_model(model_str)
+        import keras
+
+        return keras.models.load_model(model_str)
 
     yaml.add_constructor('!keras_model', construct_keras_model, Loader=yaml.SafeLoader)
 
@@ -124,15 +109,9 @@ def convert_from_config(config):
 
     model = None
     if 'OnnxModel' in yamlConfig:
-        if __onnx_enabled__:
-            model = onnx_to_hls(yamlConfig)
-        else:
-            raise Exception("ONNX not found. Please install ONNX.")
+        model = onnx_to_hls(yamlConfig)
     elif 'PytorchModel' in yamlConfig:
-        if __pytorch_enabled__:
-            model = pytorch_to_hls(yamlConfig)
-        else:
-            raise Exception("PyTorch not found. Please install PyTorch.")
+        model = pytorch_to_hls(yamlConfig)
     else:
         model = keras_to_hls(yamlConfig)
 
@@ -174,6 +153,7 @@ def _check_model_config(model_config):
     return model_config
 
 
+@requires('_keras')
 def convert_from_keras_model(
     model,
     output_dir='my-hls-test',
@@ -237,6 +217,7 @@ def convert_from_keras_model(
     return keras_to_hls(config)
 
 
+@requires('_torch')
 def convert_from_pytorch_model(
     model,
     output_dir='my-hls-test',
@@ -308,6 +289,7 @@ def convert_from_pytorch_model(
     return pytorch_to_hls(config)
 
 
+@requires('onnx')
 def convert_from_onnx_model(
     model,
     output_dir='my-hls-test',
@@ -371,6 +353,7 @@ def convert_from_onnx_model(
     return onnx_to_hls(config)
 
 
+@requires('sr')
 def convert_from_symbolic_expression(
     expr,
     n_symbols=None,

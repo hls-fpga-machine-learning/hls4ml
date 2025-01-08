@@ -1,8 +1,7 @@
 import json
 
-import qkeras
-
 import hls4ml
+from hls4ml.utils.dependency import requires
 
 
 def create_config(output_dir='my-hls-test', project_name='myproject', backend='Vivado', version='1.0.0', **kwargs):
@@ -46,8 +45,11 @@ def create_config(output_dir='my-hls-test', project_name='myproject', backend='V
     return config
 
 
+@requires('qkeras')
 def _get_precision_from_quantizer(quantizer):
     if isinstance(quantizer, str):
+        import qkeras
+
         quantizer_obj = qkeras.get_quantizer(quantizer)
         quantizer = {}
         # Some activations are classes with get_config method

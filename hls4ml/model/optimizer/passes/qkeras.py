@@ -1,5 +1,4 @@
 import numpy as np
-import tensorflow as tf
 
 from hls4ml.model.layers import ApplyAlpha
 from hls4ml.model.optimizer import ConfigurableOptimizerPass, OptimizerPass, register_pass
@@ -113,6 +112,8 @@ class QKerasFactorizeAlpha(OptimizerPass):
     def transform(self, model, node):
         # The quantizer has to be applied to set the scale attribute
         # This must be applied to the _unquantized_ weights to obtain the correct scale
+        import tensorflow as tf
+
         quantizer = node.weights['weight'].quantizer.quantizer_fn  # get QKeras quantizer
         weights = node.weights['weight'].data_unquantized  # get weights
         qweights = quantizer(tf.convert_to_tensor(weights))
