@@ -1,4 +1,5 @@
 import math
+import struct
 from typing import Iterable
 
 import numpy as np
@@ -561,15 +562,34 @@ class InferPrecisionTypes(ConfigurableOptimizerPass):
 
         return inferred_types
 
-    def _infer_par_act_precision(self, node, types_to_infer):
+    def _infer_const_precision(self, node, type_to_infer, attr_name):
         inferred_types = []
 
-        # For threshold relu, set the parameter precision to be the input precision by default;
-        # for other parametrized activations, just allow the default precision to be used.
-        # Can override these values in the configuration by explicitly setting them.
-        if 'param_t' in inferred_types and self.get_attr('activation').lower() == 'thresholdedrelu':
-            in_type = node.get_input_variable().type.precision
-            node.attributes['param_t'].type = in_type
-            inferred_types.append('param_t')
+        def get_man_exp(f):
+            f = np.abs(f)
+            s = struct.pack('>f', f)
+            l_float = struct.unpack('>l', s)[0]
+            bits = f'{l_float:032b}'
+            m = bits[-23:]
+            e = bits[-23 - 8 : -23]
+            return m, e
 
+        param = node.get_attr(attr_name)
+        m, e = get_man_exp(param)
+        I_pos = int(e, 2) - 127 + 1  # -127 is the bias of the exponent
+        try:
+            W_bits = m.rindex('1') + 2  # + 1 for accounting the index starting from 0, +1 for the leading 1 of the exponent
+        except Exception:
+            W_bits = 1  # the value is a power of 2, 1 bit is needed, I_pos will offset the bit in the proper place
+        if param < 0 and W_bits > 1:  # for po2 values the increment is not needed
+            I_pos += 1
+            W_bits += 1
+        node.attributes[type_to_infer].precision = FixedPrecisionType(W_bits, I_pos, True if param < 0 else False)
+        inferred_types.append(type_to_infer)
+        return inferred_types
+
+    def _infer_par_act_precision(self, node, types_to_infer):
+        inferred_types = []
+        if 'param_t' in types_to_infer:
+            inferred_types.extend(self._infer_const_precision(node, 'param_t', 'activ_param'))
         return inferred_types
