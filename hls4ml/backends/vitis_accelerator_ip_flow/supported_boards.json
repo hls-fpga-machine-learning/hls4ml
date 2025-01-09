@@ -1,0 +1,42 @@
+{
+  "pynq-z2": {
+    "part": "xc7z020clg400-1",
+    "tcl_scripts": {"axi_lite": "axi_lite_design.tcl", "axi_stream":  "axi_stream_design.tcl"},
+    "python_drivers": {"axi_stream":  "axi_stream_driver.py"},
+    "c_drivers": {}
+  },
+  "zcu102": {
+    "part": "xczu9eg-ffvb1156-2-e",
+    "tcl_scripts": { "axi_stream": "axi_stream_design.tcl"},
+    "python_drivers": {"axi_stream":  "axi_stream_driver.py"},
+    "c_drivers": {}
+  },
+  "alveo-u50": {
+    "part": "xcu50-fsvh2104-2-e",
+    "tcl_scripts": {"axi_stream": "axi_stream_design.tcl"},
+    "python_drivers": {"axi_stream": "axi_stream_driver.py"},
+    "krnl_rtl_srcs": {"axi_stream":  "krnl_rtl_src"},
+    "c_drivers": {}
+  },
+  "alveo-u250": {
+    "part": "xcu250-figd2104-2L-e",
+    "tcl_scripts": {"axi_stream": "axi_stream_design.tcl"},
+    "python_drivers": {"axi_stream": "axi_stream_driver.py"},
+    "krnl_rtl_srcs": {"axi_stream":  "krnl_rtl_src"},
+    "c_drivers": {}
+  },
+  "alveo-u200": {
+    "part": "xcu200-fsgd2104-2-e",
+    "tcl_scripts": {"axi_stream": "axi_stream_design.tcl"},
+    "python_drivers": {"axi_stream": "axi_stream_driver.py"},
+    "krnl_rtl_srcs": {"axi_stream":  "krnl_rtl_src"},
+    "c_drivers": {}
+  },
+  "alveo-u280": {
+    "part": "xcu280-fsvh2892-2L-e",
+    "tcl_scripts": {"axi_stream": "axi_stream_design.tcl"},
+    "python_drivers": {"axi_stream": "axi_stream_driver.py"},
+    "krnl_rtl_srcs": {"axi_stream":  "krnl_rtl_src"},
+    "c_drivers": {}
+  }
+}

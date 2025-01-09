@@ -11,6 +11,11 @@
 #include <stdlib.h>
 #include <vector>
 
+// this header cannot be included by Vivado HLS
+// "VITIS_ACCELERATOR_IP_FLOW" is defined on the build_lib.sh of the `Vitis Accelerator` template files
+#ifdef VITIS_ACCELERATOR_IP_FLOW
+#include "ap_axi_sdata.h"
+#endif
 namespace nnet {
 
 #ifndef __SYNTHESIS__
@@ -161,6 +166,26 @@ template <class srcType, class dstType, size_t SIZE> void convert_data(hls::stre
     }
 }
 
+#ifdef VITIS_ACCELERATOR_IP_FLOW
+// todo avoid hardcoding hls::axis<float, 0, 0, 0> and use template
+template <class srcType, typename dstType, size_t SIZE>
+void convert_data(srcType *src, hls::stream<hls::axis<float, 0, 0, 0>> &dst) {
+    for (size_t i = 0; i < SIZE; i++) {
+        hls::axis<float, 0, 0, 0> ctype;
+        ctype.data = dstType(src[i]);
+        dst.write(ctype);
+    }
+}
+
+template <typename srcType, class dstType, size_t SIZE>
+void convert_data(hls::stream<hls::axis<float, 0, 0, 0>> &src, dstType *dst) {
+    for (size_t i = 0; i < SIZE; i++) {
+        hls::axis<float, 0, 0, 0> ctype = src.read();
+        dst[i] = dstType(ctype.data);
+    }
+}
+#endif
+
 extern bool trace_enabled;
 extern std::map<std::string, void *> *trace_outputs;
 extern size_t trace_type_size;
@@ -247,8 +272,6 @@ template <class data_T> void save_layer_output(hls::stream<data_T> &data, const 
     }
 }
 
-#endif
-
 template <class src_T, class dst_T, size_t OFFSET, size_t SIZE> void copy_data(std::vector<src_T> src, dst_T dst[SIZE]) {
     typename std::vector<src_T>::const_iterator in_begin = src.cbegin() + OFFSET;
     typename std::vector<src_T>::const_iterator in_end = in_begin + SIZE;
@@ -272,14 +295,27 @@ void copy_data(std::vector<src_T> src, hls::stream<dst_T> &dst) {
 }
 
 template <class src_T, class dst_T, size_t OFFSET, size_t SIZE> void copy_data_axi(std::vector<src_T> src, dst_T dst[SIZE]) {
-    for (auto i = 0; i < SIZE; i++)
+    for (auto i = 0; i < SIZE; i++) {
+        dst[i].data = src[i];
         if (i == SIZE - 1) {
-            dst[i].data = src[i];
             dst[i].last = 1;
         } else {
-            dst[i].data = src[i];
             dst[i].last = 0;
         }
+    }
+}
+
+template <class src_T, class dst_T, size_t SIZE> void copy_data_axi(std::vector<src_T> src, hls::stream<dst_T> &dst) {
+    for (auto i = 0; i < SIZE; i++) {
+        dst_T pack;
+        pack.data = src[i];
+        if (i == SIZE - 1) {
+            pack.last = 1;
+        } else {
+            pack.last = 0;
+        }
+        dst.write(pack);
+    }
 }
 
 template <class res_T, size_t SIZE> void print_result(res_T result[SIZE], std::ostream &out, bool keep = false) {
@@ -289,27 +325,91 @@ template <class res_T, size_t SIZE> void print_result(res_T result[SIZE], std::o
     out << std::endl;
 }
 
-template <class res_T, size_t SIZE> void print_result(hls::stream<res_T> &result, std::ostream &out, bool keep = false) {
+template <class res_T, size_t SIZE, typename std::enable_if<std::is_array<res_T>::value, int>::type = 0>
+void print_result(hls::stream<res_T> &result, std::ostream &out, bool keep = false) {
     for (int i = 0; i < SIZE / res_T::size; i++) {
         res_T res_pack = result.read();
         for (int j = 0; j < res_T::size; j++) {
             out << res_pack[j] << " ";
         }
-        if (keep)
+        if (keep) {
             result.write(res_pack);
+        }
+    }
+    out << std::endl;
+}
+
+// compatible with Vitis Accelerator for res_T = hls::axis<...> and io_parallel
+template <class res_T, size_t SIZE, typename std::enable_if<!std::is_array<res_T>::value, int>::type = 0>
+void print_result(hls::stream<res_T> &result, std::ostream &out, bool keep = false) {
+    for (int i = 0; i < SIZE; i++) {
+        res_T res_pack = result.read();
+
+        out << res_pack.data << " ";
+
+        if (keep) {
+            result.write(res_pack);
+        }
+    }
+    out << std::endl;
+}
+
+// compatible with Vitis Accelerator for res_T = hls::axis<underlying_data_T, ...> and io_stream
+template <class underlying_res_T, class res_T, size_t SIZE>
+void print_result(hls::stream<res_T> &result, std::ostream &out, bool keep = false) {
+    for (int i = 0; i < SIZE / underlying_res_T::size; i++) {
+        res_T res_pack;
+        for (int j = 0; j < underlying_res_T::size; j++) {
+            res_pack = result.read();
+            out << res_pack.data << " ";
+            if (keep) {
+                result.write(res_pack);
+            }
+        }
     }
     out << std::endl;
 }
 
 template <class data_T, size_t SIZE> void fill_zero(data_T data[SIZE]) { std::fill_n(data, SIZE, 0.); }
 
-template <class data_T, size_t SIZE> void fill_zero(hls::stream<data_T> &data) {
+template <class data_T, size_t SIZE, typename std::enable_if<std::is_array<data_T>::value, int>::type = 0>
+void fill_zero(hls::stream<data_T> &data) {
     for (int i = 0; i < SIZE / data_T::size; i++) {
         data_T data_pack;
         for (int j = 0; j < data_T::size; j++) {
             data_pack[j] = 0.;
         }
         data.write(data_pack);
+    }
+}
+
+template <class data_T, size_t SIZE, typename std::enable_if<!std::is_array<data_T>::value, int>::type = 0>
+void fill_zero(hls::stream<data_T> &data) {
+    for (int i = 0; i < SIZE; i++) {
+        data_T data_pack;
+        data_pack.data = 0.;
+        if (i == SIZE - 1) {
+            data_pack.last = 1;
+        } else {
+            data_pack.last = 0;
+        }
+        data.write(data_pack);
+    }
+}
+
+// compatible with Vitis Accelerator for res_T = hls::axis<underlying_data_T, ...>
+template <class underlying_data_T, class data_T, size_t SIZE> void fill_zero(hls::stream<data_T> &data) {
+    for (int i = 0; i < SIZE / underlying_data_T::size; i++) {
+        data_T data_pack;
+        for (int j = 0; j < underlying_data_T::size; j++) {
+            data_pack.data = 0.;
+            if ((i == (SIZE / underlying_data_T::size - 1)) && (j == (underlying_data_T::size - 1))) {
+                data_pack.last = 1;
+            } else {
+                data_pack.last = 0;
+            }
+            data.write(data_pack);
+        }
     }
 }
 
@@ -370,6 +470,7 @@ template <class data_T, int N_IN> void hls_stream_debug(hls::stream<data_T> &dat
         res << datareg;
     }
 }
+#endif
 
 constexpr int ceillog2(int x) { return (x <= 2) ? 1 : 1 + ceillog2((x + 1) / 2); }
 
