@@ -21,10 +21,10 @@ First, we can define a simple neural network in Keras
     from tensorflow.keras.models import Sequential
 
     model = Sequential()
-    model.add(Dense(64, input_shape=(16,), name='fc1', activation='relu')
+    model.add(Dense(64, input_shape=(16,), name='fc1', activation='relu'))
     model.add(Dense(32, name='fc2', activation='relu'))
     model.add(Dense(32, name='fc3', activation='relu'))
-    model.add(Dense(5, name='fc3', activation='softmax'))
+    model.add(Dense(5, name='fc4', activation='softmax'))
 
 Then, we can convert the model, including the flow
 
@@ -47,3 +47,17 @@ Then, we can convert the model, including the flow
     hls_model.build(reset=False, csim=True, synth=True, cosim=True)
 
 For more details and results, see `H. Borras et al., "Open-source FPGA-ML codesign for the MLPerf Tiny Benchmark" (2022) <https://arxiv.org/abs/2206.11791>`_.
+
+Similarly, the FIFO buffers can be optimized while using the `Vitis` backend with the following changes
+
+.. code-block:: Python
+
+    config['Flows'] = ['vitis:fifo_depth_optimization']
+    hls4ml.model.optimizer.get_optimizer('vitis:fifo_depth_optimization').configure(profiling_fifo_depth=100_000)
+
+    hls_model = hls4ml.converters.convert_from_keras_model(model,
+                                                        io_type='io_stream',
+                                                        hls_config=config,
+                                                        output_dir='hls4mlprj_fifo_depth_opt',
+                                                        part='xc7z020clg400-1',
+                                                        backend='Vitis')
