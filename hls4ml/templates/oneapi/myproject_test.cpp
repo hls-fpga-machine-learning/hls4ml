@@ -10,7 +10,6 @@
 #include "firmware/parameters.h"
 
 #include <sycl/ext/intel/fpga_extensions.hpp>
-#include <sycl/ext/intel/prototype/interfaces.hpp>
 
 #include "exception_handler.hpp"
 // hls-fpga-machine-learning insert bram
