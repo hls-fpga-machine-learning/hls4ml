@@ -792,6 +792,7 @@ class VivadoWriter(Writer):
         contents = f.readlines()
         f.close()
         f = open(path, 'w')
+        namespace = model.config.get_writer_config().get('Namespace', None)
 
         for line in contents:
             if '// hls4ml insert code' in line:
@@ -801,6 +802,9 @@ class VivadoWriter(Writer):
                         newline += str(generated_code)
             else:
                 newline = line
+            if namespace is not None:
+                if 'namespace nnet' in newline:
+                    newline = newline.replace('namespace nnet', f'namespace {namespace}')
             f.write(newline)
         f.close()
 
