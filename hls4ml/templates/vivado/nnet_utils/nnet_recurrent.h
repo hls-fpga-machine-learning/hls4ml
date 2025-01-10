@@ -145,7 +145,6 @@ void lstm_static(bool reset_state, data_T data[CONFIG_T::n_in], res_T h_newstate
             h_state[i_state] = 0;
         }
     }
-
     nnet::dense<data_T, typename CONFIG_T::accum_t, typename CONFIG_T::mult_config1>(data, tmpres, param, param_b);
     nnet::dense<res_T, typename CONFIG_T::accum_t, typename CONFIG_T::mult_config2>(h_state, tmpres_state, param_r,
                                                                                     param_br);
@@ -218,6 +217,41 @@ void lstm_stack(data_T data[CONFIG_T::n_sequence * CONFIG_T::n_in], res_T res[CO
         else
             nnet::lstm<data_T, res_T, CONFIG_T>(reset_state, data_in, h_newstate, s_newstate, param, param_r, param_b,
                                                 param_br);
+        if (CONFIG_T::n_sequence_out > 1)
+            for (int i = CONFIG_T::n_state * iloop, j = 0; i < (CONFIG_T::n_state * (iloop + 1)); i++, j++) {
+                #pragma HLS UNROLL
+                res[i] = h_newstate[j];
+            }
+        reset_state = false;
+    }
+    if (CONFIG_T::n_sequence_out == 1)
+        for (int i = 0; i < (CONFIG_T::n_state); i++) {
+            #pragma HLS UNROLL
+            res[i] = h_newstate[i];
+        }
+}
+
+template <class data_T, class data2_T, class data3_T, class res_T, typename CONFIG_T>
+void lstm_stack(data_T data[CONFIG_T::n_sequence * CONFIG_T::n_in], data2_T h_newstate[CONFIG_T::n_state],
+                data3_T s_newstate[CONFIG_T::n_state], res_T res[CONFIG_T::n_sequence_out * CONFIG_T::n_state],
+                typename CONFIG_T::weight_t param[CONFIG_T::n_state * 4 * CONFIG_T::n_in],
+                typename CONFIG_T::weight_t param_r[CONFIG_T::n_state * 4 * CONFIG_T::n_state],
+                typename CONFIG_T::bias_t param_b[CONFIG_T::n_state * 4],
+                typename CONFIG_T::bias_t param_br[CONFIG_T::n_state * 4]) {
+
+    data_T data_in[CONFIG_T::n_in];
+    bool reset_state = false;
+
+    #pragma HLS ARRAY_PARTITION variable=h_newstate complete
+    #pragma HLS ARRAY_PARTITION variable=s_newstate complete
+
+    for (int iloop = 0; iloop < CONFIG_T::n_sequence; iloop++) {
+        for (int j = 0; j < CONFIG_T::n_in; j++) {
+            #pragma HLS UNROLL
+            data_in[j] = data[j + iloop * CONFIG_T::n_in];
+        }
+
+        nnet::lstm<data_T, res_T, CONFIG_T>(reset_state, data_in, h_newstate, s_newstate, param, param_r, param_b, param_br);
         if (CONFIG_T::n_sequence_out > 1)
             for (int i = CONFIG_T::n_state * iloop, j = 0; i < (CONFIG_T::n_state * (iloop + 1)); i++, j++) {
                 #pragma HLS UNROLL
@@ -351,7 +385,6 @@ void gru(bool reset_state, data_T data[CONFIG_T::n_in], res_T h_newstate[CONFIG_
     nnet::dense<data_T, typename CONFIG_T::accum_t, typename CONFIG_T::mult_config1>(data, tmpres, param, param_b);
     nnet::dense<res_T, typename CONFIG_T::accum_t, typename CONFIG_T::mult_config2>(h_newstate, tmpres_state_zr, param_zr,
                                                                                     param_br);
-
     // Adding the individual vectors from the multiplication of tmpres = Wx*x(t); tmpres_state_zr = Wh*h(t-1); tmpres
     // initialized with biases -- DONE
     for (int iacc = 0; iacc < (2 * CONFIG_T::n_state); iacc++) {
@@ -515,6 +548,41 @@ void gru_stack(data_T data[CONFIG_T::n_sequence * CONFIG_T::n_in], res_T res[CON
             }
         reset_state = false;
     }
+    if (CONFIG_T::n_sequence_out == 1)
+        for (int i = 0; i < (CONFIG_T::n_state); i++) {
+            #pragma HLS UNROLL
+            res[i] = h_state[i];
+        }
+}
+
+template <class data_T, class data2_T, class res_T, typename CONFIG_T>
+void gru_stack(data_T data[CONFIG_T::n_sequence * CONFIG_T::n_in], data2_T h_state[CONFIG_T::n_state],
+               res_T res[CONFIG_T::n_sequence_out * CONFIG_T::n_state],
+               typename CONFIG_T::weight_t param[CONFIG_T::n_state * 3 * CONFIG_T::n_in],
+               typename CONFIG_T::weight_t param_zr[CONFIG_T::n_state * 3 * CONFIG_T::n_state],
+               typename CONFIG_T::bias_t param_b[CONFIG_T::n_state * 3],
+               typename CONFIG_T::bias_t param_br[CONFIG_T::n_state * 3]) {
+
+    data_T data_in[CONFIG_T::n_in];
+    bool reset_state = false;
+
+    #pragma HLS ARRAY_PARTITION variable=h_state complete
+    #pragma HLS ARRAY_PARTITION variable=data_in complete
+    for (int iloop = 0; iloop < CONFIG_T::n_sequence; iloop++) {
+        for (int j = 0; j < CONFIG_T::n_in; j++) {
+            #pragma HLS UNROLL
+            data_in[j] = data[j + iloop * CONFIG_T::n_in];
+        }
+        nnet::gru<data_T, res_T, CONFIG_T>(reset_state, data_in, h_state, param, param_zr, param_b, param_br);
+
+        if (CONFIG_T::n_sequence_out > 1)
+            for (int i = CONFIG_T::n_state * iloop, j = 0; i < (CONFIG_T::n_state * (iloop + 1)); i++, j++) {
+                #pragma HLS UNROLL
+                res[i] = h_state[j];
+            }
+        reset_state = false;
+    }
+
     if (CONFIG_T::n_sequence_out == 1)
         for (int i = 0; i < (CONFIG_T::n_state); i++) {
             #pragma HLS UNROLL
