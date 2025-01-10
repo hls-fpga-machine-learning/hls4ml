@@ -86,7 +86,7 @@ void separable_conv_1d_cl(hls::stream<data_T> &data, hls::stream<res_T> &res,
     #pragma HLS DATAFLOW
 
     hls::stream<dw_res_T> depthwise_res;
-    unsigned res_depth = CONFIG_T::depthwise_config::out_width;
+    const unsigned res_depth = CONFIG_T::depthwise_config::out_width;
     #pragma HLS STREAM variable=depthwise_res depth=res_depth
 
     depthwise_conv_1d_buffer_cl<data_T, dw_res_T, typename CONFIG_T::depthwise_config>(data, depthwise_res,
