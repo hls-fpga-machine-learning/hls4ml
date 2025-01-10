@@ -5,6 +5,12 @@
     "python_drivers": {"axi_stream":  "axi_stream_driver.py"},
     "c_drivers": {}
   },
+  "pynq-zu": {
+    "part": "xczu5eg-sfvc784-1-e",
+    "tcl_scripts": { "axi_stream": "axi_stream_design.tcl"},
+    "python_drivers": {"axi_stream":  "axi_stream_driver.py"},
+    "c_drivers": {}
+  },
   "zcu102": {
     "part": "xczu9eg-ffvb1156-2-e",
     "tcl_scripts": { "axi_stream": "axi_stream_design.tcl"},
