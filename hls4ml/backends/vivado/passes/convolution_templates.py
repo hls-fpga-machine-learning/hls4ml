@@ -108,6 +108,11 @@ class Conv1DConfigTemplate(LayerConfigTemplate):
             else:
                 params['conv_fn'] = 'Conv1DResource'
 
+        if node.get_attr('implementation').casefold() == 'linebuffer':
+            # these are unused; just put dummy values
+            params['min_width'] = node.get_attr('in_width')
+            params['instructions'] = '0'
+
         conv_config = self.template.format(**params)
 
         mult_params = self._default_config_params(node)
@@ -238,6 +243,12 @@ class Conv2DConfigTemplate(LayerConfigTemplate):
             params['fill_fn'] = f'fill_buffer_{node.index}'
         else:
             params['fill_fn'] = 'FillConv2DBuffer'
+
+        if node.get_attr('implementation').casefold() == 'linebuffer':
+            # these are unused; just put dummy values
+            params['min_height'] = node.get_attr('in_height')
+            params['min_width'] = node.get_attr('in_width')
+            params['instructions'] = '0'
 
         conv_config = self.template.format(**params)
 
