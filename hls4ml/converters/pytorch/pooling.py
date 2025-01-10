@@ -1,7 +1,14 @@
 from hls4ml.converters.pytorch_to_hls import pytorch_handler
 from hls4ml.converters.utils import compute_padding_1d_pytorch, compute_padding_2d_pytorch, parse_data_format
 
-pooling_layers = ['MaxPool1d', 'MaxPool2d', 'AvgPool1d', 'AvgPool2d']
+pooling_layers = [
+    'MaxPool1d',
+    'MaxPool2d',
+    'AvgPool1d',
+    'AvgPool2d',
+    'QuantMaxPool1d',
+    'QuantMaxPool2d',
+]  # TODO add support for special quantized average pool layers
 
 
 @pytorch_handler(*pooling_layers)
@@ -10,9 +17,9 @@ def parse_pooling_layer(operation, layer_name, input_names, input_shapes, node, 
 
     layer = {}
 
-    if operation == 'MaxPool1d':
+    if 'MaxPool1d' in operation:
         layer['class_name'] = 'MaxPooling1D'
-    if operation == 'MaxPool2d':
+    if 'MaxPool2d' in operation:
         layer['class_name'] = 'MaxPooling2D'
     if operation == 'AvgPool1d':
         layer['class_name'] = 'AveragePooling1D'
