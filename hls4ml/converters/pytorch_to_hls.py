@@ -148,6 +148,7 @@ def parse_pytorch_model(config, verbose=True):
     inputs_map = {}
 
     input_layers = []
+    output_layers = []
 
     # Output shape tracking
     output_shapes = {}
@@ -396,11 +397,22 @@ def parse_pytorch_model(config, verbose=True):
     if len(input_layers) == 0:
         input_layers = None
 
-    return layer_list, input_layers
+    for layer in layer_list:
+        if layer['class_name'] == 'InputLayer':
+            continue
+        is_input = False
+        for lay in layer_list:
+            if 'inputs' not in lay.keys():
+                continue
+            if layer['name'] in lay['inputs']:
+                is_input = True
+        if not is_input:
+            output_layers.append(layer['name'])
+    return layer_list, input_layers, output_layers
 
 
 def pytorch_to_hls(config):
-    layer_list, input_layers = parse_pytorch_model(config)
+    layer_list, input_layers, output_layers = parse_pytorch_model(config)
     print('Creating HLS model')
-    hls_model = ModelGraph(config, layer_list, inputs=input_layers)
+    hls_model = ModelGraph(config, layer_list, inputs=input_layers, outputs=output_layers)
     return hls_model

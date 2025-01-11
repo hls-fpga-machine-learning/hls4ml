@@ -38,6 +38,7 @@ def parse_squeeze_layer(operation, layer_name, input_names, input_shapes, node, 
     layer = {}
     layer['class_name'] = 'Reshape'
     layer['name'] = layer_name
+    layer['inputs'] = input_names
 
     if len(node.args) > 1 or len(node.kwargs) > 0:  # 'dim' argument is specified
         output_shape = [i for i in input_shapes[0]]
