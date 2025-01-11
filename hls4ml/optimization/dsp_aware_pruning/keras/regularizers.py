@@ -82,7 +82,7 @@ class DenseRegularizer(tf.keras.regularizers.Regularizer):
             # The matrix is transposed, according to Resource strategy and reshaped into (pattern_offset, pattern_number)
             # Pattern offset corresponds to the number of patterns is equivalent to RF
             if (np.prod(weights.shape)) % self.pattern_offset != 0:
-                print(np.prod(weights.shape), self.pattern_offset)
+                tf.print(np.prod(weights.shape), self.pattern_offset)
                 raise Exception(f'{self.__class__.__name__}: pattern offset needs to be a factor of matrix size')
 
             if self.pattern_offset % self.consecutive_patterns != 0:
