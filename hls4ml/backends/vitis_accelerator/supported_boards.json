@@ -1,0 +1,26 @@
+{
+    "alveo-u55c": {
+      "board_type": "alveo",
+      "part": "xcu55c-fsvh2892-2L-e",
+      "platform": ["xilinx_u55c_gen3x16_xdma_3_202210_1"],
+      "memory": {"type": "hbm", "channels": 32, "capacity": 16}
+    },
+    "alveo-u50": {
+      "board_type": "alveo",
+      "part": "xcu50-fsvh2104-2-e",
+      "platform": ["xilinx_u50_gen3x16_xdma_5_202210_1"],
+      "memory": {"type": "hbm", "channels": 32, "capacity": 8}
+    },
+    "alveo-u250": {
+      "board_type": "alveo",
+      "part": "xcu250-figd2104-2L-e",
+      "platform": ["xilinx_u250_xdma_201830_2"],
+      "memory": {"type": "ddr", "channels": 4, "capacity": 64}
+    },
+    "vck5000": {
+      "board_type": "versal",
+      "part": "xcvc1902-vsvd1760-2MP-e-S",
+      "platform": ["xilinx_vck5000_gen4x8_qdma_2_202220_1"],
+      "memory":{"type": "ddr", "channels": 3, "capacity": 12}
+    }
+  }

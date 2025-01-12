@@ -5,3 +5,5 @@ graft contrib
 recursive-include hls4ml/templates *
 global-exclude .git .gitmodules .gitlab-ci.yml
 include hls4ml/backends/vivado_accelerator/supported_boards.json
+include hls4ml/backends/vitis_accelerator/supported_boards.json
+include hls4ml/backends/vitis_accelerator/vivado_directives.json
