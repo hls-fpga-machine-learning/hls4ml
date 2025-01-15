@@ -57,6 +57,7 @@ PadTop:
 
 PadMain:
     for (int i = 0; i < CONFIG_T::in_height; i++) {
+        #pragma HLS PIPELINE II=1
     PadLeft:
         for (int j = 0; j < CONFIG_T::pad_left; j++) {
             fill_zero<res_T, CONFIG_T>(res);
