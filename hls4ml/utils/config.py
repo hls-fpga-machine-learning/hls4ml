@@ -368,6 +368,7 @@ def config_from_pytorch_model(
     (
         layer_list,
         _,
+        _,
     ) = parse_pytorch_model(config, verbose=False)
 
     def make_layer_config(layer):
