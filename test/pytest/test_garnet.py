@@ -6,7 +6,7 @@ from tensorflow.keras.layers import Input
 from tensorflow.keras.models import Model
 
 import hls4ml
-from contrib.garnet import GarNet, GarNetStack
+from hls4ml.contrib.garnet import GarNet, GarNetStack
 
 test_root_path = Path(__file__).parent
 
