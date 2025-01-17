@@ -102,3 +102,24 @@ The trace method is an advanced version of the ``predict`` method. It's used to 
 
    #We also support a similar function for keras
    keras_trace = hls4ml.model.profiling.get_ymodel_keras(keras_model, X)
+
+----
+
+.. _hardware_predict-method:
+
+``hardware_predict`` method
+===========================
+
+A specialized version of the ``predict`` method, for the VitisAccelerator backend after a successful build. Runs the project on the FPGA and obtains prediction for the supplied numpy array.
+
+**Note:** The host code being run under the hood is an example written for generic benchmarking purposes, helpful for validating projects and gauging maximum throughput. It should be further adapted for more specific applications. Currently, the maximum number of input samples that can be processed is ``batchsize * num_cu * num_buffer``. If the input array exceeds that size, the additional samples will be ignored.
+
+An optional ``target`` argument can be used to specify the target emulation mode (``hw``, ``sw_emu``, ``hw_emu``) to run the project on. The default is ``hw``.
+
+.. code-block:: python
+
+   # Suppose that you already have input array X
+   # Note that you have to do both hls_model.compile() and hls_model.build(), ensuring the
+   # .xclbin file is successfully created, before using hardware_predict
+
+   y = hls_model.hardware_predict(X)

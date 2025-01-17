@@ -1,0 +1,137 @@
+{
+    "impl.strategies": [
+        "Performance_Explore",
+        "Performance_ExplorePostRoutePhysOpt",
+        "Performance_LBlockPlacement",
+        "Performance_LBlockPlacementFanoutOpt",
+        "Performance_NetDelay_high",
+        "Performance_NetDelay_low",
+        "Performance_Retiming",
+        "Performance_ExtraTimingOpt",
+        "Performance_RefinePlacement",
+        "Performance_SpreadSLL",
+        "Performance_BalanceSLL",
+        "Congestion_SpreadLogic_high",
+        "Congestion_SpreadLogic_medium",
+        "Congestion_SpreadLogic_low",
+        "Congestion_SpreadLogic_Explore",
+        "Congestion_SSI_SpreadLogic_high",
+        "Congestion_SSI_SpreadLogic_low",
+        "Area_Explore",
+        "Area_ExploreSequential",
+        "Area_ExploreWithRemap",
+        "Power_DefaultOpt",
+        "Power_ExploreArea",
+        "Flow_RunPhysOpt",
+        "Flow_RunPostRoutePhysOpt",
+        "Flow_RuntimeOptimized",
+        "Flow_Quick",
+        "ALL"
+    ],
+    "prop": {
+        "run": {
+            "impl": {
+                "STEPS": {
+                    "OPT_DESIGN": {
+                        "ARGS": {
+                            "DIRECTIVE": [
+                                "Explore",
+                                "ExploreArea",
+                                "ExploreSequentialArea",
+                                "RuntimeOptimized",
+                                "ExploreWithRemap"
+                            ]
+                        }
+                    },
+                    "POWER_OPT_DESIGN": {
+                        "IS_ENABLED": [
+                            "true"
+                        ]
+                    },
+                    "PLACE_DESIGN": {
+                        "ARGS": {
+                            "DIRECTIVE": [
+                                "Explore",
+                                "WLDrivenBlockPlacement",
+                                "EarlyBlockPlacement",
+                                "ExtraNetDelay_high",
+                                "ExtraNetDelay_low",
+                                "SSI_SpreadLogic_high",
+                                "SSI_SpreadLogic_low",
+                                "AltSpreadLogic_high",
+                                "AltSpreadLogic_medium",
+                                "AltSpreadLogic_low",
+                                "ExtraPostPlacementOpt",
+                                "ExtraTimingOpt",
+                                "SSI_SpreadSLLs",
+                                "SSI_BalanceSLLs",
+                                "SSI_Balance_SLRs",
+                                "SSI_HighUtilSLRs",
+                                "RuntimeOptimized",
+                                "Quick",
+                                "Auto_1",
+                                "Auto_2",
+                                "Auto_3"
+                            ]
+                        }
+                    },
+                    "POST_PLACE_POWER_OPT_DESIGN": {
+                        "IS_ENABLED": [
+                            "true"
+                        ]
+                    },
+                    "PHYS_OPT_DESIGN": {
+                        "IS_ENABLED": [
+                            "true"
+                        ],
+                        "ARGS": {
+                            "DIRECTIVE": [
+                                "Explore",
+                                "ExploreWithHoldFix",
+                                "ExploreWithAggressiveHoldFix",
+                                "AggressiveExplore",
+                                "AlternateReplication",
+                                "AggressiveFanoutOpt",
+                                "AddRetime",
+                                "AlternateFlowWithRetiming",
+                                "RuntimeOptimized"
+                            ]
+                        }
+                    },
+                    "ROUTE_DESIGN": {
+                        "ARGS": {
+                            "DIRECTIVE": [
+                                "Explore",
+                                "AggressiveExplore",
+                                "NoTimingRelaxation",
+                                "MoreGlobalIterations",
+                                "HigherDelayCost",
+                                "RuntimeOptimized",
+                                "AlternateCLBRouting",
+                                "Quick"
+                            ]
+                        }
+                    },
+                    "POST_ROUTE_PHYS_OPT_DESIGN": {
+                        "IS_ENABLED": [
+                            "true"
+                        ],
+                        "ARGS": {
+                            "DIRECTIVE": [
+                                "Explore",
+                                "ExploreWithHoldFix",
+                                "ExploreWithAggressiveHoldFix",
+                                "AggressiveExplore",
+                                "AlternateReplication",
+                                "AggressiveFanoutOpt",
+                                "AddRetime",
+                                "AlternateFlowWithRetiming",
+                                "RuntimeOptimized"
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -151,15 +151,26 @@ if {$opt(reset)} {
 } else {
     open_project ${project_name}_prj
 }
+
 set_top ${project_name}
 add_files firmware/${project_name}.cpp -cflags "-std=c++0x"
 add_files -tb ${project_name}_test.cpp -cflags "-std=c++0x"
 add_files -tb firmware/weights
 add_files -tb tb_data
-if {$opt(reset)} {
-    open_solution -reset "solution1"
+
+if {[string equal "$backend" "vitisaccelerator"]} {
+    set flow "vitis"
+    if {$opt(reset)} {
+        open_solution -flow_target ${flow} -reset "solution1"
+    } else {
+        open_solution -flow_target ${flow} "solution1"
+    }
 } else {
-    open_solution "solution1"
+    if {$opt(reset)} {
+        open_solution -reset "solution1"
+    } else {
+        open_solution "solution1"
+    }
 }
 catch {config_array_partition -maximum_size $maximum_size}
 config_compile -name_max_length 80
