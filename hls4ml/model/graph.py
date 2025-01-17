@@ -734,7 +734,7 @@ class ModelGraph:
         if x0.dtype in [np.single, np.float32]:
             top_function = getattr(self._top_function_lib, self.config.get_project_name() + '_float')
             ctype = ctypes.c_float
-        elif x0.dtype in [np.double, np.float64, np.float_]:
+        elif x0.dtype in [np.double, np.float64]:
             top_function = getattr(self._top_function_lib, self.config.get_project_name() + '_double')
             ctype = ctypes.c_double
         else:
