@@ -31,6 +31,10 @@ def model():
         ('io_stream', 'resource', 'Encoded'),
         ('io_stream', 'latency', 'LineBuffer'),
         ('io_stream', 'resource', 'LineBuffer'),
+        ('io_parallel', 'resource', 'Encoded'),
+        ('io_parallel', 'latency', 'Encoded'),
+        ('io_parallel', 'resource', 'LineBuffer'),
+        ('io_parallel', 'latency', 'LineBuffer'),
     ],
 )
 @pytest.mark.filterwarnings("error")
