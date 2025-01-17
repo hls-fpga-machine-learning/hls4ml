@@ -179,6 +179,7 @@ if {$opt(csim)} {
 
 if {$opt(synth)} {
     puts "***** C/RTL SYNTHESIS *****"
+
     set time_start [clock clicks -milliseconds]
     csynth_design
     set time_end [clock clicks -milliseconds]
@@ -195,7 +196,10 @@ if {$opt(cosim)} {
 
     if {$opt(fifo_opt)} {
         puts "\[hls4ml\] - FIFO optimization started"
-        add_vcd_instructions_tcl
+
+        if {[string equal "$backend" "vivado"] || [string equal $backend "vivadoaccelerator"]} {
+            add_vcd_instructions_tcl
+        }
     }
 
     remove_recursive_log_wave
