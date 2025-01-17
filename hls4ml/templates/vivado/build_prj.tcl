@@ -229,6 +229,7 @@ if {$opt(validation)} {
 if {$opt(export)} {
     puts "***** EXPORT IP *****"
     set time_start [clock clicks -milliseconds]
+
     export_design -format ip_catalog -version $version
     set time_end [clock clicks -milliseconds]
     report_time "EXPORT IP" $time_start $time_end
