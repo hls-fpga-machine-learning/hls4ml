@@ -402,10 +402,6 @@ def test_tiny_unet_model(tiny_unet_model, backend):
 @pytest.mark.parametrize('backend', ['Vitis'])
 @pytest.mark.parametrize('io_type', ['io_parallel', 'io_stream'])
 def test_simple_model(model_name, io_type, backend, request):
-    if model_name == 'conv2d_small_mp_keras_model' and io_type == 'io_stream':
-        # Not yet supported due to an issue with channels last conversion
-        # There is a qonnx PR.
-        pytest.skip()
     model = request.getfixturevalue(model_name)
     ishape = tuple(model.get_tensor_shape(model.graph.input[0].name))
     X = np.random.uniform(low=0, high=1, size=np.prod(ishape)).reshape(ishape)
