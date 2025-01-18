@@ -531,6 +531,11 @@ def register_precision(node: Layer):
 
 @register_precision.register
 def _(node: Softmax):
+    if not node.attributes.get('_bit_exact', False):
+        # Softmax is not bit-exact by default
+        warn(f'Softmax layer {node.name} is converted from a frontend not supporting bit-exact softmax.')
+        return
+
     inv_inp_t: FixedPrecisionType = node.attributes['inv_inp_t'].precision
     accum_t = copy(inv_inp_t)
     if inv_inp_t.saturation_mode != SaturationMode.WRAP:

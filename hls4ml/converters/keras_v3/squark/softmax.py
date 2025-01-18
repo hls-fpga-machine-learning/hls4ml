@@ -118,6 +118,7 @@ class SQSoftmaxHandler(SQLayerHandler):
                 'exp_scale': exp_scale,
                 'parallelization_factor': parallelization_factor,
                 'class_name': class_name,
+                '_bit_exact': True,
             }
         )
 
