@@ -4,42 +4,31 @@
 namespace nnet {
 
 struct transpose_config {
-    static const unsigned height = 10;
-    static const unsigned width = 10;
-    static const unsigned depth = 10;
-    static constexpr unsigned perm[3] = {2, 0, 1};
+    static constexpr unsigned dims = 0;
+    static constexpr unsigned N = 0;
+
+    // Inherited struct should define these
+    // static constexpr std::array<unsigned, dims> from_shape;
+    // static constexpr std::array<unsigned, dims> to_shape;
+    // static constexpr std::array<unsigned, dims> perm;
+    // static constexpr std::array<unsigned, dims> perm_strides;
 };
 
-template <class data_T, class res_T, typename CONFIG_T> void transpose_2d(const data_T &data, res_T &res) {
-    for (int i = 0; i < CONFIG_T::height; i++) {
-        #pragma unroll
-        for (int j = 0; j < CONFIG_T::width; j++) {
-            res[j * CONFIG_T::height + i] = static_cast<typename res_T::value_type>(data[i * CONFIG_T::width + j]);
-        }
+template <typename CONFIG_T> unsigned transfer_idx(int index) {
+    // Given output idx in c-order flat array, return input idx
+    int idx = 0;
+    for (int i = CONFIG_T::dims - 1; i >= 0; i--) {
+        idx += (index % CONFIG_T::to_shape[i]) * CONFIG_T::perm_strides[i];
+        index /= CONFIG_T::to_shape[i];
     }
+    return idx;
 }
 
-template <class data_T, class res_T, typename CONFIG_T> void transpose_3d(const data_T &data, res_T &res) {
-    static constexpr unsigned dim_data[3] = {CONFIG_T::depth, CONFIG_T::height, CONFIG_T::width};
-    static constexpr unsigned dim_res[3] = {dim_data[CONFIG_T::perm[0]], dim_data[CONFIG_T::perm[1]],
-                                            dim_data[CONFIG_T::perm[2]]};
-
-    int index_data[3] = {0}, index_res[3] = {0};
-
-    for (index_data[0] = 0; index_data[0] < dim_data[0]; index_data[0]++) {
-        #pragma unroll
-        for (index_data[1] = 0; index_data[1] < dim_data[1]; index_data[1]++) {
-            #pragma unroll
-            for (index_data[2] = 0; index_data[2] < dim_data[2]; index_data[2]++) {
-                index_res[0] = index_data[CONFIG_T::perm[0]];
-                index_res[1] = index_data[CONFIG_T::perm[1]];
-                index_res[2] = index_data[CONFIG_T::perm[2]];
-
-                res[index_res[0] * dim_res[1] * dim_res[2] + index_res[1] * dim_res[2] + index_res[2]] =
-                    static_cast<typename res_T::value_type>(
-                        data[index_data[0] * dim_data[1] * dim_data[2] + index_data[1] * dim_data[2] + index_data[2]]);
-            }
-        }
+template <class data_T, class res_T, typename CONFIG_T> void transpose(const data_T &data, res_T &res) {
+    #pragma unroll
+    for (int i = 0; i < CONFIG_T::N; i++) {
+        int idx = transfer_idx<CONFIG_T>(i);
+        res[i] = data[idx];
     }
 }
 

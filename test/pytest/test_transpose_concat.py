@@ -72,7 +72,7 @@ def data_highdim():
 
 
 @pytest.mark.parametrize('io_type', ['io_stream', 'io_parallel'])
-@pytest.mark.parametrize('backend', ['Vivado', 'Vitis'])
+@pytest.mark.parametrize('backend', ['Vivado', 'Vitis', 'oneAPI'])
 def test_highdim_permute(data_highdim, keras_model_highdim, io_type, backend):
     X = data_highdim
     model = keras_model_highdim

@@ -161,18 +161,52 @@ class ResizeTaskSequenceTemplate(TaskSequenceTemplate):
 
 # Transpose templates
 
-transpose_config_template = """struct config{index} : nnet::transpose_config {{
-    static const unsigned depth = {depth};
-    static const unsigned height = {height};
-    static const unsigned width = {width};
-    static constexpr unsigned perm[3] = {{{perm_str}}};
+transpose_config_template = """struct {config_name} : nnet::transpose_config {{
+    static constexpr unsigned dims = {dims};
+    static constexpr unsigned N = {N};
+    static constexpr std::array<unsigned, dims> from_shape = {{{from_shape}}};
+    static constexpr std::array<unsigned, dims> to_shape = {{{to_shape}}};
+    static constexpr std::array<unsigned, dims> perm = {{{perm}}};
+    static constexpr std::array<unsigned, dims> perm_strides = {{{perm_strides}}};
 }};\n"""
 
-transpose_function_template = 'nnet::transpose_{dim}<{input_t}, {output_t}, {config}>({input}, {output});'
-transpose_task_sequence_template = (
-    'task_sequence<nnet::transpose_{dim}_stream<{input_pipe}, {output_pipe}, {config}>> {name};'
-)
+transpose_function_template = 'nnet::transpose<{input_t}, {output_t}, {config}>({input}, {output});'
+transpose_task_sequence_template = 'task_sequence<nnet::transpose_stream<{input_pipe}, {output_pipe}, {config}>> {name};'
 transpose_include_list = ['nnet_utils/nnet_transpose.h', 'nnet_utils/nnet_transpose_stream.h']
+
+
+def permute_config_gen(name: str, shape: tuple[int, ...], perm: tuple[int, ...]):
+    """
+    Generate a configuration string for a permute operation. Operates by mapping the output index to input input index by:
+     - unravel the output index
+     - map each dimension to the corresponding stride in the input tensor, sum
+    The operation can be expressed as:
+
+    new_shape = tuple(shape[i] for i in perm)
+    strides = np.cumprod((shapes[1:] + (1,))[::-1])[::-1]
+    perm_strides = [strides[i] for i in perm]
+    out[index] = inp[np.dot(np.unravel_index(index, new_shape), perm_strides)]
+
+    Args:
+        name (str): The name of the configuration.
+        shape (tuple[int, ...]): The shape of the input tensor.
+        perm (tuple[int, ...]): The permutation of the dimensions.
+
+    Returns:
+        str: The formatted configuration string for the permute operation.
+    """
+    new_shape = tuple(shape[i] for i in perm)
+    strides = np.cumprod((shape[1:] + (1,))[::-1])[::-1]
+    perm_strides = tuple(int(strides[i]) for i in perm)
+    return transpose_config_template.format(
+        dims=len(shape),
+        N=np.prod(shape),
+        from_shape=', '.join(str(x) for x in shape),
+        perm=', '.join(str(x) for x in perm),
+        perm_strides=', '.join(str(x) for x in perm_strides),
+        to_shape=', '.join(str(x) for x in new_shape),
+        config_name=name,
+    )
 
 
 class TransposeConfigTemplate(LayerConfigTemplate):
@@ -181,9 +215,10 @@ class TransposeConfigTemplate(LayerConfigTemplate):
         self.template = transpose_config_template
 
     def format(self, node):
-        params = self._default_config_params(node)
-
-        return self.template.format(**params)
+        shape = tuple(node.get_input_variable().shape)
+        perm = tuple(node.get_attr('perm'))
+        name = f'config{node.index}'
+        return permute_config_gen(name, shape, perm)
 
 
 class TransposeFunctionTemplate(FunctionCallTemplate):
