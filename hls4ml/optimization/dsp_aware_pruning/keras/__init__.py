@@ -4,9 +4,6 @@ import time
 import numpy as np
 import tensorflow as tf
 
-# Enables printing of loss tensors during custom training loop
-from tensorflow.python.ops.numpy_ops import np_config
-
 import hls4ml.optimization.dsp_aware_pruning.keras.utils as utils
 from hls4ml.optimization.dsp_aware_pruning.config import SUPPORTED_STRUCTURES
 from hls4ml.optimization.dsp_aware_pruning.keras.builder import build_optimizable_model, remove_custom_regularizers
@@ -15,7 +12,6 @@ from hls4ml.optimization.dsp_aware_pruning.keras.masking import get_model_masks
 from hls4ml.optimization.dsp_aware_pruning.keras.reduction import reduce_model
 from hls4ml.optimization.dsp_aware_pruning.scheduler import OptimizationScheduler
 
-np_config.enable_numpy_behavior()
 default_regularization_range = np.logspace(-6, -2, num=16).tolist()
 
 
@@ -121,7 +117,7 @@ def optimize_model(
     model.compile(optimizer, loss_fn, metrics=[validation_metric])
     baseline_performance = model.evaluate(validation_dataset, verbose=0, return_dict=False)[-1]
     if verbose:
-        print(f'Baseline performance on validation set: {baseline_performance}')
+        tf.print(f'Baseline performance on validation set: {baseline_performance}')
 
     # Save best weights
     # Always save weights to a file, to reduce memory utilization
@@ -222,7 +218,7 @@ def optimize_model(
 
         # Train model with weight freezing [pruning]
         if verbose:
-            print(f'Pruning with a target sparsity of {target_sparsity * 100.0}% [relative to objective]')
+            tf.print(f'Pruning with a target sparsity of {target_sparsity * 100.0}% [relative to objective]')
         for epoch in range(epochs - rewinding_epochs):
             start_time = time.time()
             epoch_loss_avg = tf.keras.metrics.Mean()
@@ -237,14 +233,14 @@ def optimize_model(
                 val_res = optimizable_model.evaluate(validation_dataset, verbose=0, return_dict=False)
                 t = time.time() - start_time
                 avg_loss = round(epoch_loss_avg.result(), 3)
-                print(f'Epoch: {epoch + 1} - Time: {t}s - Average training loss: {avg_loss}')
-                print(f'Epoch: {epoch + 1} - learning_rate: {optimizable_model.optimizer.learning_rate.numpy()}')
-                print(f'Epoch: {epoch + 1} - Validation loss: {val_res[0]} - Performance on validation set: {val_res[1]}')
+                tf.print(f'Epoch: {epoch + 1} - Time: {t}s - Average training loss: {avg_loss}')
+                tf.print(f'Epoch: {epoch + 1} - learning_rate: {optimizable_model.optimizer.learning_rate.numpy()}')
+                tf.print(f'Epoch: {epoch + 1} - Validation loss: {val_res[0]} - Performance on validation set: {val_res[1]}')
 
         # Check if model works after pruning
         pruned_performance = optimizable_model.evaluate(validation_dataset, verbose=0, return_dict=False)[-1]
         if verbose:
-            print(f'Optimized model performance on validation set, after fine-tuning: {pruned_performance}')
+            tf.print(f'Optimized model performance on validation set, after fine-tuning: {pruned_performance}')
 
         if __compare__(pruned_performance, rtol * baseline_performance, not increasing):
             bad_trials = 0
@@ -260,7 +256,7 @@ def optimize_model(
 
         # Train model without weight freezing [rewinding]
         if verbose:
-            print(f'Starting weight rewinding for {rewinding_epochs} epochs')
+            tf.print(f'Starting weight rewinding for {rewinding_epochs} epochs')
         optimizable_model.fit(
             train_dataset,
             validation_data=validation_dataset,
@@ -293,7 +289,7 @@ def optimize_model(
     # Evaluate final optimized model [purely for debugging / informative purposes]
     if verbose:
         pruned_performance = optimizable_model.evaluate(validation_dataset, verbose=0, return_dict=False)[-1]
-        print(f'Optimized model performance on validation set: {pruned_performance}')
+        tf.print(f'Optimized model performance on validation set: {pruned_performance}')
 
     return optimizable_model
 
