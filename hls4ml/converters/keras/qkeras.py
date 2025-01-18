@@ -1,5 +1,3 @@
-from qkeras.quantizers import get_quantizer
-
 from hls4ml.converters.keras.convolution import parse_conv1d_layer, parse_conv2d_layer
 from hls4ml.converters.keras.core import parse_batchnorm_layer, parse_dense_layer
 from hls4ml.converters.keras.recurrent import parse_rnn_layer
@@ -88,6 +86,8 @@ def parse_qrnn_layer(keras_layer, input_names, input_shapes, data_reader):
 
 @keras_handler('QActivation')
 def parse_qactivation_layer(keras_layer, input_names, input_shapes, data_reader):
+    from qkeras.quantizers import get_quantizer
+
     assert keras_layer['class_name'] == 'QActivation'
     supported_activations = [
         'quantized_relu',

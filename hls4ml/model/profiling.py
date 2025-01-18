@@ -13,12 +13,11 @@ from hls4ml.model.graph import ModelGraph
 from hls4ml.model.layers import GRU, LSTM, SeparableConv1D, SeparableConv2D
 
 try:
-    import qkeras
-    from tensorflow import keras
+    import keras
 
-    __tf_profiling_enabled__ = True
+    __keras_profiling_enabled__ = True
 except ImportError:
-    __tf_profiling_enabled__ = False
+    __keras_profiling_enabled__ = False
 
 try:
     import torch
@@ -26,6 +25,19 @@ try:
     __torch_profiling_enabled__ = True
 except ImportError:
     __torch_profiling_enabled__ = False
+
+try:
+    import qkeras
+
+    __qkeras_profiling_enabled__ = True
+except ImportError:
+    __qkeras_profiling_enabled__ = False
+
+__keras_activations = list()
+if __keras_profiling_enabled__:
+    __keras_activations.append(keras.layers.Activation)
+if __qkeras_profiling_enabled__:
+    __keras_activations.append(qkeras.QActivation)
 
 
 def get_unoptimized_hlsmodel(model):
@@ -565,7 +577,7 @@ def numerical(model=None, hls_model=None, X=None, plot='boxplot'):
     if hls_model_present:
         data = weights_hlsmodel(hls_model_unoptimized, fmt='summary', plot=plot)
     elif model_present:
-        if __tf_profiling_enabled__ and isinstance(model, keras.Model):
+        if __keras_profiling_enabled__ and isinstance(model, keras.Model):
             data = weights_keras(model, fmt='summary', plot=plot)
         elif __torch_profiling_enabled__ and isinstance(model, torch.nn.Module):
             data = weights_torch(model, fmt='summary', plot=plot)
@@ -603,7 +615,7 @@ def numerical(model=None, hls_model=None, X=None, plot='boxplot'):
     if X is not None:
         print("Profiling activations" + before)
         data = None
-        if __tf_profiling_enabled__ and isinstance(model, keras.Model):
+        if __keras_profiling_enabled__ and isinstance(model, keras.Model):
             data = activations_keras(model, X, fmt='summary', plot=plot)
         elif __torch_profiling_enabled__ and isinstance(model, torch.nn.Sequential):
             data = activations_torch(model, X, fmt='summary', plot=plot)
@@ -673,7 +685,7 @@ def get_ymodel_keras(keras_model, X):
         if (
             hasattr(layer, 'activation')
             and layer.activation is not None
-            and not isinstance(layer, (keras.layers.Activation, qkeras.qlayers.QActivation))
+            and not isinstance(layer, tuple(__keras_activations))
             and layer.activation.__name__ != 'linear'
         ):
             tmp_activation = layer.activation

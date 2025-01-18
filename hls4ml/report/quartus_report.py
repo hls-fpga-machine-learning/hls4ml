@@ -2,8 +2,7 @@ import os
 import webbrowser
 from ast import literal_eval
 
-from calmjs.parse import asttypes, es5
-from tabulate import tabulate
+from hls4ml.utils.dependency import requires
 
 
 def parse_quartus_report(hls_dir, write_to_file=True):
@@ -42,6 +41,7 @@ def parse_quartus_report(hls_dir, write_to_file=True):
     return results
 
 
+@requires('quantus-report')
 def read_quartus_report(hls_dir, open_browser=False):
     '''
     Parse and print the Quartus report to print the report. Optionally open a browser.
@@ -53,6 +53,8 @@ def read_quartus_report(hls_dir, open_browser=False):
     Returns:
         None
     '''
+    from tabulate import tabulate
+
     report = parse_quartus_report(hls_dir)
 
     print('HLS Resource Summary\n')
@@ -90,6 +92,7 @@ def _find_project_dir(hls_dir):
     return top_func_name + '-fpga.prj'
 
 
+@requires('quantus-report')
 def read_js_object(js_script):
     '''
     Reads the JavaScript file and return a dictionary of variables definded in the script.
@@ -100,6 +103,7 @@ def read_js_object(js_script):
     Returns:
         Dictionary of variables defines in script
     '''
+    from calmjs.parse import asttypes, es5
 
     def visit(node):
         if isinstance(node, asttypes.Program):
