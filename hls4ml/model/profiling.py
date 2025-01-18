@@ -273,6 +273,18 @@ def _keras_layer(layer):
     return layer.get_weights(), ['w', 'b']
 
 
+def _keras_layernorm(layer):
+    weights = layer.get_weights()
+
+    gamma = weights[0]
+    beta = weights[1]
+
+    scale = gamma
+    bias = beta
+
+    return [scale, bias], ['s', 'b']
+
+
 def _keras_lstm(layer):
     return layer.get_weights(), ['w', 'u', 'b']
 
@@ -282,6 +294,7 @@ keras_process_layer_map = defaultdict(
     {
         'BatchNormalization': _keras_batchnorm,
         'QBatchNormalization': _keras_batchnorm,
+        'LayerNormalization': _keras_layernorm,
         'LSTM': _keras_lstm,
         'QLSTM': _keras_lstm,
     },

@@ -51,7 +51,7 @@ class InferPrecisionTypes(ConfigurableOptimizerPass):
         if node_class in ['Dense']:
             return self._infer_dense_precision(node, types_to_infer)
 
-        if node_class in ['BatchNormalization', 'ApplyAlpha']:
+        if node_class in ['BatchNormalization', 'ApplyAlpha', 'LayerNormalization']:
             return self._infer_bn_precision(node, types_to_infer)
 
         if node_class in ['Conv1D', 'Conv2D', 'PointwiseConv1D', 'PointwiseConv2D', 'Conv2DBatchnorm']:

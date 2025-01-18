@@ -157,3 +157,32 @@ def parse_batchnorm_layer(operation, layer_name, input_names, input_shapes, node
         layer['n_filt'] = input_shapes[0][1]  # Always channel first for Pytorch
 
     return layer, [shape for shape in input_shapes[0]]
+
+
+@pytorch_handler('LayerNorm')
+def parse_layernorm_layer(operation, layer_name, input_names, input_shapes, node, class_object, data_reader, config):
+    assert 'LayerNorm' in operation
+
+    layer = {}
+
+    layer['class_name'] = 'LayerNormalization'
+    layer['name'] = layer_name
+    layer['inputs'] = input_names
+
+    in_size = 1
+    for dim in input_shapes[0][1:]:
+        in_size *= dim
+    layer['n_in'] = layer['n_out'] = in_size
+
+    if not ((len(input_shapes[0])) == 3):
+        raise Exception('input size is not currently supported by hls4ml, only dim3 is supported')
+    layer['seq_len'] = input_shapes[0][-2]
+
+    layer['gamma_data'] = class_object.weight.data.numpy()
+    layer['beta_data'] = class_object.bias.data.numpy()
+
+    layer['epsilon'] = class_object.eps
+    if layer['epsilon'] <= 0:
+        raise Exception('epsilon must be positive')
+
+    return layer, [shape for shape in input_shapes[0]]

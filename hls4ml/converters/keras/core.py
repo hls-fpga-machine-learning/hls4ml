@@ -129,6 +129,34 @@ def parse_batchnorm_layer(keras_layer, input_names, input_shapes, data_reader):
     return layer, [shape for shape in input_shapes[0]]
 
 
+@keras_handler('LayerNormalization')
+def parse_layernorm_layer(keras_layer, input_names, input_shapes, data_reader):
+    assert 'LayerNormalization' in keras_layer['class_name']
+
+    layer = parse_default_keras_layer(keras_layer, input_names)
+
+    in_size = 1
+    for dim in input_shapes[0][1:]:
+        in_size *= dim
+    layer['n_in'] = layer['n_out'] = in_size
+
+    if not ((len(input_shapes[0])) == 3):
+        raise Exception('input size is not currently supported by hls4ml, only dim3 is supported')
+    layer['seq_len'] = input_shapes[0][-2]
+
+    if not (keras_layer['config']['axis'][0] == 2):
+        raise Exception('assigning the axis is not currently supported by hls4ml, only axis 2 is supported')
+
+    layer['gamma_data'] = get_weights_data(data_reader, layer['name'], 'gamma')
+    layer['beta_data'] = get_weights_data(data_reader, layer['name'], 'beta')
+
+    layer['epsilon'] = keras_layer['config']['epsilon']
+    if layer['epsilon'] <= 0:
+        raise Exception('epsilon must be positive')
+
+    return layer, [shape for shape in input_shapes[0]]
+
+
 @keras_handler('Embedding')
 def parse_embedding_layer(keras_layer, input_names, input_shapes, data_reader):
     assert 'Embedding' in keras_layer['class_name']

@@ -1,6 +1,15 @@
 from hls4ml.backends.backend import get_backend
 from hls4ml.backends.template import FunctionCallTemplate, LayerConfigTemplate
-from hls4ml.model.layers import Activation, BatchNormalization, Dense, HardActivation, ParametrizedActivation, PReLU, Softmax
+from hls4ml.model.layers import (
+    Activation,
+    BatchNormalization,
+    Dense,
+    HardActivation,
+    LayerNormalization,
+    ParametrizedActivation,
+    PReLU,
+    Softmax,
+)
 from hls4ml.model.optimizer.passes.hgq_proxy_model import UnaryLUT
 
 # Dense templates
@@ -110,6 +119,59 @@ class BatchNormalizationFunctionTemplate(FunctionCallTemplate):
     def __init__(self):
         super().__init__(BatchNormalization, include_header=batchnorm_include_list)
         self.template = batchnorm_function_template
+
+    def format(self, node):
+        params = self._default_function_params(node)
+        params['scale'] = node.get_weights('scale').name
+        params['bias'] = node.get_weights('bias').name
+
+        return self.template.format(**params)
+
+
+# LayerNormalization templates
+
+layernorm_config_template = """struct config{index} : nnet::layernorm_config {{
+    static const unsigned n_in = {n_in};
+    static const unsigned seq_len = {seq_len};
+    static const unsigned table_size = {table_size};
+    static constexpr double table_range = {table_range};
+    static const unsigned io_type = nnet::{iotype};
+    static const unsigned reuse_factor = {reuse};
+    static const bool store_weights_in_bram = false;
+    static constexpr double epsilon = {epsilon};
+    typedef {bias_t.name} bias_t;
+    typedef {scale_t.name} scale_t;
+    typedef {mean_t.name} mean_t;
+    typedef {table_t.name} table_t;
+    template<class x_T, class y_T>
+    using product = nnet::product::{product_type}<x_T, y_T>;
+}};\n"""
+
+layernorm_function_template = 'nnet::layernormalize<{input_t}, {output_t}, {config}>({input}, {output}, {scale}, {bias});'
+
+layernorm_include_list = ['nnet_utils/nnet_layernorm.h']
+
+
+class LayerNormalizationConfigTemplate(LayerConfigTemplate):
+    def __init__(self):
+        super().__init__(LayerNormalization)
+        self.template = layernorm_config_template
+
+    def format(self, node):
+        params = self._default_config_params(node)
+        params['n_in'] = node.get_input_variable().size_cpp()
+        params['seq_len'] = node.get_attr('seq_len')
+        params['product_type'] = get_backend('vivado').product_type(
+            node.get_input_variable().type.precision, node.get_weights('scale').type.precision
+        )
+
+        return self.template.format(**params)
+
+
+class LayerNormalizationFunctionTemplate(FunctionCallTemplate):
+    def __init__(self):
+        super().__init__(LayerNormalization, include_header=layernorm_include_list)
+        self.template = layernorm_function_template
 
     def format(self, node):
         params = self._default_function_params(node)
