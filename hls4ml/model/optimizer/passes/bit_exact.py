@@ -473,47 +473,55 @@ def kif_arrs_to_ints(arr: tuple[np.ndarray, np.ndarray, np.ndarray]):
 
 
 def default_register_precision(layer: Layer):
-    _pk, _pi, _pf = produce_kif(layer)
-    _rk, _ri, _rf = requested_kif(layer)
-    _out_kif = np.minimum(_pk, _rk), np.minimum(_pi, _ri), np.minimum(_pf, _rf)
-    _out_kif[1][(_pf > _rf) & (_pi <= _ri)] += 1
-    result_kif = kif_arrs_to_ints(_out_kif)
+    _pk, _pi, _pf = produce_kif(layer)  # Maximum possible k,i,f output from this layer
+    _rk, _ri, _rf = requested_kif(layer)  # Maximum possible k,i,f may be utilized by the next layer
+    _ok, _oi, _of = np.minimum(_pk, _rk), np.minimum(_pi, _ri), np.minimum(_pf, _rf)
+    _oi += ((_pf > _rf) & (_pi <= _ri)).astype(np.int8)  # Corner cases overflow prevention
+
+    result_kif = kif_arrs_to_ints((_ok, _oi, _of))
     result_t = to_hls4ml_fixed(*result_kif, f'{layer.name}_t')
     layer.attributes.attributes['result_t'] = result_t
     layer.get_output_variable().type = result_t
 
     overrides = {}
 
+    # Set accum_t, if exists ONLY for layers with accum_t directly at output (in general, linear DSP operations)
     if 'accum_t' in layer.attributes.attributes:
         accum_kif = kif_arrs_to_ints((_pk, _pi, _pf))
         accum_t = to_hls4ml_fixed(*accum_kif, f'{layer.name}_accum_t')
         overrides['accum_t'] = accum_t
 
+    # Set precision for fixed array (weight_t, bias_t, table_t, etc.)
     for w_name_t, v in layer.attributes.attributes.items():
-        if isinstance(v, NamedType) and w_name_t.endswith('_t'):
-            w_name = w_name_t[:-2]
-            if w_name not in layer.attributes.attributes:
-                continue
-            _data = layer.attributes.attributes[w_name]
-            if _data is None:
-                precision = to_hls4ml_fixed(0, 0, 1, f'{layer.name}_{w_name_t}')
-            else:
-                data = _data.data
-                if not isinstance(data, np.ndarray):
-                    raise ValueError(f'Expected data to be np.ndarray, got {type(data)} on layer {layer.name}')
-                k, i, f = kif_arrs_to_ints(minimal_kif(data))
-                precision = to_hls4ml_fixed(k, i, f, f'{layer.name}_{w_name_t}')
-            overrides[w_name_t] = precision
+        if not isinstance(v, NamedType) and w_name_t.endswith('_t'):
+            continue  # Not a precision, skip
 
+        w_name = w_name_t[:-2]
+        if w_name not in layer.attributes.attributes:
+            continue  # No matching data found, skip
+
+        weight_var: WeightVariable = layer.attributes.attributes[w_name]
+        if weight_var is None:  # Corresponding weight not exist, precision to be used nowhere. Put dummy.
+            precision = to_hls4ml_fixed(0, 0, 1, f'{layer.name}_{w_name_t}')
+        else:
+            data = weight_var.data
+            if not isinstance(data, np.ndarray):
+                raise ValueError(f'Expected data to be np.ndarray, got {type(data)} on layer {layer.name}')
+            k, i, f = kif_arrs_to_ints(minimal_kif(data))
+            precision = to_hls4ml_fixed(k, i, f, f'{layer.name}_{w_name_t}')
+        overrides[w_name_t] = precision
+
+    # Apply overrides
     for w_name_t, v in overrides.items():
         layer.attributes.attributes[w_name_t] = v
         if w_name_t[:-2] in layer.attributes.attributes:
+            # weight variables need extra steps to update precision
             weight_var: WeightVariable = layer.attributes.attributes[w_name_t[:-2]]
             weight_var.type = v
             weight_var.update_precision(v.precision)
             layer.model.config.layer_name_precision[f'{layer.name}_{w_name_t[:-2]}'] = str(v.precision)
 
-    return (_pk, _pi, _pf), (_rk, _ri, _rf), _out_kif
+    return (_pk, _pi, _pf), (_rk, _ri, _rf), (_ok, _oi, _of)
 
 
 @singledispatch
