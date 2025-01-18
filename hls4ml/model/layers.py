@@ -21,6 +21,7 @@ from hls4ml.model.types import (
     FixedPrecisionType,
     IntegerPrecisionType,
     NamedType,
+    Serializable,
     TensorVariable,
     UnspecifiedPrecisionType,
     WeightVariable,
@@ -39,7 +40,7 @@ class classproperty:
         return self.func(owner)
 
 
-class Layer:
+class Layer(Serializable):
     """The base class for all layers, which are the nodes in the model graph.
     Note:  they don't necessarily correspond 1:1 with the network layers.
 
@@ -74,7 +75,7 @@ class Layer:
             all_attributes.extend(cls._expected_attributes)
         return all_attributes
 
-    def __init__(self, model, name, attributes, inputs, outputs=None):
+    def __init__(self, model, name, attributes, inputs, outputs=None, initialize=True):
         if name == 'input':
             raise RuntimeError(
                 "No model layer should be named 'input' because that is a reserved;"
@@ -82,7 +83,6 @@ class Layer:
             )
         self.model = model
         self.name = name
-        self.index = model.next_layer()
         self.inputs = inputs
         self.outputs = outputs
         if self.outputs is None:
@@ -91,33 +91,37 @@ class Layer:
         self.attributes = AttributeDict(self)
         self.attributes.update(attributes)
 
-        self.set_attr('index', self.index)
-
         self.weights = WeightMapping(self.attributes)
         self.variables = VariableMapping(self.attributes)
         self.types = TypeMapping(self.attributes)
         self.code = CodeMapping(self.attributes)
 
-        self._set_accum_t()
+        if initialize:
+            self.index = model.next_layer()
+            self.set_attr('index', self.index)
 
-        layer_config = self.model.config.get_layer_config(self)
-        for config_key, config_value in layer_config.items():
-            config_key = convert_to_snake_case(config_key)
-            if config_key in self.attributes:
-                print(
-                    'WARNING: Config parameter "{}" overwrites an existing attribute in layer "{}" ({})'.format(
-                        config_key, self.name, self.class_name
+            self._set_accum_t()
+
+            layer_config = self.model.config.get_layer_config(self)
+            for config_key, config_value in layer_config.items():
+                config_key = convert_to_snake_case(config_key)
+                if config_key in self.attributes:
+                    print(
+                        'WARNING: Config parameter "{}" overwrites an existing attribute in layer "{}" ({})'.format(
+                            config_key, self.name, self.class_name
+                        )
                     )
-                )
-            if config_key.endswith('_t') and isinstance(
-                config_value, str
-            ):  # TODO maybe move this to __setitem__ of AttributeDict?
-                precision = self.model.config.backend.convert_precision_string(config_value)
-                config_value = NamedType(self.name + '_' + config_key, precision)
-            self.attributes[config_key] = config_value
+                if config_key.endswith('_t') and isinstance(
+                    config_value, str
+                ):  # TODO maybe move this to __setitem__ of AttributeDict?
+                    precision = self.model.config.backend.convert_precision_string(config_value)
+                    config_value = NamedType(self.name + '_' + config_key, precision)
+                self.attributes[config_key] = config_value
 
-        self.initialize()
-        self._validate_attributes()
+            self.initialize()
+            self._validate_attributes()
+        else:
+            self.index = self.get_attr('index')
 
     @property
     def class_name(self, include_wrapped=False):
@@ -277,7 +281,7 @@ class Layer:
                 data = np.zeros(self.get_output_variable().shape[-1])
             precision = IntegerPrecisionType(width=1, signed=False)
             type_name = 'bias{index}_t'
-            quantizer = None  # Don't quantize non-existant bias
+            quantizer = None  # Don't quantize non-existent bias
 
         self.add_weights_variable(
             name='bias', var_name='b{index}', type_name=type_name, precision=precision, data=data, quantizer=quantizer
@@ -342,6 +346,20 @@ class Layer:
         for data_type in self.types.values():
             precision[data_type.name] = data_type
         return precision
+
+    def serialize_state(self):
+        attrs = {}
+        for key, val in self.attributes.items():
+            if isinstance(val, Serializable):
+                attrs[key] = val.serialize()
+            else:
+                attrs[key] = val  # Should be safe, but maybe we'll need a copy here if the type is a reference
+        state = {
+            'inputs': self.inputs,
+            'outputs': self.outputs,
+            'attributes': attrs,
+        }
+        return state
 
 
 class Input(Layer):
@@ -441,7 +459,7 @@ class Reshape(Layer):
             dummy_x = np.ones(input_shape)
             dummy_y = np.reshape(dummy_x, target_shape)
             return list(dummy_y.shape)
-        return target_shape
+        return [int(dim) for dim in target_shape]  # Do not use numpy types
 
 
 class Dense(Layer):

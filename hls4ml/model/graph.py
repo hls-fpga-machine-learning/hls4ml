@@ -10,10 +10,11 @@ from hls4ml.backends import get_backend
 from hls4ml.model.flow import get_flow
 from hls4ml.model.layers import layer_map
 from hls4ml.model.optimizer import get_available_passes, optimize_model
+from hls4ml.model.types import Serializable
 from hls4ml.utils.string_utils import convert_to_snake_case
 
 
-class HLSConfig:
+class HLSConfig(Serializable):
     """The configuration class as stored in the ModelGraph.
 
     Args:
@@ -307,8 +308,90 @@ class HLSConfig:
             for layer_name, layer_cfg in layer_name_cfg.items():
                 self.parse_name_config(layer_name, layer_cfg)
 
+    def serialize(self):
+        state = {}
 
-class ModelGraph:
+        config = self.config.copy()
+        config.pop('KerasModel', None)
+        config.pop('OnnxModel', None)
+        config.pop('PytorchModel', None)
+
+        # Much of this may not be needed and is already in 'config' dict but is kept here to be sure
+        state['config'] = config
+        state['model_precision'] = self.model_precision.copy()
+        state['layer_type_precision'] = self.layer_type_precision.copy()
+        state['layer_name_precision'] = self.layer_name_precision.copy()
+
+        state['model_rf'] = self.model_rf
+        state['layer_type_rf'] = self.layer_type_rf.copy()
+        state['layer_name_rf'] = self.layer_name_rf.copy()
+
+        state['model_targ_cycles'] = self.model_targ_cycles
+        state['layer_type_targ_cycles'] = self.layer_type_targ_cycles.copy()
+        state['layer_name_targ_cycles'] = self.layer_name_targ_cycles.copy()
+
+        state['model_strategy'] = self.model_strategy
+        state['layer_type_strategy'] = self.layer_type_strategy.copy()
+        state['layer_name_strategy'] = self.layer_name_strategy.copy()
+
+        state['model_conv_implementation'] = self.model_conv_implementation
+        state['layer_type_conv_implementation'] = self.layer_type_conv_implementation.copy()
+        state['layer_name_conv_implementation'] = self.layer_name_conv_implementation.copy()
+
+        state['model_compression'] = self.model_compression
+        state['layer_type_compression'] = self.layer_type_compression.copy()
+        state['layer_name_compression'] = self.layer_name_compression.copy()
+
+        state['trace_output'] = self.trace_output
+        state['pipeline_style'] = self.pipeline_style
+        state['pipeline_ii'] = self.pipeline_ii
+        state['writer_config'] = self.writer_config.copy()
+        state['flows'] = self.flows.copy()
+        state['optimizers'] = self.optimizers.copy() if self.optimizers is not None else None
+        state['model_bf'] = self.model_bf
+
+        return state
+
+    @classmethod
+    def deserialize(cls, state):
+        config = cls(state['config'])
+
+        config.model_precision = state['model_precision']
+        config.layer_type_precision = state['layer_type_precision']
+        config.layer_name_precision = state['layer_name_precision']
+
+        config.model_rf = state['model_rf']
+        config.layer_type_rf = state['layer_type_rf']
+        config.layer_name_rf = state['layer_name_rf']
+
+        config.model_targ_cycles = state['model_targ_cycles']
+        config.layer_type_targ_cycles = state['layer_type_targ_cycles']
+        config.layer_name_targ_cycles = state['layer_name_targ_cycles']
+
+        config.model_strategy = state['model_strategy']
+        config.layer_type_strategy = state['layer_type_strategy']
+        config.layer_name_strategy = state['layer_name_strategy']
+
+        config.model_conv_implementation = state['model_conv_implementation']
+        config.layer_type_conv_implementation = state['layer_type_conv_implementation']
+        config.layer_name_conv_implementation = state['layer_name_conv_implementation']
+
+        config.model_compression = state['model_compression']
+        config.layer_type_compression = state['layer_type_compression']
+        config.layer_name_compression = state['layer_name_compression']
+
+        config.trace_output = state['trace_output']
+        config.pipeline_style = state['pipeline_style']
+        config.pipeline_ii = state['pipeline_ii']
+        config.writer_config = state['writer_config']
+        config.flows = state['flows']
+        config.optimizers = state['optimizers']
+        config.model_bf = state['model_bf']
+
+        return config
+
+
+class ModelGraph(Serializable):
     """The ModelGraph represents the network that is being processed by hls4ml.
 
     Args:
@@ -318,46 +401,57 @@ class ModelGraph:
         outputs (list, optional):  The outputs to the model. If None, determined from layer_list
     """
 
-    def __init__(self, config, layer_list, inputs=None, outputs=None):
-        self.config = HLSConfig(config)
+    def __init__(self, config, inputs=None, outputs=None):
+        self.config = config
+        self.inputs = inputs
+        self.outputs = outputs
+        self.graph = OrderedDict()
+        self._applied_flows = []  # keep track of the applied flows
+        self.index = 0
+        self.output_vars = {}
+        self._top_function_lib = None
 
-        # keep track of the applied flows
-        self._applied_flows = []
+    @classmethod
+    def from_layer_list(cls, config_dict, layer_list, inputs=None, outputs=None):
+        def _find_output_variable_names(layer_list, layer_names):
+            """Given a list of all layers, and a list input/output names, find the names of their outputs that will be used
+            as the name of the output variables."""
+            inout_nodes = []
+            for layer_name in layer_names:
+                for node in layer_list:
+                    if node['name'] == layer_name:
+                        inout_nodes.append(node)
+            all_node_output_names = [node['outputs'] if 'outputs' in node else [node['name']] for node in inout_nodes]
+            return [output for node_output_names in all_node_output_names for output in node_output_names]  # to flatten
+
+        config = HLSConfig(config_dict)
 
         # If not provided, assumes layer_list[0] is the input layer, and layer_list[-1] is output layer
-
         # Note, these are actually the variable names, which may differ from the layer name
         input_layers = inputs if inputs is not None else [layer_list[0]['name']]
         output_layers = outputs if outputs is not None else [layer_list[-1]['name']]
-        self.inputs = self._find_output_variable_names(layer_list, input_layers)
-        if self.inputs != input_layers:
+        input_names = _find_output_variable_names(layer_list, input_layers)
+        if input_names != input_layers:
             raise RuntimeError(
                 "Currently only support the case when input variables and input layer names match\n"
-                + f"Input layers = {input_layers}, input_vars = {self.inputs}"
+                + f"Input layers = {input_layers}, input_vars = {input_names}"
             )
-        self.outputs = self._find_output_variable_names(layer_list, output_layers)
+        output_names = _find_output_variable_names(layer_list, output_layers)
 
-        self.index = 0
-        self.graph = OrderedDict()  # where the nodes are stored
-        self.output_vars = {}
+        model = cls(config, input_names, output_names)
+        model._make_graph(layer_list)
+        for flow in model.config.flows:
+            model.apply_flow(flow)
 
-        self._top_function_lib = None
+        return model
 
-        self._make_graph(layer_list)
+    @classmethod
+    def from_saved_state(cls, config, graph_state_dict):
+        model = cls(config, graph_state_dict['inputs'], graph_state_dict['outputs'])
+        model._applied_flows = graph_state_dict['applied_flows']
+        model.index = graph_state_dict['index']
 
-        for flow in self.config.flows:
-            self.apply_flow(flow)
-
-    def _find_output_variable_names(self, layer_list, layer_names):
-        """Given a list of all layers, and a list input/output names, find the names of their outputs that will be used
-        as the name of the output variables."""
-        inout_nodes = []
-        for layer_name in layer_names:
-            for node in layer_list:
-                if node['name'] == layer_name:
-                    inout_nodes.append(node)
-        all_node_output_names = [node['outputs'] if 'outputs' in node else [node['name']] for node in inout_nodes]
-        return [output for node_output_names in all_node_output_names for output in node_output_names]  # to flatten
+        return model
 
     def _make_graph(self, layer_list):
         for layer in layer_list:
@@ -425,7 +519,7 @@ class ModelGraph:
             applied_passes = set()
         applied_flows[flow.name] = applied_passes
 
-    def make_node(self, kind, name, attributes, inputs, outputs=None):
+    def make_node(self, kind, name, attributes, inputs, outputs=None, initialize=True):
         """Make a new node not connected to the model graph.
 
         The 'kind' should be a valid layer registered with `register_layer`. If no outputs
@@ -439,6 +533,8 @@ class ModelGraph:
             attributes (dict): Initial set of attributes required to construct the node (Layer)
             inputs (list): List of inputs to the layer
             outputs (list, optional): The optional list of named outputs of the node
+            initialize (bool, optional): Whether to call the `initialize()` of a layer. Defaults to True.
+                Set to False during deserialization.
 
         Raises:
             Exception: If an attempt to insert a node with multiple inputs is made or if
@@ -459,7 +555,7 @@ class ModelGraph:
 
         if self.config.backend is not None:
             layer_cls = self.config.backend.create_layer_class(layer_cls)
-        node = layer_cls(self, name, attributes, inputs, outputs)
+        node = layer_cls(self, name, attributes, inputs, outputs, initialize)
         for o in node.outputs:
             out_var = node.get_output_variable(output_name=o)
             if len(self.outputs) == 1 and o in self.outputs:
@@ -894,3 +990,25 @@ class ModelGraph:
             self.write()
 
         return self.config.backend.build(self, **kwargs)
+
+    def serialize(self):
+        applied_flows = []
+        for flow_group in self._applied_flows:
+            flow_cpy = {}
+            for flow_name, opt_set in flow_group.items():
+                flow_cpy[flow_name] = list(opt_set)
+            applied_flows.append(flow_cpy)
+        state = {
+            'inputs': self.inputs.copy(),
+            'outputs': self.outputs.copy(),
+            'index': self.index,
+            'applied_flows': applied_flows,
+        }
+
+        return state
+
+    @classmethod
+    def deserialize(cls, state):
+        raise Exception(
+            '{cls.__name__} is not intended to be deserialized directly. Use {cls.__name__}.from_saved_state instead.'
+        )

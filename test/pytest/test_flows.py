@@ -54,7 +54,7 @@ DummyFlowCReqBReqA = hls4ml.model.flow.register_flow('CReqBReqA', ['C'], require
 def dummy_flow_model():
     layers = [{'class_name': 'Input', 'name': 'layer0_input', 'input_shape': [1]}]
     config = {'HLSConfig': {'Model': {'Precision': 'ap_fixed<32,16>', 'ReuseFactor': 1}, 'Flows': []}}
-    model = hls4ml.model.ModelGraph(config, layers)
+    model = hls4ml.model.ModelGraph.from_layer_list(config, layers)
     return model
 
 

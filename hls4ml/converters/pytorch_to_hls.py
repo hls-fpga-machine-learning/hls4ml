@@ -402,5 +402,5 @@ def parse_pytorch_model(config, verbose=True):
 def pytorch_to_hls(config):
     layer_list, input_layers = parse_pytorch_model(config)
     print('Creating HLS model')
-    hls_model = ModelGraph(config, layer_list, inputs=input_layers)
+    hls_model = ModelGraph.from_layer_list(config, layer_list, inputs=input_layers)
     return hls_model

@@ -24,7 +24,7 @@ def base_model(output_dir='hls4mlprj_graph_base_model', iotype='io_parallel'):
     config['ProjectName'] = 'myprj'
     config['IOType'] = iotype
     config['Backend'] = 'Vivado'
-    model = hls4ml.model.ModelGraph(config, layers)
+    model = hls4ml.model.ModelGraph.from_layer_list(config, layers)
     return model
 
 
@@ -40,7 +40,7 @@ def branch_model(output_dir='hls4mlprj_graph_branch_model', iotype='io_parallel'
     config['OutputDir'] = output_dir
     config['ProjectName'] = 'myprj'
     config['IOType'] = iotype
-    model = hls4ml.model.ModelGraph(config, layers, inputs=['layer0_input0', 'layer0_input1'])
+    model = hls4ml.model.ModelGraph.from_layer_list(config, layers, inputs=['layer0_input0', 'layer0_input1'])
     return model
 
 

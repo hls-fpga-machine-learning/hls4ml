@@ -17,6 +17,7 @@
     api/concepts
     api/configuration
     api/command
+    api/serialization
 
 .. toctree::
     :hidden:
