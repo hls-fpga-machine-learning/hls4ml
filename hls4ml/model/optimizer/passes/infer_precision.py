@@ -87,6 +87,9 @@ class InferPrecisionTypes(ConfigurableOptimizerPass):
         if node_class in ['ParametrizedActivation']:
             return self._infer_par_act_precision(node, types_to_infer)
 
+        if node_class in ['MultiHeadAttention']:
+            return self._infer_mha_precision(node, types_to_infer)
+
         # What about quantized activation layer? Setting it to 'auto' manually will break it here. We should prevent
         # this in config_from_* functions
 
@@ -571,5 +574,60 @@ class InferPrecisionTypes(ConfigurableOptimizerPass):
             in_type = node.get_input_variable().type.precision
             node.attributes['param_t'].type = in_type
             inferred_types.append('param_t')
+
+        return inferred_types
+
+    def _infer_mha_precision(self, node, types_to_infer):
+        inferred_types = []
+
+        for weightvar in (
+            'attention_output_weight',
+            'attention_output_bias',
+            'key_weight',
+            'key_bias',
+            'query_weight',
+            'query_bias',
+            'value_weight',
+            'value_bias',
+        ):
+            if f'{weightvar}_t' in types_to_infer:
+                self._infer_default_type(node, f'{weightvar}_t')
+                node.weights[weightvar].update_precision(node.types[f'{weightvar}_t'].precision)
+                inferred_types.append(f'{weightvar}_t')
+
+        if 'result_t' in types_to_infer:
+            input_precision = node.get_input_variable().type.precision
+            weight_precision = node.types['attention_output_weight_t'].precision
+            bias_precision = node.types['attention_output_bias_t'].precision
+
+            if self._all_supported_types((input_precision, weight_precision, bias_precision)):
+
+                after_weight_width = input_precision.width + weight_precision.width
+                after_weight_integer = input_precision.integer + weight_precision.integer
+                after_weight_signed = input_precision.signed or weight_precision.signed
+
+                out_signed = after_weight_signed or bias_precision.signed
+                out_integer = (
+                    max(
+                        after_weight_integer + (bias_precision.signed and not after_weight_signed),
+                        bias_precision.integer + (after_weight_signed and not bias_precision.signed),
+                    )
+                    + 1
+                )
+                out_width = out_integer + max(after_weight_width - after_weight_integer, bias_precision.fractional)
+
+                # Apply max precision constraints if specified in model config
+                max_precision = self._get_maximum_precision(node)
+                if max_precision is not None:
+                    out_width = min(out_width, max_precision.width)
+                    out_integer = min(out_integer, max_precision.integer)
+
+                out_precision = FixedPrecisionType(out_width, out_integer, out_signed)
+            else:
+                out_precision = self._get_default_precision(node)
+
+            node.types['result_t'].name = f'{node.name}_result_t'
+            node.types['result_t'].precision = out_precision
+            inferred_types.append('result_t')
 
         return inferred_types

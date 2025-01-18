@@ -284,6 +284,10 @@ def parse_keras_model(model_arch, reader):
         # Extract inbound nodes
         if 'inbound_nodes' in keras_layer and len(keras_layer['inbound_nodes']) > 0:
             input_names = [inputs_map.get(inp[0], inp[0]) for inp in keras_layer['inbound_nodes'][0]]
+            if keras_layer['inbound_nodes'][0][0][-1]:
+                # multi_head_attention  has inbound: [[['input_3', 0, 0, {'value': ['dense_3', 0, 0]}]]]
+                inputname2 = list(keras_layer['inbound_nodes'][0][0][-1].values())
+                input_names += [inp[0] for inp in inputname2]
         else:
             input_names = None
 

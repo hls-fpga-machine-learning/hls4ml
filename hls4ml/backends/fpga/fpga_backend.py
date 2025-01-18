@@ -26,6 +26,7 @@ from hls4ml.model.layers import (
     GlobalPooling2D,
     MatMul,
     Merge,
+    MultiHeadAttention,
     Pooling1D,
     Pooling2D,
     Quant,
@@ -71,6 +72,7 @@ class FPGABackend(Backend):
             Dot,
             Conv,
             MatMul,
+            MultiHeadAttention,
         ]
 
         for layer in accum_layers:

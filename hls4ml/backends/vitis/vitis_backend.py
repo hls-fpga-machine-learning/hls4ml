@@ -3,6 +3,9 @@ import sys
 
 from hls4ml.backends import VivadoBackend
 from hls4ml.model.flow import get_flow, register_flow
+from hls4ml.model.layers import MultiHeadAttention
+from hls4ml.model.optimizer import layer_optimizer
+from hls4ml.model.types import FixedPrecisionType, IntegerPrecisionType, NamedType
 from hls4ml.report import parse_vivado_report
 
 
@@ -13,6 +16,9 @@ class VitisBackend(VivadoBackend):
         self._register_flows()
 
     def _register_flows(self):
+        initializers = self._get_layer_initializers()
+        init_flow = register_flow('init_layers', initializers, requires=['optimize'], backend=self.name)
+
         validation_passes = [
             'vitis:validate_conv_implementation',
             'vitis:validate_resource_strategy',
@@ -30,6 +36,7 @@ class VitisBackend(VivadoBackend):
 
         ip_flow_requirements = get_flow('vivado:ip').requires.copy()
         ip_flow_requirements.insert(ip_flow_requirements.index('vivado:init_layers'), validation_flow)
+        ip_flow_requirements.insert(ip_flow_requirements.index('vivado:streaming'), init_flow)
         ip_flow_requirements.insert(ip_flow_requirements.index('vivado:apply_templates'), template_flow)
 
         self._default_flow = register_flow('ip', None, requires=ip_flow_requirements, backend=self.name)
@@ -93,3 +100,24 @@ class VitisBackend(VivadoBackend):
         os.chdir(curr_dir)
 
         return parse_vivado_report(model.config.get_output_dir())
+
+    @layer_optimizer(MultiHeadAttention)
+    def init_mha(self, layer):
+        # TODO Allow getting recurrent reuse factor from the config
+        reuse_factor = layer.model.config.get_reuse_factor(layer)
+        layer.set_attr('reuse_factor', reuse_factor)
+        index_t = IntegerPrecisionType(width=1, signed=False)
+        layer.set_attr('index_t', index_t)
+        if 'table_t' not in layer.attributes:
+            layer.set_attr(
+                'table_t', NamedType(name=layer.name + '_table_t', precision=FixedPrecisionType(width=24, integer=8))
+            )
+        if 'table_size' not in layer.attributes:
+            layer.set_attr('table_size', 2048)
+        if 'accum_t' not in layer.attributes:
+            layer.set_attr('accum_t', FixedPrecisionType(width=24, integer=8))
+        if 'inv_range' not in layer.attributes:
+            layer.set_attr('inv_range', 128)
+        if 'exp_range' not in layer.attributes:
+            layer.set_attr('exp_range', 8)
+        layer.set_attr('strategy', 'resource')  # latency

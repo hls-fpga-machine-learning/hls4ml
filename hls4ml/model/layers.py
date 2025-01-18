@@ -1618,6 +1618,54 @@ class SymbolicExpression(Layer):
         self.add_output_variable([len(self.get_attr('expression'))], [f'N_OUTPUTS_{self.index}'], var_name='y')
 
 
+class MultiHeadAttention(Layer):
+    _expected_attributes = [
+        Attribute('num_heads'),
+        Attribute('head_dim_key'),
+        Attribute('head_dim_value'),
+        Attribute('feature_dim'),
+        Attribute('seq_len'),
+        WeightAttribute('attention_output_weight'),
+        WeightAttribute('attention_output_bias'),
+        WeightAttribute('key_weight'),
+        WeightAttribute('key_bias'),
+        WeightAttribute('query_weight'),
+        WeightAttribute('query_bias'),
+        WeightAttribute('value_weight'),
+        WeightAttribute('value_bias'),
+        TypeAttribute('attention_output_weight'),
+        TypeAttribute('attention_output_bias'),
+        TypeAttribute('key_weight'),
+        TypeAttribute('key_bias'),
+        TypeAttribute('query_weight'),
+        TypeAttribute('query_bias'),
+        TypeAttribute('value_weight'),
+        TypeAttribute('value_bias'),
+    ]
+
+    def initialize(self):
+        weights = [
+            'attention_output_weight',
+            'attention_output_bias',
+            'key_weight',
+            'key_bias',
+            'query_weight',
+            'query_bias',
+            'value_weight',
+            'value_bias',
+        ]
+
+        for w in weights:
+            data_name = f'{w}_data'
+            var_name = f'{w}{{index}}'
+            data = self.get_attr(data_name)
+            self.add_weights_variable(name=w, var_name=var_name, data=data)
+
+        shape = self.attributes['query_shape'][1:]
+        dims = [f'seq_out_{self.index}', f'feature_out_{self.index}']
+        self.add_output_variable(shape, dims)
+
+
 layer_map = {
     'Input': Input,
     'InputLayer': Input,
@@ -1684,6 +1732,7 @@ layer_map = {
     'BatchNormOnnx': BatchNormOnnx,
     'LayerGroup': LayerGroup,
     'SymbolicExpression': SymbolicExpression,
+    'MultiHeadAttention': MultiHeadAttention,
     # TensorFlow-specific layers:
     'BiasAdd': BiasAdd,
 }
