@@ -71,6 +71,9 @@ gru_config_template = '''struct config{index} : nnet::gru_config {{
 }};\n'''
 
 gru_function_template = 'nnet::gru<{input_t}, {output_t}, {config}>({input}, {output}, {w}, {wr}, {b}, {br});'
+gru_function_initial_state_template = (
+    'nnet::gru<{input_t}, {input2_t}, {output_t}, {config}>({input}, {input2}, {output}, {w}, {wr}, {b}, {br});'
+)
 
 
 class GRUConfigTemplate(LayerConfigTemplate):
@@ -137,15 +140,23 @@ class GRUConfigTemplate(LayerConfigTemplate):
 class GRUFunctionTemplate(FunctionCallTemplate):
     def __init__(self):
         super().__init__(GRU, include_header=recurrent_include_list)
-        self.template = gru_function_template
 
     def format(self, node):
         params = self._default_function_params(node)
+        if params['pass_initial_states'] == 'true':
+            params['input2_t'] = node.get_input_variable(node.inputs[1]).type.name
+            params['input2'] = node.get_input_variable(node.inputs[1]).name
         params['w'] = node.get_weights('weight').name
         params['b'] = node.get_weights('bias').name
         params['wr'] = node.get_weights('recurrent_weight').name
         params['br'] = node.get_weights('recurrent_bias').name
-        return self.template.format(**params)
+
+        if params['pass_initial_states'] == 'true':
+            template = gru_function_initial_state_template
+        else:
+            template = gru_function_template
+
+        return template.format(**params)
 
 
 ################################################
@@ -174,6 +185,9 @@ lstm_config_template = """struct config{index} : nnet::lstm_config {{
 }};\n"""
 
 lstm_function_template = 'nnet::lstm<{input_t}, {output_t}, {config}>({input}, {output}, {weights});'
+lstm_function_initial_state_template = (
+    'nnet::lstm<{input_t}, {input2_t}, {input3_t}, {output_t}, {config}>({input}, {input2}, {input3}, {output}, {weights});'
+)
 
 
 class LSTMConfigTemplate(LayerConfigTemplate):
@@ -214,10 +228,15 @@ class LSTMConfigTemplate(LayerConfigTemplate):
 class LSTMFunctionTemplate(FunctionCallTemplate):
     def __init__(self):
         super().__init__(LSTM, include_header=recurrent_include_list)
-        self.template = lstm_function_template
 
     def format(self, node):
         params = self._default_function_params(node)
+
+        if params['pass_initial_states'] == 'true':
+            params['input2_t'] = node.get_input_variable(node.inputs[1]).type.name
+            params['input2'] = node.get_input_variable(node.inputs[1]).name
+            params['input3'] = node.get_input_variable(node.inputs[2]).name
+            params['input3_t'] = node.get_input_variable(node.inputs[2]).type.name
 
         types = ['i', 'f', 'c', 'o']
         params['weights'] = ''
@@ -228,7 +247,12 @@ class LSTMFunctionTemplate(FunctionCallTemplate):
         for t in types:
             params['weights'] += 'bias_{}_{}{}'.format(t, str(node.index), ',' if t != 'o' else '')
 
-        return self.template.format(**params)
+        if params['pass_initial_states'] == 'true':
+            template = lstm_function_initial_state_template
+        else:
+            template = lstm_function_template
+
+        return template.format(**params)
 
 
 ################################################

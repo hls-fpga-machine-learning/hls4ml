@@ -67,6 +67,8 @@ recr_config_template = """struct config{index} : nnet::{recr_type}_config {{
 }};\n"""
 
 recr_function_template = 'nnet::{recr_type}_stack<{input_t}, {output_t}, {config}>({input}, {output}, {w}, {wr}, {b}, {br});'
+recr_function_template_initial_states_lstm = 'nnet::{recr_type}_stack<{input_t}, {input2_t}, {input3_t}, {output_t}, {config}>({input}, {input2}, {input3}, {output}, {w}, {wr}, {b}, {br});'  # noqa: E501
+recr_function_template_initial_states_gru = 'nnet::{recr_type}_stack<{input_t}, {input2_t}, {output_t}, {config}>({input}, {input2}, {output}, {w}, {wr}, {b}, {br});'  # noqa: E501
 
 recr_include_list = ['nnet_utils/nnet_recurrent.h']
 
@@ -186,10 +188,16 @@ class RecurrentConfigTemplate(LayerConfigTemplate):
 class RecurrentFunctionTemplate(FunctionCallTemplate):
     def __init__(self):
         super().__init__((LSTM, GRU), include_header=recr_include_list)
-        self.template = recr_function_template
 
     def format(self, node):
         params = self._default_function_params(node)
+        if params['pass_initial_states'] == 'true':
+            params['input2_t'] = node.get_input_variable(node.inputs[1]).type.name
+            params['input2'] = node.get_input_variable(node.inputs[1]).name
+            if node.class_name == 'LSTM':
+                params['input3'] = node.get_input_variable(node.inputs[2]).name
+                params['input3_t'] = node.get_input_variable(node.inputs[2]).type.name
+
         params['w'] = node.get_weights('weight').name
         params['b'] = node.get_weights('bias').name
         params['wr'] = node.get_weights('recurrent_weight').name
@@ -198,4 +206,12 @@ class RecurrentFunctionTemplate(FunctionCallTemplate):
         params['recurrent_activation'] = node.get_attr('recurrent_activation')
         params['recr_type'] = node.class_name.lower()
 
-        return self.template.format(**params)
+        if params['pass_initial_states'] == 'true':
+            if node.class_name == 'LSTM':
+                template = recr_function_template_initial_states_lstm
+            else:
+                template = recr_function_template_initial_states_gru
+        else:
+            template = recr_function_template
+
+        return template.format(**params)

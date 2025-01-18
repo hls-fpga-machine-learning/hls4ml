@@ -206,6 +206,47 @@ void gru(data_T data[CONFIG_T::n_in], res_T res[CONFIG_T::n_outputs * CONFIG_T::
     }
 }
 
+template <class data_T, class data2_T, class res_T, typename CONFIG_T>
+void gru(data_T data[CONFIG_T::n_in], data2_T h[CONFIG_T::n_units], res_T res[CONFIG_T::n_outputs * CONFIG_T::n_units],
+         const typename CONFIG_T::weight_t weights[3 * CONFIG_T::n_units * CONFIG_T::n_in],
+         const typename CONFIG_T::weight_t recurrent_weights[3 * CONFIG_T::n_units * CONFIG_T::n_units],
+         const typename CONFIG_T::bias_t bias[3 * CONFIG_T::n_units],
+         const typename CONFIG_T::bias_t recurrent_bias[3 * CONFIG_T::n_units]) {
+
+    hls_register data_T x[CONFIG_T::n_in];
+    //    hls_register res_T h[CONFIG_T::n_units];
+
+    //   #pragma unroll
+    //    for (int i = 0; i < CONFIG_T::n_units; i++) {
+    //        h[i] = 0;
+    //    }
+
+    // Loop depedency - cannot pipeline
+    #pragma disable_loop_pipelining
+    for (int t = 0; t < CONFIG_T::n_timesteps; t++) {
+        // Get data at current time step
+        #pragma unroll
+        for (int j = 0; j < CONFIG_T::n_in; j++) {
+            x[j] = data[j + t * CONFIG_T::n_in];
+        }
+
+        nnet::gru_cell<data_T, res_T, CONFIG_T>(x, h, weights, recurrent_weights, bias, recurrent_bias);
+
+        if (CONFIG_T::return_sequences) {
+            #pragma unroll
+            for (int i = 0; i < CONFIG_T::n_units; i++) {
+                res[CONFIG_T::n_units * t + i] = h[i];
+            }
+        }
+    }
+
+    if (!CONFIG_T::return_sequences) {
+        #pragma unroll
+        for (int i = 0; i < (CONFIG_T::n_units); i++) {
+            res[i] = h[i];
+        }
+    }
+}
 //----------------------
 // SimpleRNN
 //----------------------
@@ -665,6 +706,79 @@ INIT_LOOP:
     for (int x = 0; x < CONFIG_T::n_out; x++) {
         hidden_state[x][0] = 0;
         cell_state[x][0] = 0;
+    }
+
+    // Input dimension
+    #pragma disable_loop_pipelining
+    for (int i = 0; i < CONFIG_T::n_timesteps; i++) {
+        // Data at current time step
+        for (int x = 0; x < CONFIG_T::n_in; x++) {
+            in[x] = data[x + i * CONFIG_T::n_in];
+        }
+
+        // Hidden state at current time step
+        #pragma unroll
+        for (int x = 0; x < CONFIG_T::n_out; x++) {
+            hidden_state_temp[x] = hidden_state[x][i];
+            cell_state_temp[x] = cell_state[x][i];
+        }
+
+        // Do LSTM
+        lstm_cell<data_T, res_T, CONFIG_T>(in, hidden_state_temp, h, cell_state_temp, c, WI, WF, WC, WO, RWI, RWF, RWC, RWO,
+                                           BI, BF, BC, BO);
+
+        // Write result
+        #pragma unroll
+        for (int x = 0; x < CONFIG_T::n_out; x++) {
+            hidden_state[x][i + 1] = h[x];
+            cell_state[x][i + 1] = c[x];
+        }
+    }
+
+    if (CONFIG_T::return_sequences == 0) {
+        // Output when return_sequences is false
+        #pragma unroll
+        for (int x = 0; x < CONFIG_T::n_out; x++) {
+            res[x] = hidden_state[x][CONFIG_T::n_timesteps];
+        }
+    } else {
+        // Output when return_sequences is true
+        #pragma unroll
+        for (int x = 0; x < CONFIG_T::n_timesteps; x++) {
+            for (int h = 0; h < CONFIG_T::n_out; h++) {
+                res[x * CONFIG_T::n_out + h] = hidden_state[h][x + 1];
+            }
+        }
+    }
+}
+
+template <class data_T, class data2_T, class data3_T, class res_T, class CONFIG_T>
+void lstm(data_T data[CONFIG_T::n_timesteps * CONFIG_T::n_in], data2_T hidden_state_initial[CONFIG_T::n_out],
+          data3_T cell_state_initial[CONFIG_T::n_out], res_T res[CONFIG_T::n_outputs * CONFIG_T::n_out],
+          const typename CONFIG_T::weight_t WI[CONFIG_T::n_in * CONFIG_T::n_out],
+          const typename CONFIG_T::weight_t WF[CONFIG_T::n_in * CONFIG_T::n_out],
+          const typename CONFIG_T::weight_t WC[CONFIG_T::n_in * CONFIG_T::n_out],
+          const typename CONFIG_T::weight_t WO[CONFIG_T::n_in * CONFIG_T::n_out],
+          const typename CONFIG_T::weight_t RWI[CONFIG_T::n_out * CONFIG_T::n_out],
+          const typename CONFIG_T::weight_t RWF[CONFIG_T::n_out * CONFIG_T::n_out],
+          const typename CONFIG_T::weight_t RWC[CONFIG_T::n_out * CONFIG_T::n_out],
+          const typename CONFIG_T::weight_t RWO[CONFIG_T::n_out * CONFIG_T::n_out],
+          const typename CONFIG_T::bias_t BI[CONFIG_T::n_out], const typename CONFIG_T::bias_t BF[CONFIG_T::n_out],
+          const typename CONFIG_T::bias_t BC[CONFIG_T::n_out], const typename CONFIG_T::bias_t BO[CONFIG_T::n_out]) {
+    res_T hidden_state[CONFIG_T::n_out][CONFIG_T::n_timesteps + 1] hls_register;
+    res_T hidden_state_temp[CONFIG_T::n_out] hls_register;
+    res_T cell_state[CONFIG_T::n_out][CONFIG_T::n_timesteps + 1] hls_register;
+    res_T cell_state_temp[CONFIG_T::n_out] hls_register;
+    res_T h[CONFIG_T::n_out] hls_register;
+    res_T c[CONFIG_T::n_out] hls_register;
+    data_T in[CONFIG_T::n_in] hls_register;
+
+// Set initially hidden state (output) to zero
+INIT_LOOP:
+    #pragma unroll
+    for (int x = 0; x < CONFIG_T::n_out; x++) {
+        hidden_state[x][0] = hidden_state_initial[x];
+        cell_state[x][0] = cell_state_initial[x];
     }
 
     // Input dimension
