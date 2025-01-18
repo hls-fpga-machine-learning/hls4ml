@@ -62,6 +62,7 @@ class LayerConfigTemplate(Template):
         params = self._default_params(layer)
         params['iotype'] = layer.model.config.get_config_value('IOType')
         params['reuse'] = layer.get_attr('reuse_factor')
+        params['namespace'] = layer.model.config.get_writer_config().get('Namespace', None) or 'nnet'
 
         return params
 

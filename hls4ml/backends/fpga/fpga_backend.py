@@ -755,7 +755,7 @@ class FPGABackend(Backend):
 
         generated_code = (
             "template<class data_T, typename CONFIG_T>\n"
-            "class fill_buffer_{index} : public FillConv1DBuffer<data_T, CONFIG_T> {{\n"
+            "class fill_buffer_{index} : public nnet::FillConv1DBuffer<data_T, CONFIG_T> {{\n"
             "    public:\n"
             "    static void fill_buffer(\n"
             "        data_T data[CONFIG_T::in_width * CONFIG_T::n_chan],\n"
@@ -885,7 +885,7 @@ class FPGABackend(Backend):
 
         generated_code = (
             "template<class data_T, typename CONFIG_T>\n"
-            "class fill_buffer_{index} : public FillConv2DBuffer<data_T, CONFIG_T> {{\n"
+            "class fill_buffer_{index} : public nnet::FillConv2DBuffer<data_T, CONFIG_T> {{\n"
             "    public:\n"
             "    static void fill_buffer(\n"
             "        data_T data[CONFIG_T::in_height * CONFIG_T::in_width * CONFIG_T::n_chan],\n"

@@ -20,7 +20,7 @@ dense_config_template = """struct config{index} : nnet::dense_config {{
     typedef {weight_t.name} weight_t;
     typedef {index_t.name} index_t;
     template<class data_T, class res_T, class CONFIG_T>
-    using kernel = nnet::{dense_function}<data_T, res_T, CONFIG_T>;
+    using kernel = {dense_function}<data_T, res_T, CONFIG_T>;
     template<class x_T, class y_T>
     using product = nnet::product::{product_type}<x_T, y_T>;
 }};\n"""
@@ -43,16 +43,18 @@ class DenseConfigTemplate(LayerConfigTemplate):
             node.get_input_variable().type.precision, node.get_weights('weight').type.precision
         )
 
+        namespace = params['namespace']
+
         if node.get_attr('strategy').lower() == 'latency':
-            params['dense_function'] = 'DenseLatency'
+            params['dense_function'] = 'nnet::DenseLatency'
         elif node.get_attr('strategy').lower() == 'resource':
             if int(params['reuse_factor']) <= int(params['n_in']):
-                params['dense_function'] = 'DenseResource_rf_leq_nin'
+                params['dense_function'] = 'nnet::DenseResource_rf_leq_nin'
             else:
-                params['dense_function'] = 'DenseResource_rf_gt_nin_rem0'
+                params['dense_function'] = 'nnet::DenseResource_rf_gt_nin_rem0'
             # The 3rd case is never used
         elif node.get_attr('strategy').lower() == 'resource_unrolled':
-            params['dense_function'] = f'dense_resource_unrolled_{node.index}'
+            params['dense_function'] = f'{namespace}::dense_resource_unrolled_{node.index}'
 
         return self.template.format(**params)
 
